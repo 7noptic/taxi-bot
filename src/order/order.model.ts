@@ -1,10 +1,11 @@
-import typeOrder from '../types/Enum/typeOrder';
-import { AddressModel } from '../address/address.model';
+import typeOrder from './Enum/type-order';
+import { IAddress } from '../user/passenger/interface/address.interface';
 
 export class OrderModel {
+	_id: string;
 	type: typeOrder;
-	addressFrom: AddressModel;
-	addressTo: AddressModel;
+	addressFrom: IAddress;
+	addressTo: IAddress;
 	comment: string;
 	price: number;
 }

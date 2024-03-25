@@ -1,4 +1,5 @@
 export class CityModel {
-  name: string;
-  implements: string[]
+	_id: string;
+	name: string;
+	implements: string[];
 }

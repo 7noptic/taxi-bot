@@ -1,6 +1,6 @@
-import { CityModel } from '../city/city.model';
+import { CityModel } from '../../../city/city.model';
 
-export class AddressModel {
+export interface IAddress {
 	name: string;
 	city: CityModel;
 	district: string;
