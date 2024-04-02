@@ -3,13 +3,13 @@ import { StatusOrder } from './Enum/status-order';
 import { Address, Passenger } from '../passenger/passenger.model';
 import { Driver } from '../driver/driver.model';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { HydratedDocument, Types } from 'mongoose';
+import { HydratedDocument } from 'mongoose';
 
 export type OrderDocument = HydratedDocument<Order>;
 
 @Schema({ timestamps: true })
 export class Order {
-	@Prop(String)
+	@Prop({ type: String, unique: true })
 	numberOrder: string;
 
 	@Prop({ enum: TypeOrder })
@@ -30,11 +30,11 @@ export class Order {
 	@Prop({ enum: StatusOrder })
 	status: StatusOrder;
 
-	@Prop({ type: Types.ObjectId, ref: Passenger.name })
-	passengerId: Passenger;
+	@Prop({ type: Passenger['chatId'], ref: Passenger.name })
+	passengerId: Passenger['chatId'];
 
-	@Prop({ type: Types.ObjectId, ref: Driver.name })
-	driverId: Driver;
+	@Prop({ type: Driver['chatId'], ref: Driver.name })
+	driverId: Driver['chatId'];
 }
 
 export const OrderSchema = SchemaFactory.createForClass(Order);

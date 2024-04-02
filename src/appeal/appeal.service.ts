@@ -15,24 +15,28 @@ export class AppealService {
 		private readonly shortIdService: ShortIdService,
 	) {}
 
-	async create(dto: CreateAppealDto) {
+	async create(dto: CreateAppealDto): Promise<AppealDocument> {
 		const numberAppeal = this.shortIdService.generateUniqueId(TypeId.Appeal);
 		return this.appealModel.create({ ...dto, numberAppeal });
 	}
 
-	async findById(id: string) {
+	async findById(id: string): Promise<AppealDocument | null> {
 		return this.appealModel.findById(id).exec();
 	}
 
-	async deleteById(id: string) {
+	async deleteById(id: string): Promise<AppealDocument | null> {
 		return this.appealModel.findByIdAndDelete(id).exec();
 	}
 
-	async updateById(id: string, dto: Partial<CreateAppealDto>) {
+	async updateById(id: string, dto: Partial<CreateAppealDto>): Promise<AppealDocument | null> {
 		return this.appealModel.findByIdAndUpdate(id, dto, { new: true }).exec();
 	}
 
-	async sendMessage(id: string, dto: SendMessageDto) {
+	async findByUserId(userId: string): Promise<AppealDocument[] | null> {
+		return this.appealModel.find({ from: userId }).exec();
+	}
+
+	async sendMessage(id: string, dto: SendMessageDto): Promise<AppealDocument | null> {
 		const message: MessagesDto = {
 			from: dto.from,
 			text: dto.text,

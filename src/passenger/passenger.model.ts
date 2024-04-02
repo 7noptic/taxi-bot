@@ -39,7 +39,7 @@ export class Passenger {
 	@Prop({ type: String, unique: true })
 	phone: string;
 
-	@Prop(String)
+	@Prop({ type: String, unique: true })
 	chatId: string;
 
 	@Prop({ type: String, default: '' })

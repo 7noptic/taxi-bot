@@ -1,4 +1,4 @@
 export enum TypeId {
-	Order = 'order',
-	Appeal = 'appeal',
+	Order = 'Заказ',
+	Appeal = 'Обращение',
 }
