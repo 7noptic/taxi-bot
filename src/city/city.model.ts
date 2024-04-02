@@ -1,5 +1,16 @@
-export class CityModel {
-	_id: string;
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { HydratedDocument } from 'mongoose';
+import { defaultCityPrice } from '../constants/default.constants';
+
+export type CityDocument = HydratedDocument<City>;
+
+@Schema()
+export class City {
+	@Prop({ type: String, required: true })
 	name: string;
-	implements: string[];
+
+	@Prop({ type: String, default: defaultCityPrice })
+	minPrice: number;
 }
+
+export const CitySchema = SchemaFactory.createForClass(City);

@@ -1,6 +1,4 @@
-const enum TypeOrder {
+export enum TypeOrder {
 	DELIVERY = 'delivery',
 	TRIP = 'trip',
 }
-
-export default TypeOrder;

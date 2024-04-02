@@ -1,22 +1,21 @@
-import { Body, Controller, Delete, Get, HttpCode, Param, Patch, Post } from '@nestjs/common';
-import { CityModel } from './city.model';
-import { FindCityDto } from './dto/find-city.dto';
+import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
+import { CreateCityDto } from './dto/create-city.dto';
 
 @Controller('city')
 export class CityController {
 	@Post('create')
-	async create(@Body() dto: Omit<CityModel, '_id'>) {}
+	async create(@Body() dto: CreateCityDto) {}
 
 	@Get(':id')
-	async get(@Param('id') id: CityModel['_id']) {}
+	async get(@Param('id') id: string) {}
 
 	@Delete(':id')
-	async delete(@Param('id') id: CityModel['_id']) {}
+	async delete(@Param('id') id: string) {}
 
 	@Patch(':id')
-	async update(@Param('id') id: CityModel['_id'], @Body() dto: CityModel) {}
+	async update(@Param('id') id: string, @Body() dto: CreateCityDto) {}
 
-	@HttpCode(200)
-	@Post()
-	async find(@Body() dto: FindCityDto) {}
+	// @HttpCode(200)
+	// @Post()
+	// async find(@Body() dto: FindCityDto) {}
 }
