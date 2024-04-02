@@ -18,7 +18,7 @@ export class Appeal {
 	@Prop({ type: [String], default: [] })
 	messages: Message[];
 
-	@Prop(String)
+	@Prop({ type: String, unique: true })
 	numberAppeal: string;
 
 	@Prop({ type: Types.ObjectId, ref: Passenger.name || Driver.name })

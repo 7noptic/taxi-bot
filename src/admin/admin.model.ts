@@ -7,6 +7,7 @@ export type AdminDocument = HydratedDocument<Admin>;
 export class Admin {
 	@Prop({ type: String, default: admin })
 	name: string;
+
 	@Prop(String)
 	login: string;
 }

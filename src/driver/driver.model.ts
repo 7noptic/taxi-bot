@@ -18,19 +18,19 @@ export class Car {
 
 @Schema()
 export class Driver {
-	@Prop({ type: String, default: '' })
+	@Prop({ type: String })
 	username: string;
 
-	@Prop({ type: String, unique: true })
+	@Prop({ type: String })
 	phone: string;
 
-	@Prop(String)
+	@Prop({ type: String, unique: true })
 	chatId: string;
 
-	@Prop({ type: String, default: '' })
+	@Prop({ type: String })
 	first_name: string;
 
-	@Prop({ type: String, default: '' })
+	@Prop({ type: String })
 	last_name: string;
 
 	@Prop({ type: City })
