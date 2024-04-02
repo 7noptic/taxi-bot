@@ -4,7 +4,7 @@ import { defaultCityPrice } from '../constants/default.constants';
 
 export type CityDocument = HydratedDocument<City>;
 
-@Schema()
+@Schema({ timestamps: true })
 export class City {
 	@Prop({ type: String, unique: true })
 	name: string;

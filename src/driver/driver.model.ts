@@ -16,7 +16,7 @@ export class Car {
 	carNumber: string;
 }
 
-@Schema()
+@Schema({ timestamps: true })
 export class Driver {
 	@Prop({ type: String })
 	username: string;
@@ -36,7 +36,7 @@ export class Driver {
 	@Prop({ type: City })
 	city: City;
 
-	@Prop({ type: [Number], default: defaultRating })
+	@Prop({ type: [Number], default: defaultRating, _id: false })
 	rating: number[];
 
 	@Prop({ type: Car })

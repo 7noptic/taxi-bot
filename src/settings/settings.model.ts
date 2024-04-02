@@ -3,7 +3,7 @@ import { HydratedDocument } from 'mongoose';
 
 export type SettingsDocument = HydratedDocument<Settings>;
 
-@Schema()
+@Schema({ timestamps: true })
 export class Settings {
 	@Prop({ type: Number, default: 0 })
 	commission: number;

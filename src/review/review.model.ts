@@ -6,7 +6,7 @@ import { HydratedDocument, Types } from 'mongoose';
 
 export type ReviewDocument = HydratedDocument<Review>;
 
-@Schema()
+@Schema({ timestamps: true })
 export class Review {
 	@Prop({ type: Types.ObjectId, ref: Driver.name || Passenger.name })
 	from: Passenger | Driver;

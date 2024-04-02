@@ -7,8 +7,11 @@ import { HydratedDocument, Types } from 'mongoose';
 
 export type OrderDocument = HydratedDocument<Order>;
 
-@Schema()
+@Schema({ timestamps: true })
 export class Order {
+	@Prop(String)
+	numberOrder: string;
+
 	@Prop({ enum: TypeOrder })
 	type: TypeOrder;
 

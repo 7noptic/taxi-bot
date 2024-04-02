@@ -31,7 +31,7 @@ export class Address {
 	address: string;
 }
 
-@Schema()
+@Schema({ timestamps: true })
 export class Passenger {
 	@Prop({ type: String, default: '' })
 	username: string;
@@ -51,7 +51,7 @@ export class Passenger {
 	@Prop({ type: City })
 	city: City;
 
-	@Prop({ type: [Number], default: defaultRating })
+	@Prop({ type: [Number], default: defaultRating, _id: false })
 	rating: number[];
 
 	@Prop({ type: () => [Address], default: [] })
