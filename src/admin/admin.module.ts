@@ -8,5 +8,6 @@ import { AdminService } from './admin.service';
 	imports: [MongooseModule.forFeature([{ name: Admin.name, schema: AdminSchema }])],
 	controllers: [AdminController],
 	providers: [AdminService],
+	exports: [AdminService],
 })
 export class AdminModule {}

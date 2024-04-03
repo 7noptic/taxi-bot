@@ -9,7 +9,7 @@ export class Admin {
 	@Prop({ type: String, default: admin })
 	name: string;
 
-	@Prop(String)
+	@Prop({ type: String, unique: true })
 	email: string;
 
 	@Prop(String)

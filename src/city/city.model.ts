@@ -9,7 +9,7 @@ export class City {
 	@Prop({ type: String, unique: true })
 	name: string;
 
-	@Prop({ type: String, default: defaultCityPrice })
+	@Prop({ type: Number, default: defaultCityPrice })
 	minPrice: number;
 }
 
