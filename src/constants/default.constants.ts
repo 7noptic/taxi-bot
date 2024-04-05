@@ -8,3 +8,10 @@ export const STRING_LENGTH_ERROR = (string: string = 'строки'): string =>
 export const NOT_FOUND_ERROR = (string: string = 'Объект'): string => `Такой ${string} не найден`;
 
 export const NOT_EMAIL = 'Укажите валидный email';
+
+export const NOT_SUPPORTED_CITY_ERROR = 'Данный город не поддерживается в текущий момент.';
+
+export enum BotName {
+	Taxi = 'taxi',
+	Help = 'help',
+}

@@ -1,6 +1,4 @@
-import { City } from '../../city/city.model';
-import { IsString, ValidateNested } from 'class-validator';
-import { Type } from 'class-transformer';
+import { IsString } from 'class-validator';
 
 export class CreatePassengerDto {
 	@IsString()
@@ -18,7 +16,6 @@ export class CreatePassengerDto {
 	@IsString()
 	last_name: string;
 
-	@ValidateNested()
-	@Type(() => City)
-	city: City;
+	@IsString()
+	city: string;
 }

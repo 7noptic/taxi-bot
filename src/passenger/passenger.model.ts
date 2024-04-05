@@ -9,24 +9,6 @@ export class Address {
 	@Prop(String)
 	name: string;
 
-	@Prop({ type: City })
-	city: City;
-
-	@Prop({ type: String, required: false })
-	district?: string;
-
-	@Prop({ type: String, required: false })
-	street?: string;
-
-	@Prop({ type: String, required: false })
-	house?: string;
-
-	@Prop({ type: String, required: false })
-	entrance?: string;
-
-	@Prop({ type: String, required: false })
-	comment?: string;
-
 	@Prop(String)
 	address: string;
 }
@@ -36,11 +18,11 @@ export class Passenger {
 	@Prop({ type: String, default: '' })
 	username: string;
 
-	@Prop({ type: String, unique: true })
+	@Prop({ type: String })
 	phone: string;
 
-	@Prop({ type: String, unique: true })
-	chatId: string;
+	@Prop({ type: Number, unique: true })
+	chatId: number;
 
 	@Prop({ type: String, default: '' })
 	first_name: string;
@@ -48,8 +30,8 @@ export class Passenger {
 	@Prop({ type: String, default: '' })
 	last_name: string;
 
-	@Prop({ type: City })
-	city: City;
+	@Prop({ type: String, ref: City.name })
+	city: City['name'];
 
 	@Prop({ type: [Number], default: defaultRating, _id: false })
 	rating: number[];

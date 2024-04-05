@@ -1,11 +1,29 @@
-import { Body, Controller, Param, Patch, Post } from '@nestjs/common';
+import {
+	Body,
+	Controller,
+	Get,
+	Param,
+	Patch,
+	Post,
+	UsePipes,
+	ValidationPipe,
+} from '@nestjs/common';
 import { CreatePassengerDto } from './dto/create-passenger.dto';
+import { PassengerService } from './passenger.service';
 
 @Controller('passenger')
 export class PassengerController {
+	constructor(private readonly passengerService: PassengerService) {}
+
+	@UsePipes(new ValidationPipe())
 	@Post('create')
-	async create(@Body() dto: CreatePassengerDto) {}
+	async create(@Body() dto: CreatePassengerDto) {
+		return this.passengerService.create(dto);
+	}
 
 	@Patch(':id')
 	async update(@Param('id') id: string, @Body() dto: CreatePassengerDto) {}
+
+	@Get(':id')
+	async findFullPassengerData() {}
 }

@@ -8,5 +8,6 @@ import { Driver, DriverSchema } from './driver.model';
 	imports: [MongooseModule.forFeature([{ name: Driver.name, schema: DriverSchema }])],
 	controllers: [DriverController],
 	providers: [DriverService],
+	exports: [DriverService],
 })
 export class DriverModule {}

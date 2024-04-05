@@ -8,5 +8,6 @@ import { Passenger, PassengerSchema } from './passenger.model';
 	imports: [MongooseModule.forFeature([{ name: Passenger.name, schema: PassengerSchema }])],
 	controllers: [PassengerController],
 	providers: [PassengerService],
+	exports: [PassengerService],
 })
 export class PassengerModule {}

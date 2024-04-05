@@ -6,4 +6,8 @@ import { Model } from 'mongoose';
 @Injectable()
 export class DriverService {
 	constructor(@InjectModel(Driver.name) private driverModel: Model<DriverDocument>) {}
+
+	async findByChatId(chatId: number) {
+		return await this.driverModel.findOne({ chatId }).exec();
+	}
 }

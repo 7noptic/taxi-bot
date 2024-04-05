@@ -24,8 +24,8 @@ export class Driver {
 	@Prop({ type: String })
 	phone: string;
 
-	@Prop({ type: String, unique: true })
-	chatId: string;
+	@Prop({ type: Number, unique: true })
+	chatId: number;
 
 	@Prop({ type: String })
 	first_name: string;
