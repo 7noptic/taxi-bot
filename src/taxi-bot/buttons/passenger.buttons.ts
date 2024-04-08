@@ -11,4 +11,22 @@ export const PassengerButtons = {
 		delete: '❌ Удалить адрес',
 		back: '↩️ Назад',
 	},
+	help: {
+		faq: {
+			label: '❓ Вопрос-ответ',
+			callback: 'faq',
+		},
+		price: {
+			label: '💵 Стоимость',
+			callback: 'price',
+		},
+		about: {
+			label: 'ℹ️ О сервисе',
+			callback: 'about',
+		},
+		support: {
+			label: '🔔 Обратиться в поддержку',
+			callback: 'support',
+		},
+	},
 };

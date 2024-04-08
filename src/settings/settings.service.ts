@@ -18,7 +18,7 @@ export class SettingsService {
 		return this.settingsModel.findOne();
 	}
 
-	async updateSettings(newSettings: Settings) {
+	async updateSettings(newSettings: Partial<Settings>) {
 		return this.settingsModel.findOneAndUpdate({}, newSettings, { new: true });
 	}
 }

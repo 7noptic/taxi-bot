@@ -19,6 +19,8 @@ import { Mongo } from '@telegraf/session/mongodb';
 import { session } from 'telegraf';
 import { TaxiBotModule } from '../taxi-bot/taxi-bot.module';
 import { BotName } from '../constants/default.constants';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 
 const store = Mongo({
 	url: 'mongodb://localhost/taxi',
@@ -29,6 +31,9 @@ const store = Mongo({
 	imports: [
 		ConfigModule.forRoot(),
 		MongooseModule.forRoot('mongodb://localhost/taxi'),
+		ServeStaticModule.forRoot({
+			rootPath: join(__dirname, '..', 'public'),
+		}),
 		OrderModule,
 		CityModule,
 		AuthModule,
