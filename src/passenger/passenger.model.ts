@@ -6,7 +6,7 @@ import { defaultRating } from '../constants/default.constants';
 export type PassengerDocument = HydratedDocument<Passenger>;
 
 export class Address {
-	@Prop(String)
+	@Prop({ type: String, unique: true })
 	name: string;
 
 	@Prop(String)

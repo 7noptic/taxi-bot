@@ -1,4 +1,6 @@
 export enum ScenesType {
-	RegistrationDriver = 'registrationDriver',
-	RegistrationPassenger = 'registrationPassenger',
+	RegistrationDriver = 'registrationDriverScene',
+	RegistrationPassenger = 'registrationPassengerScene',
+	AddAddress = 'addAddressScene',
+	DeleteAddress = 'DeleteAddressScene',
 }

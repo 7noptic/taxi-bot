@@ -27,4 +27,8 @@ export class CityService {
 	async updateById(id: string, dto: CreateCityDto) {
 		return this.cityModel.findByIdAndUpdate(id, dto).exec();
 	}
+
+	async getAll() {
+		return this.cityModel.find().exec();
+	}
 }

@@ -3,12 +3,12 @@ import { WizardContext } from 'telegraf/scenes';
 import { ScenesType } from './scenes.type';
 import { Markup } from 'telegraf';
 import { CityService } from '../../city/city.service';
-import { RegistrationDriverContext } from '../contexts/registration-driver.context';
 import { cityName } from '../../decorators/getCityFromInlineQuery.decorator';
 import { PassengerService } from '../../passenger/passenger.service';
 import { userInfo } from '../../decorators/getUserInfo.decorator';
 import { wizardState } from '../../decorators/getWizardState';
 import { PassengerAdapter } from '../../passenger/passenger.adapter';
+import { RegistrationPassengerContext } from '../contexts/registration-passenger.context';
 import {
 	errorRegistration,
 	greeting,
@@ -16,9 +16,11 @@ import {
 	WhatName,
 	WhatNumber,
 } from '../constatnts/message.constants';
+import { registrationKeyboard } from '../keyboards/registration.keyboard';
+import { passengerProfileKeyboard } from '../keyboards/passenger-profile.keyboard';
 
-@Wizard(ScenesType.RegistrationDriver)
-export class RegisterDriverScene {
+@Wizard(ScenesType.RegistrationPassenger)
+export class RegisterPassengerScene {
 	constructor(
 		private readonly cityService: CityService,
 		private readonly passengerService: PassengerService,
@@ -34,7 +36,7 @@ export class RegisterDriverScene {
 	@On('text')
 	@WizardStep(2)
 	async onName(
-		@Ctx() ctx: WizardContext & RegistrationDriverContext,
+		@Ctx() ctx: WizardContext & RegistrationPassengerContext,
 		@Message() msg: { text: string },
 	): Promise<string> {
 		ctx.wizard.state.name = msg.text;
@@ -45,7 +47,7 @@ export class RegisterDriverScene {
 	@On('text')
 	@WizardStep(3)
 	async onNumber(
-		@Ctx() ctx: WizardContext & RegistrationDriverContext,
+		@Ctx() ctx: WizardContext & RegistrationPassengerContext,
 		@Message() msg: { text: string },
 	): Promise<string> {
 		ctx.wizard.state.phone = msg.text;
@@ -62,10 +64,10 @@ export class RegisterDriverScene {
 	@On('callback_query')
 	@WizardStep(4)
 	async onLocation(
-		@Ctx() ctx: WizardContext & RegistrationDriverContext,
+		@Ctx() ctx: WizardContext & RegistrationPassengerContext,
 		@cityName() city: string,
 		@userInfo() user,
-		@wizardState() state: RegistrationDriverContext['wizard']['state'],
+		@wizardState() state: RegistrationPassengerContext['wizard']['state'],
 	) {
 		try {
 			const createPassengerDto = this.passengerAdapter.convertRegisterInfoToPassenger({
@@ -76,9 +78,11 @@ export class RegisterDriverScene {
 			});
 			await ctx.scene.leave();
 			await this.passengerService.create(createPassengerDto);
-			return greeting(state.name);
+			await ctx.reply(greeting(state.name), passengerProfileKeyboard());
+			return '';
 		} catch (e) {
 			await ctx.scene.leave();
+			await ctx.reply('', registrationKeyboard());
 			return errorRegistration;
 		}
 	}

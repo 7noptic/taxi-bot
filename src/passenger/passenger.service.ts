@@ -14,7 +14,31 @@ export class PassengerService {
 	}
 
 	async addAddress(chatId: Passenger['chatId'], address: CreateAddressDto) {
-		const user = this.passengerModel.findOne({ chatId }).exec();
+		return await this.passengerModel
+			.findOneAndUpdate({ chatId }, { $push: { address: address } }, { new: true })
+			.exec();
+	}
+
+	async deleteAddress(chatId: number, addressName: string): Promise<number> {
+		const beforeUpdatePassenger = await this.passengerModel.findOne({ chatId }).exec();
+
+		if (!beforeUpdatePassenger) {
+			return 0;
+		}
+
+		const initialLength = beforeUpdatePassenger.address.length;
+
+		const afterUpdate = await this.passengerModel
+			.findOneAndUpdate({ chatId }, { $pull: { address: { name: addressName } } }, { new: true })
+			.exec();
+
+		if (!afterUpdate) {
+			return 0;
+		}
+
+		const finalLength = afterUpdate.address.length;
+
+		return initialLength - finalLength;
 	}
 
 	async findByChatId(chatId: number) {
