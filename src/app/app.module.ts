@@ -18,9 +18,10 @@ import { TelegrafModule } from 'nestjs-telegraf';
 import { Mongo } from '@telegraf/session/mongodb';
 import { session } from 'telegraf';
 import { TaxiBotModule } from '../taxi-bot/taxi-bot.module';
-import { BotName } from '../constants/default.constants';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
+import { BotName } from '../types/bot-name.type';
+import { HelpBotModule } from '../help-bot/help-bot.module';
 
 const store = Mongo({
 	url: 'mongodb://localhost/taxi',
@@ -50,6 +51,7 @@ const store = Mongo({
 			useFactory: (configService: ConfigService) => ({
 				token: configService.get('TAXI_BOT_TOKEN'),
 				middlewares: [session({ store })],
+				include: [TaxiBotModule],
 			}),
 			inject: [ConfigService],
 		}),
@@ -58,6 +60,7 @@ const store = Mongo({
 			botName: BotName.Help,
 			useFactory: async (configService: ConfigService) => ({
 				token: configService.get('HELP_BOT_TOKEN'),
+				include: [HelpBotModule],
 			}),
 			inject: [ConfigService],
 		}),

@@ -1,17 +1,17 @@
 import { IsEmail, IsOptional, IsString, Length } from 'class-validator';
-import { NOT_EMAIL, STRING_LENGTH_ERROR } from '../../constants/default.constants';
+import { ConstantsService } from '../../constants/constants.service';
 
 export class CreateAdminDto {
 	@IsString()
-	@Length(3, 30, { message: STRING_LENGTH_ERROR('имени') })
+	@Length(3, 30, { message: ConstantsService.STRING_LENGTH_ERROR('имени') })
 	@IsOptional()
 	name: string;
 
 	@IsString()
-	@IsEmail({}, { message: NOT_EMAIL })
+	@IsEmail({}, { message: ConstantsService.NOT_EMAIL })
 	email: string;
 
 	@IsString()
-	@Length(6, 20, { message: STRING_LENGTH_ERROR('пароля') })
+	@Length(6, 20, { message: ConstantsService.STRING_LENGTH_ERROR('пароля') })
 	password: string;
 }

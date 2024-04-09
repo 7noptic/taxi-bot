@@ -1,10 +1,10 @@
 import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { AdminDocument } from '../admin/admin.model';
-import { NOT_FOUND_ERROR } from '../constants/default.constants';
 import { compare } from 'bcryptjs';
 import { WRONG_PASSWORD_ERROR } from './auth.constants';
 import { AdminService } from '../admin/admin.service';
 import { JwtService } from '@nestjs/jwt';
+import { ConstantsService } from '../constants/constants.service';
 
 @Injectable()
 export class AuthService {
@@ -17,7 +17,7 @@ export class AuthService {
 		const user = await this.adminService.findAdminByEmail(email);
 
 		if (!user) {
-			throw new NotFoundException(NOT_FOUND_ERROR('администратор'));
+			throw new NotFoundException(ConstantsService.NOT_FOUND_ERROR('администратор'));
 		}
 
 		const isCorrectPassword = await compare(password, user.passwordHash);

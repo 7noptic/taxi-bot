@@ -1,11 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
-import {
-	aboutTextDefault,
-	faqTextDefault,
-	priceTextDefault,
-	supportTextDefault,
-} from '../constants/default.constants';
+import { ConstantsService } from '../constants/constants.service';
 
 export type SettingsDocument = HydratedDocument<Settings>;
 
@@ -14,16 +9,16 @@ export class Settings {
 	@Prop({ type: Number, default: 0 })
 	commission: number;
 
-	@Prop({ type: String, default: priceTextDefault })
+	@Prop({ type: String, default: ConstantsService.priceTextDefault })
 	priceText: string;
 
-	@Prop({ type: String, default: faqTextDefault })
+	@Prop({ type: String, default: ConstantsService.faqTextDefault })
 	faqText: string;
 
-	@Prop({ type: String, default: aboutTextDefault })
+	@Prop({ type: String, default: ConstantsService.aboutTextDefault })
 	aboutText: string;
 
-	@Prop({ type: String, default: supportTextDefault })
+	@Prop({ type: String, default: ConstantsService.supportTextDefault })
 	supportText: string;
 }
 

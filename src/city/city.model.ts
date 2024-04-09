@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
-import { defaultCityPrice } from '../constants/default.constants';
+import { ConstantsService } from '../constants/constants.service';
 
 export type CityDocument = HydratedDocument<City>;
 
@@ -9,7 +9,7 @@ export class City {
 	@Prop({ type: String, unique: true })
 	name: string;
 
-	@Prop({ type: Number, default: defaultCityPrice })
+	@Prop({ type: Number, default: ConstantsService.defaultCityPrice })
 	minPrice: number;
 }
 

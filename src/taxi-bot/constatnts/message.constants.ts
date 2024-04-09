@@ -1,4 +1,5 @@
 import { Passenger } from '../../passenger/passenger.model';
+import { ConstantsService } from '../../constants/constants.service';
 
 export const WhatName = 'Как вас зовут?';
 export const WhatNumber = 'Введите ваш номер телефона';
@@ -23,14 +24,9 @@ export const errorDeleteAddress =
 
 export const NoAddresses =
 	'У вас пока нет добавленных адресов, но вы можете добавить адрес нажав на кнопку ниже';
-export const getEndingWord = (number: number, words: string[]) => {
-	const cases = [2, 0, 1, 1, 1, 2];
-	return words[
-		number % 100 > 4 && number % 100 < 20 ? 2 : cases[number % 10 < 5 ? number % 10 : 5]
-	];
-};
+
 export const YourAddresses = (addresses: Passenger['address']) =>
-	`У вас добавлено ${addresses.length} ${getEndingWord(addresses.length, ['адрес', 'адреса', 'адресов'])}.\n\n${addresses.map((address) => address.name + ' - ' + address.address).join('\n')}`;
+	`У вас добавлено ${addresses.length} ${ConstantsService.getEndingWord(addresses.length, ['адрес', 'адреса', 'адресов'])}.\n\n${addresses.map((address) => address.name + ' - ' + address.address).join('\n')}`;
 
 export const goBack = 'Возвращаемся назад';
 

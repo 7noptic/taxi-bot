@@ -1,8 +1,6 @@
 import { Action, Ctx, Hears, InjectBot, Update } from 'nestjs-telegraf';
 import { Markup, Telegraf } from 'telegraf';
-import { BotName, getProfileInfoPassenger } from '../../constants/default.constants';
 import { PassengerService } from '../../passenger/passenger.service';
-import { GreetingPassengerMessage } from '../../constants/messages.constants';
 import { registrationButtons } from '../buttons/registration.buttons';
 import { TaxiBotContext } from '../taxi-bot.context';
 import { ChatId } from '../../decorators/getChatId.decorator';
@@ -19,6 +17,8 @@ import { backKeyboard } from '../keyboards/back.keyboard';
 import { Passenger } from '../../passenger/passenger.model';
 import { passengerHelpKeyboard } from '../keyboards/passenger-help.keyboard';
 import { SettingsService } from '../../settings/settings.service';
+import { BotName } from '../../types/bot-name.type';
+import { ConstantsService } from '../../constants/constants.service';
 
 @Update()
 export class TaxiBotPassengerUpdate {
@@ -30,7 +30,7 @@ export class TaxiBotPassengerUpdate {
 
 	@Hears(registrationButtons.passenger.label)
 	async registrationPassenger(@Ctx() ctx: TaxiBotContext) {
-		await ctx.reply(GreetingPassengerMessage, Markup.removeKeyboard());
+		await ctx.reply(ConstantsService.GreetingPassengerMessage, Markup.removeKeyboard());
 		await ctx.scene.enter(ScenesType.RegistrationPassenger);
 	}
 
@@ -62,16 +62,14 @@ export class TaxiBotPassengerUpdate {
 	@Hears(PassengerButtons.profile.profile)
 	async getProfile(@Ctx() ctx: TaxiBotContext) {
 		const passenger = ctx.session.user as Passenger;
-		await ctx.replyWithHTML(getProfileInfoPassenger(passenger));
-		// await ctx.sendPhoto({ source: ProfileImagePath }, backKeyboard());
-		// await ctx.scene.enter(ScenesType.DeleteAddress);
+		await ctx.sendPhoto({ url: ConstantsService.images.profile });
+		await ctx.replyWithHTML(ConstantsService.getProfileInfoPassenger(passenger));
 	}
 
 	@Hears(PassengerButtons.profile.help)
 	async getHelp(@Ctx() ctx: TaxiBotContext) {
+		await ctx.sendPhoto({ url: ConstantsService.images.help });
 		await ctx.replyWithHTML('помощь', passengerHelpKeyboard());
-		// await ctx.sendPhoto({ source: ProfileImagePath }, backKeyboard());
-		// await ctx.scene.enter(ScenesType.DeleteAddress);
 	}
 
 	@Action(PassengerButtons.help.faq.callback)

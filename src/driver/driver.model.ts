@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { City } from '../city/city.model';
-import { defaultRating } from '../constants/default.constants';
 import { HydratedDocument } from 'mongoose';
+import { ConstantsService } from '../constants/constants.service';
 
 export type DriverDocument = HydratedDocument<Driver>;
 
@@ -36,7 +36,7 @@ export class Driver {
 	@Prop({ type: City })
 	city: City;
 
-	@Prop({ type: [Number], default: defaultRating, _id: false })
+	@Prop({ type: [Number], default: ConstantsService.defaultRating, _id: false })
 	rating: number[];
 
 	@Prop({ type: Car })

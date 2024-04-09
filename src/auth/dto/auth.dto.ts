@@ -1,9 +1,9 @@
 import { IsEmail, IsString } from 'class-validator';
-import { NOT_EMAIL } from '../../constants/default.constants';
+import { ConstantsService } from '../../constants/constants.service';
 
 export class AuthDto {
 	@IsString()
-	@IsEmail({}, { message: NOT_EMAIL })
+	@IsEmail({}, { message: ConstantsService.NOT_EMAIL })
 	email: string;
 
 	@IsString()

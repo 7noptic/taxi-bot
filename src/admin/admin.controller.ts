@@ -13,8 +13,8 @@ import {
 import { AdminService } from './admin.service';
 import { CreateAdminDto } from './dto/create-admin.dto';
 import { ALREADY_REGISTERED_ERROR } from '../auth/auth.constants';
-import { NOT_FOUND_ERROR } from '../constants/default.constants';
 import { JwtGuard } from '../guards/jwt.guard';
+import { ConstantsService } from '../constants/constants.service';
 
 @Controller('admin')
 export class AdminController {
@@ -35,7 +35,7 @@ export class AdminController {
 	async deleteById(@Param('id') id: string) {
 		const deletedAdmin = await this.adminService.findAdminById(id);
 		if (!deletedAdmin) {
-			throw new NotFoundException(NOT_FOUND_ERROR('администратор'));
+			throw new NotFoundException(ConstantsService.NOT_FOUND_ERROR('администратор'));
 		}
 		return await this.adminService.deleteById(id);
 	}
