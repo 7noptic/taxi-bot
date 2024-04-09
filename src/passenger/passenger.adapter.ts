@@ -2,7 +2,6 @@ import { CreatePassengerDto } from './dto/create-passenger.dto';
 
 export class PassengerAdapter {
 	convertRegisterInfoToPassenger(info: any): CreatePassengerDto {
-		console.log(info);
 		const dto = {
 			username: info.username,
 			phone: info.phone,

@@ -12,5 +12,6 @@ import { ShortIdModule } from '../short-id/short-id.module';
 	],
 	controllers: [AppealController],
 	providers: [AppealService],
+	exports: [AppealService],
 })
 export class AppealModule {}

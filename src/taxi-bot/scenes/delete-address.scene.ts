@@ -31,7 +31,6 @@ export class DeleteAddressScene {
 		try {
 			await ctx.scene.leave();
 			const countDeletedAddress = await this.passengerService.deleteAddress(chatId, msg.text);
-			console.log(countDeletedAddress);
 			await ctx.reply(
 				countDeletedAddress > 0 ? successDeleteAddress : errorDeleteAddress,
 				passengerProfileKeyboard(),

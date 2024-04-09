@@ -1,8 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { Passenger } from '../passenger/passenger.model';
+import { HelpBotButtons } from '../help-bot/buttons/help-bot.buttons';
 
 @Injectable()
 export class ConstantsService {
+	static readonly taxiBotName = '@testimTaxi_bot';
+	static readonly helpBotName = '@HelpForTestimTaxi_bot';
 	static readonly defaultRating = [5, 5, 5, 5, 5, 5, 5, 5, 5, 5];
 	static readonly defaultCityPrice = 100;
 	static readonly admin = 'admin';
@@ -15,8 +18,7 @@ export class ConstantsService {
 		'наличными, или переводом на карту водителя.';
 	static readonly faqTextDefault = '<b>Вопрос</b>\n' + 'Ответ\n\n';
 	static readonly aboutTextDefault = '<b>О нас</b>\n' + 'тыры пыры';
-	static readonly supportTextDefault =
-		'Для обращения в поддержку напишите этому боту @HelpForTestimTaxi_bot';
+	static readonly supportTextDefault = `Для обращения в поддержку напишите этому боту ${ConstantsService.helpBotName}`;
 	static readonly images = {
 		profile: 'https://i.postimg.cc/gJT76zSQ/profile.jpg',
 		help: 'https://i.postimg.cc/c4HCQ0xh/pict.jpg',
@@ -29,6 +31,25 @@ export class ConstantsService {
 	static readonly GreetingPassengerMessage =
 		'Супер, давай познакомимся немного поближе что-бы ты смог пользоваться нашим удобным сервисом';
 	static readonly greetingMessage = 'Добро пожаловать!';
+	static readonly HelpBotMessage = {
+		NotRegistration: `Вы не зарегистрированы в нашем сервисе по заказу такси, чтобы воспользоваться поддержкой сначала зарегистрируйтесь в ${ConstantsService.taxiBotName}`,
+		GreetingWithOpenAppeal: `Добро пожаловать в бот поддержки, для того чтобы открыть обращение нажмите на кнопку\n\n${HelpBotButtons.open.label}`,
+		GreetingWithCloseAppeal:
+			`Добро пожаловать в бот поддержки, в данный момент у вас есть незакрытое обращение.` +
+			`\nЧтобы продолжить общение по вопросу, просто отправьте любое сообщение.` +
+			`\nДля того чтобы открыть обращение нажмите на кнопку\n\n${HelpBotButtons.close.label}`,
+		SuccessClosedAppeal: '✅ Обращение успешно закрыто',
+		ErrorClosedAppeal:
+			'❌ Что-то пошло не так.\nПопробуйте перезапустить бота выполнив команду /start',
+		WhatNumberOrder: 'Введите номер заказа или отправьте "-", если вопрос не по заказу',
+		WhatMessage: 'Введите сообщение, оператор постарается вам ответить как можно скорее',
+		OpenAppeal: 'Для создания обращения ответьте на пару вопросов',
+		SuccessOpenAppeal:
+			'✅ Обращение успешно открыто, ожидание первого освободившегося оператора...',
+		ErrorOpenAppeal: '❌ Что-то пошло не так.\nПопробуйте еще раз',
+		NotOpenedAppeal: 'У вас нет открытых обращений.',
+		SuccessSendMessage: '✅ Сообщение успешно отправлено',
+	};
 
 	static readonly getEndingWord = (number: number, words: string[]) => {
 		const cases = [2, 0, 1, 1, 1, 2];

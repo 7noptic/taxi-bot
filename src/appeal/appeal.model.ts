@@ -6,6 +6,11 @@ import { Admin } from '../admin/admin.model';
 
 export type AppealDocument = HydratedDocument<Appeal>;
 
+export enum StatusAppeal {
+	Open = 'open',
+	Close = 'close',
+}
+
 export class Message {
 	@Prop({ type: Types.ObjectId, ref: Passenger.name || Admin.name })
 	from: Passenger | Admin;
@@ -27,6 +32,9 @@ export class Appeal {
 
 	@Prop({ type: String })
 	numberOrder: string;
+
+	@Prop({ type: String, enum: Object.values(StatusAppeal), default: StatusAppeal.Open })
+	status: StatusAppeal;
 
 	@Prop({ type: Types.ObjectId, ref: Passenger.name || Driver.name })
 	from: PassengerDocument['chatId'] | DriverDocument['chatId'];

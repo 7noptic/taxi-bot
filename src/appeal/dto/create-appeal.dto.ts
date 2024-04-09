@@ -7,7 +7,7 @@ import { Type } from 'class-transformer';
 
 export class MessagesDto {
 	@IsString()
-	from: PassengerDocument['_id'] | AdminDocument['_id'];
+	from: CreateAppealDto['from'] | AdminDocument['_id'];
 
 	@IsString()
 	text: string;
@@ -22,7 +22,7 @@ export class CreateAppealDto {
 	numberOrder?: Order['numberOrder'];
 
 	@IsString()
-	from: PassengerDocument['_id'] | DriverDocument['_id'];
+	from: PassengerDocument['chatId'] | DriverDocument['chatId'];
 
 	@IsArray()
 	@ValidateNested({ each: true })

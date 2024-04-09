@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Appeal, AppealDocument } from './appeal.model';
+import { Appeal, AppealDocument, StatusAppeal } from './appeal.model';
 import { Model } from 'mongoose';
 import { CreateAppealDto, MessagesDto } from './dto/create-appeal.dto';
 import { ShortIdService } from '../short-id/short-id.service';
@@ -22,6 +22,20 @@ export class AppealService {
 
 	async findById(id: string): Promise<AppealDocument | null> {
 		return this.appealModel.findById(id).exec();
+	}
+
+	async findOpenedAppealByChatId(chatId: number): Promise<AppealDocument | null> {
+		return this.appealModel.findOne({ from: chatId, status: StatusAppeal.Open }).exec();
+	}
+
+	async closeAppealByChatId(chatId: number): Promise<AppealDocument | null> {
+		return await this.appealModel
+			.findOneAndUpdate(
+				{ from: chatId, status: StatusAppeal.Open },
+				{ $set: { status: StatusAppeal.Close } },
+				{ new: true },
+			)
+			.exec();
 	}
 
 	async deleteById(id: string): Promise<AppealDocument | null> {

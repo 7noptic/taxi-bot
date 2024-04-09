@@ -15,10 +15,17 @@ import { CreateAppealDto } from './dto/create-appeal.dto';
 import { AppealService } from './appeal.service';
 import { SendMessageDto } from './dto/send-message.dto';
 import { APPEAL_NOT_FOUND } from './appeal.constants';
+import { InjectBot } from 'nestjs-telegraf';
+import { BotName } from '../types/bot-name.type';
+import { Telegraf } from 'telegraf';
+import { HelpBotContext } from '../help-bot/help-bot.context';
 
 @Controller('appeal')
 export class AppealController {
-	constructor(private readonly appealService: AppealService) {}
+	constructor(
+		private readonly appealService: AppealService,
+		@InjectBot(BotName.Help) private readonly helpBot: Telegraf<HelpBotContext>,
+	) {}
 
 	@UsePipes(new ValidationPipe())
 	@Post('create')
@@ -30,6 +37,7 @@ export class AppealController {
 	@HttpCode(200)
 	@Post('sendMessage/:id')
 	async sendMessage(@Param('id') id: string, @Body() dto: SendMessageDto) {
+		await this.helpBot.telegram.sendMessage(dto.chatId, dto.text);
 		return this.appealService.sendMessage(id, dto);
 	}
 
