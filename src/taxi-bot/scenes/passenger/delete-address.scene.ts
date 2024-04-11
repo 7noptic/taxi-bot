@@ -1,15 +1,15 @@
 import { Ctx, Message, On, Wizard, WizardStep } from 'nestjs-telegraf';
 import { WizardContext } from 'telegraf/scenes';
-import { ScenesType } from './scenes.type';
-import { PassengerService } from '../../passenger/passenger.service';
+import { ScenesType } from '../scenes.type';
+import { PassengerService } from '../../../passenger/passenger.service';
 import {
 	errorDeleteAddress,
 	successDeleteAddress,
 	WhatNameAddress,
-} from '../constatnts/message.constants';
-import { AddAddressContext } from '../contexts/add-address.context';
-import { ChatId } from '../../decorators/getChatId.decorator';
-import { passengerProfileKeyboard } from '../keyboards/passenger-profile.keyboard';
+} from '../../constatnts/message.constants';
+import { AddAddressContext } from '../../contexts/add-address.context';
+import { ChatId } from '../../../decorators/getChatId.decorator';
+import { passengerProfileKeyboard } from '../../keyboards/passenger-profile.keyboard';
 
 @Wizard(ScenesType.DeleteAddress)
 export class DeleteAddressScene {
@@ -38,8 +38,8 @@ export class DeleteAddressScene {
 			return '';
 		} catch (e) {
 			await ctx.scene.leave();
-			await ctx.reply('', passengerProfileKeyboard());
-			return errorDeleteAddress;
+			await ctx.reply(errorDeleteAddress, passengerProfileKeyboard());
+			return '';
 		}
 	}
 }

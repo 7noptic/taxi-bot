@@ -21,7 +21,7 @@ export class Passenger {
 	phone: string;
 	@Prop({ type: Number, unique: true })
 	chatId: number;
-	@Prop({ type: String, default: '' })
+	@Prop({ type: String, default: ConstantsService.passenger })
 	first_name: string;
 	@Prop({ type: String, default: '' })
 	last_name: string;

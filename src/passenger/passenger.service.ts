@@ -41,6 +41,39 @@ export class PassengerService {
 		return initialLength - finalLength;
 	}
 
+	async editName(chatId: Passenger['chatId'], new_name: Passenger['first_name']) {
+		return this.passengerModel.findOneAndUpdate(
+			{ chatId },
+			{
+				$set: {
+					first_name: new_name,
+				},
+			},
+		);
+	}
+
+	async editPhone(chatId: Passenger['chatId'], new_phone: Passenger['phone']) {
+		return this.passengerModel.findOneAndUpdate(
+			{ chatId },
+			{
+				$set: {
+					phone: new_phone,
+				},
+			},
+		);
+	}
+
+	async editCity(chatId: Passenger['chatId'], new_city: Passenger['city']) {
+		return this.passengerModel.findOneAndUpdate(
+			{ chatId },
+			{
+				$set: {
+					city: new_city,
+				},
+			},
+		);
+	}
+
 	async findByChatId(chatId: number) {
 		return await this.passengerModel.findOne({ chatId }).exec();
 	}

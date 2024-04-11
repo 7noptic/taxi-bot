@@ -1,23 +1,25 @@
 import { Ctx, Message, On, Wizard, WizardStep } from 'nestjs-telegraf';
 import { WizardContext } from 'telegraf/scenes';
-import { ScenesType } from './scenes.type';
+import { ScenesType } from '../scenes.type';
 import { Markup } from 'telegraf';
-import { CityService } from '../../city/city.service';
-import { cityName } from '../../decorators/getCityFromInlineQuery.decorator';
-import { PassengerService } from '../../passenger/passenger.service';
-import { userInfo } from '../../decorators/getUserInfo.decorator';
-import { wizardState } from '../../decorators/getWizardState';
-import { PassengerAdapter } from '../../passenger/passenger.adapter';
-import { RegistrationPassengerContext } from '../contexts/registration-passenger.context';
+import { CityService } from '../../../city/city.service';
+import { cityName } from '../../../decorators/getCityFromInlineQuery.decorator';
+import { PassengerService } from '../../../passenger/passenger.service';
+import { userInfo } from '../../../decorators/getUserInfo.decorator';
+import { wizardState } from '../../../decorators/getWizardState';
+import { PassengerAdapter } from '../../../passenger/passenger.adapter';
+import { RegistrationPassengerContext } from '../../contexts/registration-passenger.context';
 import {
 	errorRegistration,
 	greeting,
 	WhatCity,
 	WhatName,
 	WhatNumber,
-} from '../constatnts/message.constants';
-import { registrationKeyboard } from '../keyboards/registration.keyboard';
-import { passengerProfileKeyboard } from '../keyboards/passenger-profile.keyboard';
+} from '../../constatnts/message.constants';
+import { registrationKeyboard } from '../../keyboards/registration.keyboard';
+import { passengerProfileKeyboard } from '../../keyboards/passenger-profile.keyboard';
+import { UserType } from '../../../types/user.type';
+import { TaxiBotContext } from '../../taxi-bot.context';
 
 @Wizard(ScenesType.RegistrationPassenger)
 export class RegisterPassengerScene {
@@ -64,7 +66,7 @@ export class RegisterPassengerScene {
 	@On('callback_query')
 	@WizardStep(4)
 	async onLocation(
-		@Ctx() ctx: WizardContext & RegistrationPassengerContext,
+		@Ctx() ctx: WizardContext & TaxiBotContext & RegistrationPassengerContext,
 		@cityName() city: string,
 		@userInfo() user,
 		@wizardState() state: RegistrationPassengerContext['wizard']['state'],
@@ -77,13 +79,15 @@ export class RegisterPassengerScene {
 				phone: state.phone,
 			});
 			await ctx.scene.leave();
-			await this.passengerService.create(createPassengerDto);
+			const passenger = await this.passengerService.create(createPassengerDto);
 			await ctx.reply(greeting(state.name), passengerProfileKeyboard());
+			ctx.session.userType = UserType.Passenger;
+			ctx.session.user = passenger;
 			return '';
 		} catch (e) {
 			await ctx.scene.leave();
-			await ctx.reply('', registrationKeyboard());
-			return errorRegistration;
+			await ctx.reply(errorRegistration, registrationKeyboard());
+			return '';
 		}
 	}
 }

@@ -4,6 +4,8 @@ import { Context } from 'telegraf';
 
 export const ChatId = createParamDecorator((data, context: ExecutionContextHost) => {
 	const ctx = context.getArgByIndex(0) as Context;
-	// @ts-ignore
-	return ctx.message?.from?.id || ctx?.update?.message?.from.id;
+	return (
+		// @ts-ignore
+		ctx.message?.from?.id || ctx?.update?.message?.from.id || ctx?.update?.callback_query?.from.id
+	);
 });

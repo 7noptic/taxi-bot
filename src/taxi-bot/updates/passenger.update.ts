@@ -8,8 +8,12 @@ import { ScenesType } from '../scenes/scenes.type';
 import { PassengerButtons } from '../buttons/passenger.buttons';
 import {
 	NoAddresses,
+	settingsText,
 	startAddAddress,
 	startDeleteAddress,
+	startEditCity,
+	startEditName,
+	startEditPhone,
 	YourAddresses,
 } from '../constatnts/message.constants';
 import { passengerAddressesKeyboard } from '../keyboards/passenger-addresses.keyboard';
@@ -19,6 +23,7 @@ import { passengerHelpKeyboard } from '../keyboards/passenger-help.keyboard';
 import { SettingsService } from '../../settings/settings.service';
 import { BotName } from '../../types/bot-name.type';
 import { ConstantsService } from '../../constants/constants.service';
+import { passengerSettingsKeyboard } from '../keyboards/passenger-settings.keyboard';
 
 @Update()
 export class TaxiBotPassengerUpdate {
@@ -28,12 +33,14 @@ export class TaxiBotPassengerUpdate {
 		private readonly settingsService: SettingsService,
 	) {}
 
+	/************************** Регистрация пользователя **************************/
 	@Hears(registrationButtons.passenger.label)
 	async registrationPassenger(@Ctx() ctx: TaxiBotContext) {
 		await ctx.reply(ConstantsService.GreetingPassengerMessage, Markup.removeKeyboard());
 		await ctx.scene.enter(ScenesType.RegistrationPassenger);
 	}
 
+	/************************** Пункт Адреса **************************/
 	@Hears(PassengerButtons.profile.addresses)
 	async getAddresses(@Ctx() ctx: TaxiBotContext, @ChatId() chatId: number) {
 		try {
@@ -59,6 +66,7 @@ export class TaxiBotPassengerUpdate {
 		await ctx.scene.enter(ScenesType.DeleteAddress);
 	}
 
+	/************************** Пункт Профиль **************************/
 	@Hears(PassengerButtons.profile.profile)
 	async getProfile(@Ctx() ctx: TaxiBotContext) {
 		const passenger = ctx.session.user as Passenger;
@@ -66,10 +74,11 @@ export class TaxiBotPassengerUpdate {
 		await ctx.replyWithHTML(ConstantsService.getProfileInfoPassenger(passenger));
 	}
 
+	/************************** Пункт Помощь **************************/
 	@Hears(PassengerButtons.profile.help)
 	async getHelp(@Ctx() ctx: TaxiBotContext) {
 		await ctx.sendPhoto({ url: ConstantsService.images.help });
-		await ctx.replyWithHTML('помощь', passengerHelpKeyboard());
+		await ctx.replyWithHTML(PassengerButtons.profile.help, passengerHelpKeyboard());
 	}
 
 	@Action(PassengerButtons.help.faq.callback)
@@ -94,5 +103,31 @@ export class TaxiBotPassengerUpdate {
 	async getSupportText(@Ctx() ctx: TaxiBotContext) {
 		const settings = await this.settingsService.getSettings();
 		await ctx.replyWithHTML(settings.supportText);
+	}
+
+	/************************** Пункт Настройки **************************/
+	@Hears(PassengerButtons.profile.settings)
+	async getSettings(@Ctx() ctx: TaxiBotContext, @ChatId() chatId: number) {
+		const { first_name, phone, city } = await this.passengerService.findByChatId(chatId);
+		await ctx.sendPhoto({ url: ConstantsService.images.settings });
+		await ctx.replyWithHTML(settingsText, passengerSettingsKeyboard(first_name, phone, city));
+	}
+
+	@Action(PassengerButtons.settings.name.callback)
+	async editName(@Ctx() ctx: TaxiBotContext) {
+		await ctx.reply(startEditName, backKeyboard());
+		await ctx.scene.enter(ScenesType.EditName);
+	}
+
+	@Action(PassengerButtons.settings.phone.callback)
+	async editPhone(@Ctx() ctx: TaxiBotContext) {
+		await ctx.reply(startEditPhone, backKeyboard());
+		await ctx.scene.enter(ScenesType.EditPhone);
+	}
+
+	@Action(PassengerButtons.settings.city.callback)
+	async editCity(@Ctx() ctx: TaxiBotContext) {
+		await ctx.reply(startEditCity, backKeyboard());
+		await ctx.scene.enter(ScenesType.EditCity);
 	}
 }

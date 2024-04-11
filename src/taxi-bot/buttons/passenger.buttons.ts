@@ -29,4 +29,15 @@ export const PassengerButtons = {
 			callback: 'support',
 		},
 	},
+	settings: {
+		name: {
+			callback: 'edit-name',
+		},
+		phone: {
+			callback: 'edit-phone',
+		},
+		city: {
+			callback: 'edit-city',
+		},
+	},
 };

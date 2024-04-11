@@ -1,19 +1,19 @@
 import { Ctx, Message, On, Wizard, WizardStep } from 'nestjs-telegraf';
 import { WizardContext } from 'telegraf/scenes';
-import { ScenesType } from './scenes.type';
-import { PassengerService } from '../../passenger/passenger.service';
-import { wizardState } from '../../decorators/getWizardState';
-import { RegistrationPassengerContext } from '../contexts/registration-passenger.context';
+import { ScenesType } from '../scenes.type';
+import { PassengerService } from '../../../passenger/passenger.service';
+import { wizardState } from '../../../decorators/getWizardState';
+import { RegistrationPassengerContext } from '../../contexts/registration-passenger.context';
 import {
 	errorAddAddress,
 	successAddAddress,
 	WhatAddress,
 	WhatNameAddress,
-} from '../constatnts/message.constants';
-import { AddAddressContext } from '../contexts/add-address.context';
-import { CreateAddressDto } from '../../passenger/dto/create-address.dto';
-import { ChatId } from '../../decorators/getChatId.decorator';
-import { passengerProfileKeyboard } from '../keyboards/passenger-profile.keyboard';
+} from '../../constatnts/message.constants';
+import { AddAddressContext } from '../../contexts/add-address.context';
+import { CreateAddressDto } from '../../../passenger/dto/create-address.dto';
+import { ChatId } from '../../../decorators/getChatId.decorator';
+import { passengerProfileKeyboard } from '../../keyboards/passenger-profile.keyboard';
 
 @Wizard(ScenesType.AddAddress)
 export class AddAddressScene {
@@ -57,8 +57,8 @@ export class AddAddressScene {
 			return '';
 		} catch (e) {
 			await ctx.scene.leave();
-			await ctx.reply('', passengerProfileKeyboard());
-			return errorAddAddress;
+			await ctx.reply(errorAddAddress, passengerProfileKeyboard());
+			return '';
 		}
 	}
 }

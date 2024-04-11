@@ -5,5 +5,5 @@ import { Context } from 'telegraf';
 export const userInfo = createParamDecorator((data, context: ExecutionContextHost) => {
 	const ctx = context.getArgByIndex(0) as Context;
 	// @ts-ignore
-	return ctx.update.callback_query?.from;
+	return ctx.update.callback_query?.from || ctx.update.message?.from;
 });

@@ -9,6 +9,7 @@ export class ConstantsService {
 	static readonly defaultRating = [5, 5, 5, 5, 5, 5, 5, 5, 5, 5];
 	static readonly defaultCityPrice = 100;
 	static readonly admin = 'admin';
+	static readonly passenger = 'passenger';
 	static readonly NOT_EMAIL = 'Укажите валидный email';
 	static readonly NOT_SUPPORTED_CITY_ERROR = 'Данный город не поддерживается в текущий момент.';
 	static readonly priceTextDefault =
@@ -17,7 +18,19 @@ export class ConstantsService {
 		'ℹ️ Оплата производится\n' +
 		'наличными, или переводом на карту водителя.';
 	static readonly faqTextDefault = '<b>Вопрос</b>\n' + 'Ответ\n\n';
-	static readonly aboutTextDefault = '<b>О нас</b>\n' + 'тыры пыры';
+	static readonly aboutTextDefault =
+		'<b>ℹ️ 0 сервисе</b>' +
+		'\n\n' +
+		'<b>Подвези бот</b> - это информационный ' +
+		'сервис, с помощью которого ' +
+		'водители находят пассажиров, а ' +
+		'пассажиры - водителей в формате ' +
+		'чат-бота Telegram.\n\n' +
+		'Пользуясь сервисом, Вы ' +
+		'даёте согласие на обработку ' +
+		'персональных данных и ' +
+		'акцептируете Пользовательское ' +
+		'соглашение.';
 	static readonly supportTextDefault = `Для обращения в поддержку напишите этому боту ${ConstantsService.helpBotName}`;
 	static readonly images = {
 		profile: 'https://i.postimg.cc/gJT76zSQ/profile.jpg',
