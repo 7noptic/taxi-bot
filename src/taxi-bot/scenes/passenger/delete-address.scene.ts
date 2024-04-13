@@ -1,4 +1,4 @@
-import { Ctx, Message, On, Wizard, WizardStep } from 'nestjs-telegraf';
+import { Ctx, Hears, Message, On, Wizard, WizardStep } from 'nestjs-telegraf';
 import { WizardContext } from 'telegraf/scenes';
 import { ScenesType } from '../scenes.type';
 import { PassengerService } from '../../../passenger/passenger.service';
@@ -10,10 +10,16 @@ import {
 import { AddAddressContext } from '../../contexts/add-address.context';
 import { ChatId } from '../../../decorators/getChatId.decorator';
 import { passengerProfileKeyboard } from '../../keyboards/passenger-profile.keyboard';
+import { commonButtons } from '../../buttons/common.buttons';
+import { TaxiBotContext } from '../../taxi-bot.context';
+import { TaxiBotCommonUpdate } from '../../updates/common.update';
 
 @Wizard(ScenesType.DeleteAddress)
 export class DeleteAddressScene {
-	constructor(private readonly passengerService: PassengerService) {}
+	constructor(
+		private readonly passengerService: PassengerService,
+		private readonly taxiBotService: TaxiBotCommonUpdate,
+	) {}
 
 	@WizardStep(1)
 	async onSceneEnter(@Ctx() ctx: WizardContext): Promise<string> {
@@ -41,5 +47,10 @@ export class DeleteAddressScene {
 			await ctx.reply(errorDeleteAddress, passengerProfileKeyboard());
 			return '';
 		}
+	}
+
+	@Hears(commonButtons.back)
+	async goHome(@Ctx() ctx: TaxiBotContext) {
+		await this.taxiBotService.goHome(ctx);
 	}
 }

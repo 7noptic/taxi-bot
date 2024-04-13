@@ -27,7 +27,7 @@ export class Order {
 	@Prop({ type: Number })
 	price: number;
 
-	@Prop({ enum: StatusOrder })
+	@Prop({ enum: StatusOrder, default: StatusOrder.Created })
 	status: StatusOrder;
 
 	@Prop({ type: String, ref: Passenger.name })

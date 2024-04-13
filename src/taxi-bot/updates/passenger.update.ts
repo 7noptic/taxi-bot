@@ -9,7 +9,7 @@ import { PassengerButtons } from '../buttons/passenger.buttons';
 import {
 	NoAddresses,
 	settingsText,
-	startAddAddress,
+	startCreateOrder,
 	startDeleteAddress,
 	startEditCity,
 	startEditName,
@@ -24,6 +24,7 @@ import { SettingsService } from '../../settings/settings.service';
 import { BotName } from '../../types/bot-name.type';
 import { ConstantsService } from '../../constants/constants.service';
 import { passengerSettingsKeyboard } from '../keyboards/passenger-settings.keyboard';
+import { cancelOrderKeyboard } from '../keyboards/cancel-order.keyboard';
 
 @Update()
 export class TaxiBotPassengerUpdate {
@@ -44,6 +45,7 @@ export class TaxiBotPassengerUpdate {
 	@Hears(PassengerButtons.profile.addresses)
 	async getAddresses(@Ctx() ctx: TaxiBotContext, @ChatId() chatId: number) {
 		try {
+			await ctx.sendPhoto({ url: ConstantsService.images.addresses });
 			const passenger = await this.passengerService.findByChatId(chatId);
 			await ctx.reply(
 				passenger.address.length > 0 ? YourAddresses(passenger.address) : NoAddresses,
@@ -56,7 +58,7 @@ export class TaxiBotPassengerUpdate {
 
 	@Hears(PassengerButtons.address.add)
 	async addAddresses(@Ctx() ctx: TaxiBotContext) {
-		await ctx.reply(startAddAddress, Markup.removeKeyboard());
+		await ctx.reply(startDeleteAddress, backKeyboard());
 		await ctx.scene.enter(ScenesType.AddAddress);
 	}
 
@@ -129,5 +131,12 @@ export class TaxiBotPassengerUpdate {
 	async editCity(@Ctx() ctx: TaxiBotContext) {
 		await ctx.reply(startEditCity, backKeyboard());
 		await ctx.scene.enter(ScenesType.EditCity);
+	}
+
+	/************************** Создание заказа **************************/
+	@Hears(PassengerButtons.profile.callCar)
+	async createOrder(@Ctx() ctx: TaxiBotContext) {
+		await ctx.reply(startCreateOrder, cancelOrderKeyboard());
+		await ctx.scene.enter(ScenesType.CreateOrder);
 	}
 }

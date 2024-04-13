@@ -6,4 +6,5 @@ export enum ScenesType {
 	EditName = 'editName',
 	EditPhone = 'editPhone',
 	EditCity = 'editCity',
+	CreateOrder = 'createOrder',
 }

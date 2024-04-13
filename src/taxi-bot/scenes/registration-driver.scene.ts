@@ -4,7 +4,7 @@ import { ScenesType } from './scenes.type';
 import { Markup } from 'telegraf';
 import { CityService } from '../../city/city.service';
 import { RegistrationDriverContext } from '../contexts/registration-driver.context';
-import { cityName } from '../../decorators/getCityFromInlineQuery.decorator';
+import { GetQueryData } from '../../decorators/getCityFromInlineQuery.decorator';
 import { PassengerService } from '../../passenger/passenger.service';
 import { userInfo } from '../../decorators/getUserInfo.decorator';
 import { wizardState } from '../../decorators/getWizardState';
@@ -63,7 +63,7 @@ export class RegisterDriverScene {
 	@WizardStep(4)
 	async onLocation(
 		@Ctx() ctx: WizardContext & RegistrationDriverContext,
-		@cityName() city: string,
+		@GetQueryData() city: string,
 		@userInfo() user,
 		@wizardState() state: RegistrationDriverContext['wizard']['state'],
 	) {

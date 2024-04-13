@@ -3,6 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { City, CityDocument } from './city.model';
 import { Model } from 'mongoose';
 import { CreateCityDto } from './dto/create-city.dto';
+import { ConstantsService } from '../constants/constants.service';
 
 @Injectable()
 export class CityService {
@@ -30,5 +31,10 @@ export class CityService {
 
 	async getAll() {
 		return this.cityModel.find().exec();
+	}
+
+	async getMinPriceByName(name: string): Promise<number> {
+		const city = await this.cityModel.findOne({ name });
+		return city ? city.minPrice : ConstantsService.defaultCityPrice;
 	}
 }

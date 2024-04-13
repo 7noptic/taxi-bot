@@ -11,6 +11,7 @@ import { UserType } from '../../types/user.type';
 import { commonButtons } from '../buttons/common.buttons';
 import { BotName } from '../../types/bot-name.type';
 import { ConstantsService } from '../../constants/constants.service';
+import { driverProfileKeyboard } from '../keyboards/driver/profile.keyboard';
 
 @Update()
 export class TaxiBotCommonUpdate {
@@ -26,7 +27,7 @@ export class TaxiBotCommonUpdate {
 		const driver = await this.driverService.findByChatId(chatId);
 
 		if (!passenger && !driver) {
-			await ctx.reply(ConstantsService.WelcomeMessage, registrationKeyboard());
+			await ctx.replyWithHTML(ConstantsService.WelcomeMessage, registrationKeyboard());
 		} else if (passenger) {
 			ctx.session.userType = UserType.Passenger;
 			ctx.session.user = passenger;
@@ -42,6 +43,8 @@ export class TaxiBotCommonUpdate {
 		if (ctx?.scene) await ctx.scene.leave();
 		if (ctx.session.userType === UserType.Passenger) {
 			await ctx.reply(goBack, passengerProfileKeyboard());
+		} else if (ctx.session.userType === UserType.Driver) {
+			await ctx.reply(goBack, driverProfileKeyboard());
 		}
 	}
 }

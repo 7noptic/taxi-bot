@@ -1,4 +1,4 @@
-import { Ctx, On, Wizard, WizardStep } from 'nestjs-telegraf';
+import { Ctx, Hears, On, Wizard, WizardStep } from 'nestjs-telegraf';
 import { WizardContext } from 'telegraf/scenes';
 import { ScenesType } from '../scenes.type';
 import { PassengerService } from '../../../passenger/passenger.service';
@@ -8,13 +8,16 @@ import { passengerProfileKeyboard } from '../../keyboards/passenger-profile.keyb
 import { TaxiBotContext } from '../../taxi-bot.context';
 import { Markup } from 'telegraf';
 import { CityService } from '../../../city/city.service';
-import { cityName } from '../../../decorators/getCityFromInlineQuery.decorator';
+import { GetQueryData } from '../../../decorators/getCityFromInlineQuery.decorator';
+import { commonButtons } from '../../buttons/common.buttons';
+import { TaxiBotCommonUpdate } from '../../updates/common.update';
 
 @Wizard(ScenesType.EditCity)
 export class EditCityScene {
 	constructor(
 		private readonly passengerService: PassengerService,
 		private readonly cityService: CityService,
+		private readonly taxiBotService: TaxiBotCommonUpdate,
 	) {}
 
 	@WizardStep(1)
@@ -38,12 +41,12 @@ export class EditCityScene {
 	@WizardStep(2)
 	async onCity(
 		@Ctx() ctx: WizardContext & TaxiBotContext,
-		@cityName() city: string,
+		@GetQueryData() city: string,
 		@ChatId() chatId: number,
 	): Promise<string> {
 		try {
 			await ctx.scene.leave();
-			const pass = await this.passengerService.editCity(chatId, city);
+			await this.passengerService.editCity(chatId, city);
 			await ctx.reply(successEditCity, passengerProfileKeyboard());
 			ctx.session.user.city = city;
 			return '';
@@ -52,5 +55,10 @@ export class EditCityScene {
 			await ctx.reply(errorEditInfo, passengerProfileKeyboard());
 			return '';
 		}
+	}
+
+	@Hears(commonButtons.back)
+	async goHome(@Ctx() ctx: TaxiBotContext) {
+		await this.taxiBotService.goHome(ctx);
 	}
 }

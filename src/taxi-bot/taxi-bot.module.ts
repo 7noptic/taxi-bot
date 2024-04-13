@@ -12,9 +12,12 @@ import { DeleteAddressScene } from './scenes/passenger/delete-address.scene';
 import { EditNameScene } from './scenes/passenger/edit-name.scene';
 import { EditCityScene } from './scenes/passenger/edit-city.scene';
 import { EditPhoneScene } from './scenes/passenger/edit-phone.scene';
+import { CreateOrderScene } from './scenes/passenger/create-order.scene';
+import { OrderModule } from '../order/order.module';
+import { TaxiBotValidation } from './taxi-bot.validation';
 
 @Module({
-	imports: [PassengerModule, DriverModule, CityModule, SettingsModule],
+	imports: [PassengerModule, DriverModule, CityModule, SettingsModule, OrderModule],
 	providers: [
 		RegisterDriverScene,
 		RegisterPassengerScene,
@@ -23,8 +26,10 @@ import { EditPhoneScene } from './scenes/passenger/edit-phone.scene';
 		EditNameScene,
 		EditPhoneScene,
 		EditCityScene,
+		CreateOrderScene,
 		TaxiBotCommonUpdate,
 		TaxiBotPassengerUpdate,
+		TaxiBotValidation,
 	],
 })
 export class TaxiBotModule {}

@@ -36,9 +36,12 @@ export class ConstantsService {
 		profile: 'https://i.postimg.cc/gJT76zSQ/profile.jpg',
 		help: 'https://i.postimg.cc/c4HCQ0xh/pict.jpg',
 		settings: 'https://i.postimg.cc/26r83f94/pict.jpg',
+		addresses: 'https://i.postimg.cc/JhhTyCdY/pict.jpg',
 	};
 	static readonly WelcomeMessage =
-		'Добро пожаловать в наш бот такси, чтобы начать пользоваться ботом вам необходимо пройти не большую регистрацию.';
+		'<b>Приветствуем!</b> Чтобы сделать заказ необходимо пройти короткую регистрацию.\n\n' +
+		'Регистрируясь, Вы даёте согласие на обработку персональных данных в соответствии с\n' +
+		'Политикой конфиденциальности и Пользовательским соглашением';
 	static readonly GreetingDriverMessage =
 		'Давно тебя не было в уличных гонках, чтобы продолжить тебе необходимо ответить на пару вопросов.';
 	static readonly GreetingPassengerMessage =
@@ -63,6 +66,9 @@ export class ConstantsService {
 		NotOpenedAppeal: 'У вас нет открытых обращений.',
 		SuccessSendMessage: '✅ Сообщение успешно отправлено',
 	};
+	static readonly callbackButtonTypeOrder = 'select-type';
+
+	static readonly repeatInputText = '\n\nПовторите ввод';
 
 	static readonly getEndingWord = (number: number, words: string[]) => {
 		const cases = [2, 0, 1, 1, 1, 2];
@@ -71,8 +77,11 @@ export class ConstantsService {
 		];
 	};
 
-	static readonly STRING_LENGTH_ERROR = (string: string = 'строки'): string =>
-		`Длинна ${string} должна быть в диапазоне от $constraint1 до $constraint2 символов`;
+	static readonly STRING_LENGTH_ERROR = (
+		string: string = 'строки',
+		min: string | number = '$constraint1',
+		max: string | number = '$constraint2',
+	): string => `Длинна ${string} должна быть в диапазоне от ${min} до ${max} символов`;
 
 	static readonly NOT_FOUND_ERROR = (string: string = 'Объект'): string =>
 		`Такой ${string} не найден`;
@@ -96,4 +105,8 @@ export class ConstantsService {
 		`Поездки: <b>0</b>\n` +
 		`Доставки: <b>0</b>\n` +
 		`Отменено: <b>0</b>\n`;
+
+	static readonly roundToNearest50 = (num: number): number => {
+		return Math.ceil(num / 50) * 50;
+	};
 }
