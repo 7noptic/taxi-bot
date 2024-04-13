@@ -1,16 +1,20 @@
-import { Controller } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, UsePipes, ValidationPipe } from '@nestjs/common';
+import { OrderService } from './order.service';
+import { CreateOrderDto } from './dto/create-order.dto';
 
 @Controller('order')
 export class OrderController {
-	// @Post('create')
-	// async create(@Body() dto: Omit<Order, '_id'>) {}
-	// @Get(':id')
-	// async get(@Param('id') id: Order['_id']) {}
-	// @Delete(':id')
-	// async delete(@Param('id') id: Order['_id']) {}
-	// @Patch(':id')
-	// async update(@Param('id') id: Order['_id'], @Body() dto: Order) {}
-	// @HttpCode(200)
-	// @Post()
-	// async find(@Body() dto: FindCityDto) {}
+	constructor(private readonly orderService: OrderService) {}
+
+	@UsePipes(new ValidationPipe())
+	@Post('create')
+	async create(@Body() dto: CreateOrderDto) {
+		return this.orderService.create(dto);
+	}
+
+	@UsePipes(new ValidationPipe())
+	@Get(':id')
+	async getCommissionForLastWeek(@Param('id') id: number) {
+		return this.orderService.getCommissionForCurrentWeek(id);
+	}
 }

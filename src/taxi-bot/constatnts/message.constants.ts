@@ -2,6 +2,8 @@ import { Passenger } from '../../passenger/passenger.model';
 import { ConstantsService } from '../../constants/constants.service';
 import { commonButtons } from '../buttons/common.buttons';
 import { PassengerButtons } from '../buttons/passenger.buttons';
+import { DriverButtons } from '../buttons/driver.buttons';
+import { StatusDriver } from '../types/status-driver.type';
 
 export const WhatName = 'Укажите ваше имя?';
 export const WhatNameRegistration = `${WhatName}\n\nℹ️ Если Вы магазин или кафе и хотите
@@ -27,6 +29,15 @@ export const greetingPassenger = (name: string) =>
 	`<b>${PassengerButtons.profile.settings}</b>  - изменить имя, номер телефона, населённый пункт\n\n` +
 	`<b>${PassengerButtons.profile.help}</b>  - дополнительная информация, поддержка \n\n` +
 	`<b>${PassengerButtons.profile.profile}</b> - данные Вашего профиля, история заказов, настройки учётной записи`;
+
+export const greetingDriver = (name: string) =>
+	`${greeting(name)}\n\n` +
+	`Ознакомьтесь с функционалом меню: \n\n` +
+	`<b>${DriverButtons.profile.status[StatusDriver.Offline]}</b> - Установить статус для получения заказов\n\n` +
+	`<b>${DriverButtons.profile.statistics}</b> - Отображения заработка и статистики по заказам\n\n` +
+	`<b>${DriverButtons.profile.commission}</b>  - Оплата комиссии сервиса\n\n` +
+	`<b>${DriverButtons.profile.help}</b>  - дополнительная информация, поддержка \n\n` +
+	`<b>${DriverButtons.profile.profile}</b> - данные Вашего профиля, история заказов, настройки учётной записи`;
 export const errorRegistration =
 	'Что-то пошло не так, Проверьте введенные вами данные и повторите регистрацию заново';
 

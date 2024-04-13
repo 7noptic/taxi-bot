@@ -5,8 +5,8 @@ export interface CreateOrderContext {
 	wizard: {
 		state: {
 			type: Order['type'];
-			addressFrom: Order['addressFrom']['address'];
-			addressTo: Order['addressTo']['address'];
+			addressFrom: string;
+			addressTo: string;
 			comment: Order['comment'];
 			price: Order['price'];
 			minPrice: City['minPrice'];

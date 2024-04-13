@@ -1,6 +1,16 @@
-import { City } from '../../city/city.model';
 import { IsString, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
+
+export class CarDto {
+	@IsString()
+	carBrand: string;
+
+	@IsString()
+	carColor: string;
+
+	@IsString()
+	carNumber: string;
+}
 
 export class CreateDriverDto {
 	@IsString()
@@ -10,7 +20,7 @@ export class CreateDriverDto {
 	phone: string;
 
 	@IsString()
-	chatId: string;
+	chatId: number;
 
 	@IsString()
 	first_name: string;
@@ -18,16 +28,10 @@ export class CreateDriverDto {
 	@IsString()
 	last_name: string;
 
+	@IsString()
+	city: string;
+
 	@ValidateNested()
-	@Type(() => City)
-	city: City;
-
-	@IsString()
-	carBrand: string;
-
-	@IsString()
-	carColor: string;
-
-	@IsString()
-	carNumber: string;
+	@Type(() => CarDto)
+	car: CarDto;
 }

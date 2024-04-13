@@ -30,6 +30,7 @@ export class TaxiBotCommonUpdate {
 		} else if (passenger) {
 			await ctx.reply(ConstantsService.greetingMessage, passengerProfileKeyboard());
 		} else if (driver) {
+			await ctx.reply(ConstantsService.greetingMessage, driverProfileKeyboard(driver.status));
 		}
 	}
 
@@ -44,7 +45,7 @@ export class TaxiBotCommonUpdate {
 		const driver = await this.driverService.findByChatId(chatId);
 
 		if (driver) {
-			await ctx.reply(goBack, driverProfileKeyboard());
+			await ctx.reply(goBack, driverProfileKeyboard(driver.status));
 			return;
 		}
 		await ctx.reply(goBack, registrationKeyboard());

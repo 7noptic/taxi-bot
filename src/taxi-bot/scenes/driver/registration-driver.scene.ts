@@ -2,9 +2,9 @@ import { Ctx, Hears, Message, On, Wizard, WizardStep } from 'nestjs-telegraf';
 import { WizardContext } from 'telegraf/scenes';
 import { ScenesType } from '../scenes.type';
 import { CityService } from '../../../city/city.service';
-import { PassengerService } from '../../../passenger/passenger.service';
 import {
 	errorRegistration,
+	greetingDriver,
 	WhatCarBrand,
 	WhatCarColor,
 	WhatCarNumber,
@@ -24,12 +24,15 @@ import { registrationKeyboard } from '../../keyboards/registration.keyboard';
 import { userInfo } from '../../../decorators/getUserInfo.decorator';
 import { wizardState } from '../../../decorators/getWizardState';
 import { ChatId } from '../../../decorators/getChatId.decorator';
+import { DriverService } from '../../../driver/driver.service';
+import { driverProfileKeyboard } from '../../keyboards/driver/profile.keyboard';
+import { StatusDriver } from '../../types/status-driver.type';
 
 @Wizard(ScenesType.RegistrationDriver)
 export class RegisterDriverScene {
 	constructor(
 		private readonly cityService: CityService,
-		private readonly passengerService: PassengerService,
+		private readonly driverService: DriverService,
 		private readonly driverAdapter: DriverAdapter,
 		private readonly taxiBotService: TaxiBotCommonUpdate,
 		private readonly taxiBotValidation: TaxiBotValidation,
@@ -166,10 +169,12 @@ export class RegisterDriverScene {
 					carBrand: state.carBrand,
 					carColor: state.carColor,
 				});
-				console.log(createDriverDto);
 				await ctx.scene.leave();
-				// const passenger = await this.passengerService.create(createPassengerDto);
-				// await ctx.replyWithHTML(greetingPassenger(state.name), passengerProfileKeyboard());
+				await this.driverService.create(createDriverDto);
+				await ctx.replyWithHTML(
+					greetingDriver(state.name),
+					driverProfileKeyboard(StatusDriver.Offline),
+				);
 				return;
 			}
 			await ctx.reply(valid);

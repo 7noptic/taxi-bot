@@ -9,9 +9,11 @@ export class DriverAdapter {
 			first_name: info.first_name,
 			last_name: info.last_name,
 			city: info.city,
-			carNumber: info.carNumber,
-			carBrand: info.carBrand,
-			carColor: info.carColor,
+			car: {
+				carNumber: info.carNumber,
+				carBrand: info.carBrand,
+				carColor: info.carColor,
+			},
 		};
 	}
 }
