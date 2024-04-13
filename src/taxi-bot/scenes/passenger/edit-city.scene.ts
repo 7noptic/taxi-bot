@@ -48,7 +48,6 @@ export class EditCityScene {
 			await ctx.scene.leave();
 			await this.passengerService.editCity(chatId, city);
 			await ctx.reply(successEditCity, passengerProfileKeyboard());
-			ctx.session.user.city = city;
 			return '';
 		} catch (e) {
 			await ctx.scene.leave();
@@ -58,7 +57,7 @@ export class EditCityScene {
 	}
 
 	@Hears(commonButtons.back)
-	async goHome(@Ctx() ctx: TaxiBotContext) {
-		await this.taxiBotService.goHome(ctx);
+	async goHome(@Ctx() ctx: TaxiBotContext, @ChatId() chatId: number) {
+		await this.taxiBotService.goHome(ctx, chatId);
 	}
 }

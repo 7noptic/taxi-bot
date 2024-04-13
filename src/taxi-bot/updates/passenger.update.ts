@@ -1,5 +1,5 @@
 import { Action, Ctx, Hears, InjectBot, Update } from 'nestjs-telegraf';
-import { Markup, Telegraf } from 'telegraf';
+import { Telegraf } from 'telegraf';
 import { PassengerService } from '../../passenger/passenger.service';
 import { registrationButtons } from '../buttons/registration.buttons';
 import { TaxiBotContext } from '../taxi-bot.context';
@@ -18,7 +18,6 @@ import {
 } from '../constatnts/message.constants';
 import { passengerAddressesKeyboard } from '../keyboards/passenger-addresses.keyboard';
 import { backKeyboard } from '../keyboards/back.keyboard';
-import { Passenger } from '../../passenger/passenger.model';
 import { passengerHelpKeyboard } from '../keyboards/passenger-help.keyboard';
 import { SettingsService } from '../../settings/settings.service';
 import { BotName } from '../../types/bot-name.type';
@@ -34,10 +33,10 @@ export class TaxiBotPassengerUpdate {
 		private readonly settingsService: SettingsService,
 	) {}
 
-	/************************** Регистрация пользователя **************************/
+	/************************** Регистрация пассажира **************************/
 	@Hears(registrationButtons.passenger.label)
 	async registrationPassenger(@Ctx() ctx: TaxiBotContext) {
-		await ctx.reply(ConstantsService.GreetingPassengerMessage, Markup.removeKeyboard());
+		await ctx.reply(ConstantsService.GreetingPassengerMessage, backKeyboard());
 		await ctx.scene.enter(ScenesType.RegistrationPassenger);
 	}
 
@@ -70,8 +69,8 @@ export class TaxiBotPassengerUpdate {
 
 	/************************** Пункт Профиль **************************/
 	@Hears(PassengerButtons.profile.profile)
-	async getProfile(@Ctx() ctx: TaxiBotContext) {
-		const passenger = ctx.session.user as Passenger;
+	async getProfile(@Ctx() ctx: TaxiBotContext, @ChatId() chatId: number) {
+		const passenger = await this.passengerService.findByChatId(chatId);
 		await ctx.sendPhoto({ url: ConstantsService.images.profile });
 		await ctx.replyWithHTML(ConstantsService.getProfileInfoPassenger(passenger));
 	}

@@ -7,7 +7,6 @@ import { TaxiBotContext } from '../taxi-bot.context';
 import { ChatId } from '../../decorators/getChatId.decorator';
 import { passengerProfileKeyboard } from '../keyboards/passenger-profile.keyboard';
 import { goBack } from '../constatnts/message.constants';
-import { UserType } from '../../types/user.type';
 import { commonButtons } from '../buttons/common.buttons';
 import { BotName } from '../../types/bot-name.type';
 import { ConstantsService } from '../../constants/constants.service';
@@ -29,22 +28,25 @@ export class TaxiBotCommonUpdate {
 		if (!passenger && !driver) {
 			await ctx.replyWithHTML(ConstantsService.WelcomeMessage, registrationKeyboard());
 		} else if (passenger) {
-			ctx.session.userType = UserType.Passenger;
-			ctx.session.user = passenger;
 			await ctx.reply(ConstantsService.greetingMessage, passengerProfileKeyboard());
 		} else if (driver) {
-			ctx.session.userType = UserType.Driver;
-			ctx.session.user = driver;
 		}
 	}
 
 	@Hears(commonButtons.back)
-	async goHome(@Ctx() ctx: TaxiBotContext) {
+	async goHome(@Ctx() ctx: TaxiBotContext, @ChatId() chatId: number) {
 		if (ctx?.scene) await ctx.scene.leave();
-		if (ctx.session.userType === UserType.Passenger) {
+		const passenger = await this.passengerService.findByChatId(chatId);
+		if (passenger) {
 			await ctx.reply(goBack, passengerProfileKeyboard());
-		} else if (ctx.session.userType === UserType.Driver) {
-			await ctx.reply(goBack, driverProfileKeyboard());
+			return;
 		}
+		const driver = await this.driverService.findByChatId(chatId);
+
+		if (driver) {
+			await ctx.reply(goBack, driverProfileKeyboard());
+			return;
+		}
+		await ctx.reply(goBack, registrationKeyboard());
 	}
 }

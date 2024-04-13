@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
 import { PassengerModule } from '../passenger/passenger.module';
 import { DriverModule } from '../driver/driver.module';
-import { RegisterDriverScene } from './scenes/registration-driver.scene';
 import { CityModule } from '../city/city.module';
 import { TaxiBotCommonUpdate } from './updates/common.update';
 import { TaxiBotPassengerUpdate } from './updates/passenger.update';
@@ -15,6 +14,8 @@ import { EditPhoneScene } from './scenes/passenger/edit-phone.scene';
 import { CreateOrderScene } from './scenes/passenger/create-order.scene';
 import { OrderModule } from '../order/order.module';
 import { TaxiBotValidation } from './taxi-bot.validation';
+import { RegisterDriverScene } from './scenes/driver/registration-driver.scene';
+import { TaxiBotDriverUpdate } from './updates/driver.update';
 
 @Module({
 	imports: [PassengerModule, DriverModule, CityModule, SettingsModule, OrderModule],
@@ -29,6 +30,7 @@ import { TaxiBotValidation } from './taxi-bot.validation';
 		CreateOrderScene,
 		TaxiBotCommonUpdate,
 		TaxiBotPassengerUpdate,
+		TaxiBotDriverUpdate,
 		TaxiBotValidation,
 	],
 })

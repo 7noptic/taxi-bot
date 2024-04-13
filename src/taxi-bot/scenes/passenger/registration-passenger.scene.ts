@@ -18,11 +18,11 @@ import {
 } from '../../constatnts/message.constants';
 import { registrationKeyboard } from '../../keyboards/registration.keyboard';
 import { passengerProfileKeyboard } from '../../keyboards/passenger-profile.keyboard';
-import { UserType } from '../../../types/user.type';
 import { TaxiBotContext } from '../../taxi-bot.context';
 import { commonButtons } from '../../buttons/common.buttons';
 import { TaxiBotCommonUpdate } from '../../updates/common.update';
 import { TaxiBotValidation } from '../../taxi-bot.validation';
+import { ChatId } from '../../../decorators/getChatId.decorator';
 
 @Wizard(ScenesType.RegistrationPassenger)
 export class RegisterPassengerScene {
@@ -111,10 +111,8 @@ export class RegisterPassengerScene {
 				phone: state.phone,
 			});
 			await ctx.scene.leave();
-			const passenger = await this.passengerService.create(createPassengerDto);
+			await this.passengerService.create(createPassengerDto);
 			await ctx.replyWithHTML(greetingPassenger(state.name), passengerProfileKeyboard());
-			ctx.session.userType = UserType.Passenger;
-			ctx.session.user = passenger;
 			return '';
 		} catch (e) {
 			await ctx.scene.leave();
@@ -124,7 +122,7 @@ export class RegisterPassengerScene {
 	}
 
 	@Hears(commonButtons.back)
-	async goHome(@Ctx() ctx: TaxiBotContext) {
-		await this.taxiBotService.goHome(ctx);
+	async goHome(@Ctx() ctx: TaxiBotContext, @ChatId() chatId: number) {
+		await this.taxiBotService.goHome(ctx, chatId);
 	}
 }

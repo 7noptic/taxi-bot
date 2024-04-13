@@ -12,6 +12,10 @@ export const WhatNumberRegistration = `${WhatNumber}\n\nℹ️ Либо поде
 export const errorNumber =
 	'Номер телефона указан не в правильном формате.\nПожалуйста, укажите ваш номер телефона в формате +79991112233';
 export const WhatCity = 'Выберите город';
+
+export const WhatCarBrand = 'Введите марку и модель автомобиля\nНапример: Lada Granta';
+export const WhatCarColor = 'Введите цвет автомобиля\nНапример: Белый';
+export const WhatCarNumber = 'Введите номер автомобиля\nНапример: аб000в';
 export const greeting = (name: string) =>
 	`Мы рады нашему с Вами знакомству,<b>${name}!</b>\nРегистрация завершена`;
 

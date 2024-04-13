@@ -37,7 +37,6 @@ export class EditPhoneScene {
 				await ctx.scene.leave();
 				await this.passengerService.editPhone(chatId, msg.text);
 				await ctx.reply(successEditPhone, passengerProfileKeyboard());
-				ctx.session.user.phone = msg.text;
 				return;
 			}
 			await ctx.reply(valid);
@@ -50,7 +49,7 @@ export class EditPhoneScene {
 	}
 
 	@Hears(commonButtons.back)
-	async goHome(@Ctx() ctx: TaxiBotContext) {
-		await this.taxiBotService.goHome(ctx);
+	async goHome(@Ctx() ctx: TaxiBotContext, @ChatId() chatId: number) {
+		await this.taxiBotService.goHome(ctx, chatId);
 	}
 }

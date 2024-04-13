@@ -50,7 +50,7 @@ export class DeleteAddressScene {
 	}
 
 	@Hears(commonButtons.back)
-	async goHome(@Ctx() ctx: TaxiBotContext) {
-		await this.taxiBotService.goHome(ctx);
+	async goHome(@Ctx() ctx: TaxiBotContext, @ChatId() chatId: number) {
+		await this.taxiBotService.goHome(ctx, chatId);
 	}
 }

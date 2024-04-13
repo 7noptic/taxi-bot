@@ -23,7 +23,6 @@ import { ConstantsService } from '../../../constants/constants.service';
 import { TypeOrder } from '../../../order/Enum/type-order';
 import { selectAddressOrderKeyboard } from '../../keyboards/select-address-order.keyboard';
 import { skipCommentOrderKeyboard } from '../../keyboards/skip-comment-order.keyboard';
-import { City } from '../../../city/city.model';
 import { selectPriceOrderKeyboard } from '../../keyboards/select-price-order.keyboard';
 import { PassengerButtons } from '../../buttons/passenger.buttons';
 import { wizardState } from '../../../decorators/getWizardState';
@@ -151,10 +150,13 @@ export class CreateOrderScene {
 
 	@On('callback_query')
 	@WizardStep(5)
-	async onCommentCallback(@Ctx() ctx: WizardContext & TaxiBotContext & CreateOrderContext) {
+	async onCommentCallback(
+		@Ctx() ctx: WizardContext & TaxiBotContext & CreateOrderContext,
+		@ChatId() chatId: number,
+	) {
 		try {
 			ctx.wizard.state.comment = '';
-			await this.CommentAction(ctx);
+			await this.CommentAction(ctx, chatId);
 			return;
 		} catch (e) {}
 	}
@@ -170,7 +172,7 @@ export class CreateOrderScene {
 			const valid = this.taxiBotValidation.checkMaxMinLengthString(msg.text, 0, 300);
 			if (valid === true) {
 				ctx.wizard.state.comment = msg.text;
-				await this.CommentAction(ctx);
+				await this.CommentAction(ctx, chatId);
 				return;
 			}
 			await ctx.reply(valid);
@@ -266,17 +268,20 @@ export class CreateOrderScene {
 	}
 
 	@Hears(commonButtons.back)
-	async goHome(@Ctx() ctx: TaxiBotContext) {
-		await this.taxiBotService.goHome(ctx);
+	async goHome(@Ctx() ctx: TaxiBotContext, @ChatId() chatId: number) {
+		await this.taxiBotService.goHome(ctx, chatId);
 	}
 
 	@Hears(commonButtons.cancelOrder.label)
-	async cancelOrder(@Ctx() ctx: TaxiBotContext) {
-		await this.taxiBotService.goHome(ctx);
+	async cancelOrder(@Ctx() ctx: TaxiBotContext, @ChatId() chatId: number) {
+		await this.taxiBotService.goHome(ctx, chatId);
 	}
 
-	async CommentAction(@Ctx() ctx: WizardContext & TaxiBotContext & CreateOrderContext) {
-		const city = ctx.session.user.city as City['name'];
+	async CommentAction(
+		@Ctx() ctx: WizardContext & TaxiBotContext & CreateOrderContext,
+		@ChatId() chatId: number,
+	) {
+		const { city } = await this.passengerService.findByChatId(chatId);
 		const minPrice = await this.cityService.getMinPriceByName(city);
 		ctx.wizard.state.minPrice = minPrice;
 		await ctx.reply(selectPrice, selectPriceOrderKeyboard(minPrice));
