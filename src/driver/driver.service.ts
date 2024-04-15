@@ -15,4 +15,59 @@ export class DriverService {
 	async findByChatId(chatId: number) {
 		return await this.driverModel.findOne({ chatId }).exec();
 	}
+
+	async editName(chatId: Driver['chatId'], new_name: Driver['first_name']) {
+		return this.driverModel.findOneAndUpdate(
+			{ chatId },
+			{
+				$set: {
+					first_name: new_name,
+				},
+			},
+		);
+	}
+
+	async editPhone(chatId: Driver['chatId'], new_phone: Driver['phone']) {
+		return this.driverModel.findOneAndUpdate(
+			{ chatId },
+			{
+				$set: {
+					phone: new_phone,
+				},
+			},
+		);
+	}
+
+	async editCity(chatId: Driver['chatId'], new_city: Driver['city']) {
+		return this.driverModel.findOneAndUpdate(
+			{ chatId },
+			{
+				$set: {
+					city: new_city,
+				},
+			},
+		);
+	}
+
+	async editAccessTypeOrder(chatId: Driver['chatId'], new_access_type: Driver['accessOrderType']) {
+		return this.driverModel.findOneAndUpdate(
+			{ chatId },
+			{
+				$set: {
+					accessOrderType: new_access_type,
+				},
+			},
+		);
+	}
+
+	async editCar(chatId: Driver['chatId'], new_car: Driver['car']) {
+		return this.driverModel.findOneAndUpdate(
+			{ chatId },
+			{
+				$set: {
+					car: new_car,
+				},
+			},
+		);
+	}
 }

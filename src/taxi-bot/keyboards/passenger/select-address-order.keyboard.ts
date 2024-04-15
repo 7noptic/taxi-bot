@@ -1,5 +1,5 @@
 import { Markup } from 'telegraf';
-import { Address } from '../../passenger/passenger.model';
+import { Address } from '../../../passenger/passenger.model';
 
 export function selectAddressOrderKeyboard(addresses: Address[]) {
 	return Markup.inlineKeyboard([

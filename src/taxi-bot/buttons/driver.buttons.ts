@@ -8,7 +8,26 @@ export const DriverButtons = {
 		},
 		statistics: '📊 Статистика',
 		commission: '💳 Комиссия',
-		help: 'ℹ️ Помощь',
-		profile: '👨‍⚕️ Профиль',
+	},
+	settings: {
+		settings: {
+			label: '⚙️ Настройки',
+			callback: 'settings-driver',
+		},
+		name: {
+			callback: 'edit-driver-name',
+		},
+		phone: {
+			callback: 'edit-driver-phone',
+		},
+		city: {
+			callback: 'edit-driver-city',
+		},
+		car: {
+			callback: 'edit-driver-car',
+		},
+		accessTypeOrder: {
+			callback: 'edit-driver-access-type-order',
+		},
 	},
 };

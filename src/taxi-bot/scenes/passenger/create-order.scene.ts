@@ -17,22 +17,22 @@ import { ChatId } from '../../../decorators/getChatId.decorator';
 import { TaxiBotContext } from '../../taxi-bot.context';
 import { CityService } from '../../../city/city.service';
 import { GetQueryData } from '../../../decorators/getCityFromInlineQuery.decorator';
-import { selectTypeOrderKeyboard } from '../../keyboards/select-type-order.keyboard';
+import { selectTypeOrderKeyboard } from '../../keyboards/passenger/select-type-order.keyboard';
 import { CreateOrderContext } from '../../contexts/create-order.context';
 import { ConstantsService } from '../../../constants/constants.service';
 import { TypeOrder } from '../../../order/Enum/type-order';
-import { selectAddressOrderKeyboard } from '../../keyboards/select-address-order.keyboard';
-import { skipCommentOrderKeyboard } from '../../keyboards/skip-comment-order.keyboard';
-import { selectPriceOrderKeyboard } from '../../keyboards/select-price-order.keyboard';
+import { selectAddressOrderKeyboard } from '../../keyboards/passenger/select-address-order.keyboard';
+import { skipCommentOrderKeyboard } from '../../keyboards/passenger/skip-comment-order.keyboard';
+import { selectPriceOrderKeyboard } from '../../keyboards/passenger/select-price-order.keyboard';
 import { PassengerButtons } from '../../buttons/passenger.buttons';
 import { wizardState } from '../../../decorators/getWizardState';
-import { finalOrderKeyboard } from '../../keyboards/final-order.keyboard';
+import { finalOrderKeyboard } from '../../keyboards/passenger/final-order.keyboard';
 import { OrderService } from '../../../order/order.service';
 import { CreateOrderDto } from '../../../order/dto/create-order.dto';
 import { commonButtons } from '../../buttons/common.buttons';
 import { TaxiBotCommonUpdate } from '../../updates/common.update';
 import { TaxiBotValidation } from '../../taxi-bot.validation';
-import { passengerProfileKeyboard } from '../../keyboards/passenger-profile.keyboard';
+import { passengerProfileKeyboard } from '../../keyboards/passenger/passenger-profile.keyboard';
 
 @Wizard(ScenesType.CreateOrder)
 export class CreateOrderScene {
@@ -214,7 +214,6 @@ export class CreateOrderScene {
 	): Promise<string> {
 		try {
 			ctx.wizard.state.price = Number(msg.text.replace(/\D/g, ''));
-			console.log(ctx.wizard.state.price);
 			if (ctx.wizard.state.price >= state.minPrice) {
 				await ctx.reply(
 					accessOrder(

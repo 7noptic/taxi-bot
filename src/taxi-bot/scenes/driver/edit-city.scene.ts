@@ -1,21 +1,21 @@
 import { Ctx, Hears, On, Wizard, WizardStep } from 'nestjs-telegraf';
 import { WizardContext } from 'telegraf/scenes';
 import { ScenesType } from '../scenes.type';
-import { PassengerService } from '../../../passenger/passenger.service';
 import { errorEditInfo, successEditCity, WhatCity } from '../../constatnts/message.constants';
 import { ChatId } from '../../../decorators/getChatId.decorator';
-import { passengerProfileKeyboard } from '../../keyboards/passenger/passenger-profile.keyboard';
 import { TaxiBotContext } from '../../taxi-bot.context';
 import { Markup } from 'telegraf';
 import { CityService } from '../../../city/city.service';
 import { GetQueryData } from '../../../decorators/getCityFromInlineQuery.decorator';
 import { commonButtons } from '../../buttons/common.buttons';
 import { TaxiBotCommonUpdate } from '../../updates/common.update';
+import { DriverService } from '../../../driver/driver.service';
+import { driverProfileKeyboard } from '../../keyboards/driver/profile.keyboard';
 
-@Wizard(ScenesType.EditCity)
-export class EditCityScene {
+@Wizard(ScenesType.EditCityDriver)
+export class EditCitySceneDriver {
 	constructor(
-		private readonly passengerService: PassengerService,
+		private readonly driverService: DriverService,
 		private readonly cityService: CityService,
 		private readonly taxiBotService: TaxiBotCommonUpdate,
 	) {}
@@ -46,12 +46,13 @@ export class EditCityScene {
 	): Promise<string> {
 		try {
 			await ctx.scene.leave();
-			await this.passengerService.editCity(chatId, city);
-			await ctx.reply(successEditCity, passengerProfileKeyboard());
+			const { status } = await this.driverService.editCity(chatId, city);
+			await ctx.reply(successEditCity, driverProfileKeyboard(status));
 			return '';
 		} catch (e) {
 			await ctx.scene.leave();
-			await ctx.reply(errorEditInfo, passengerProfileKeyboard());
+			const { status } = await this.driverService.findByChatId(chatId);
+			await ctx.reply(errorEditInfo, driverProfileKeyboard(status));
 			return '';
 		}
 	}

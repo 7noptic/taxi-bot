@@ -16,6 +16,11 @@ import { OrderModule } from '../order/order.module';
 import { TaxiBotValidation } from './taxi-bot.validation';
 import { RegisterDriverScene } from './scenes/driver/registration-driver.scene';
 import { TaxiBotDriverUpdate } from './updates/driver.update';
+import { EditCitySceneDriver } from './scenes/driver/edit-city.scene';
+import { EditPhoneSceneDriver } from './scenes/driver/edit-phone.scene';
+import { EditNameSceneDriver } from './scenes/driver/edit-name.scene';
+import { EditCarSceneDriver } from './scenes/driver/edit-car.scene';
+import { EditAccessOrderTypeSceneDriver } from './scenes/driver/edit-access-order-type.scene';
 
 @Module({
 	imports: [PassengerModule, DriverModule, CityModule, SettingsModule, OrderModule],
@@ -27,6 +32,11 @@ import { TaxiBotDriverUpdate } from './updates/driver.update';
 		EditNameScene,
 		EditPhoneScene,
 		EditCityScene,
+		EditNameSceneDriver,
+		EditCarSceneDriver,
+		EditAccessOrderTypeSceneDriver,
+		EditPhoneSceneDriver,
+		EditCitySceneDriver,
 		CreateOrderScene,
 		TaxiBotCommonUpdate,
 		TaxiBotPassengerUpdate,

@@ -9,7 +9,7 @@ import {
 } from '../../constatnts/message.constants';
 import { AddAddressContext } from '../../contexts/add-address.context';
 import { ChatId } from '../../../decorators/getChatId.decorator';
-import { passengerProfileKeyboard } from '../../keyboards/passenger-profile.keyboard';
+import { passengerProfileKeyboard } from '../../keyboards/passenger/passenger-profile.keyboard';
 import { commonButtons } from '../../buttons/common.buttons';
 import { TaxiBotContext } from '../../taxi-bot.context';
 import { TaxiBotCommonUpdate } from '../../updates/common.update';

@@ -1,5 +1,5 @@
 import { Markup } from 'telegraf';
-import { PassengerButtons } from '../buttons/passenger.buttons';
+import { PassengerButtons } from '../../buttons/passenger.buttons';
 
 export function passengerSettingsKeyboard(name: string, phone: string, city: string) {
 	return Markup.inlineKeyboard([

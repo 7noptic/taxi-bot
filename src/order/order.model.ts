@@ -30,10 +30,10 @@ export class Order {
 	@Prop({ enum: StatusOrder, default: StatusOrder.Created })
 	status: StatusOrder;
 
-	@Prop({ type: String, ref: Passenger.name })
+	@Prop({ type: Number, ref: Passenger.name })
 	passengerId: Passenger['chatId'];
 
-	@Prop({ type: String, ref: Driver.name })
+	@Prop({ type: Number, ref: Driver.name })
 	driverId: Driver['chatId'];
 
 	@Prop({ type: Number })

@@ -16,21 +16,18 @@ import {
 	startEditPhone,
 	YourAddresses,
 } from '../constatnts/message.constants';
-import { passengerAddressesKeyboard } from '../keyboards/passenger-addresses.keyboard';
+import { passengerAddressesKeyboard } from '../keyboards/passenger/passenger-addresses.keyboard';
 import { backKeyboard } from '../keyboards/back.keyboard';
-import { passengerHelpKeyboard } from '../keyboards/passenger-help.keyboard';
-import { SettingsService } from '../../settings/settings.service';
 import { BotName } from '../../types/bot-name.type';
 import { ConstantsService } from '../../constants/constants.service';
-import { passengerSettingsKeyboard } from '../keyboards/passenger-settings.keyboard';
-import { cancelOrderKeyboard } from '../keyboards/cancel-order.keyboard';
+import { passengerSettingsKeyboard } from '../keyboards/passenger/passenger-settings.keyboard';
+import { cancelOrderKeyboard } from '../keyboards/passenger/cancel-order.keyboard';
 
 @Update()
 export class TaxiBotPassengerUpdate {
 	constructor(
 		@InjectBot(BotName.Taxi) private readonly bot: Telegraf<TaxiBotContext>,
 		private readonly passengerService: PassengerService,
-		private readonly settingsService: SettingsService,
 	) {}
 
 	/************************** Регистрация пассажира **************************/
@@ -65,45 +62,6 @@ export class TaxiBotPassengerUpdate {
 	async deleteAddresses(@Ctx() ctx: TaxiBotContext) {
 		await ctx.reply(startDeleteAddress, backKeyboard());
 		await ctx.scene.enter(ScenesType.DeleteAddress);
-	}
-
-	/************************** Пункт Профиль **************************/
-	@Hears(PassengerButtons.profile.profile)
-	async getProfile(@Ctx() ctx: TaxiBotContext, @ChatId() chatId: number) {
-		const passenger = await this.passengerService.findByChatId(chatId);
-		await ctx.sendPhoto({ url: ConstantsService.images.profile });
-		await ctx.replyWithHTML(ConstantsService.getProfileInfoPassenger(passenger));
-	}
-
-	/************************** Пункт Помощь **************************/
-	@Hears(PassengerButtons.profile.help)
-	async getHelp(@Ctx() ctx: TaxiBotContext) {
-		await ctx.sendPhoto({ url: ConstantsService.images.help });
-		await ctx.replyWithHTML(PassengerButtons.profile.help, passengerHelpKeyboard());
-	}
-
-	@Action(PassengerButtons.help.faq.callback)
-	async getFaq(@Ctx() ctx: TaxiBotContext) {
-		const settings = await this.settingsService.getSettings();
-		await ctx.replyWithHTML(settings.faqText);
-	}
-
-	@Action(PassengerButtons.help.price.callback)
-	async getPriceText(@Ctx() ctx: TaxiBotContext) {
-		const settings = await this.settingsService.getSettings();
-		await ctx.replyWithHTML(settings.priceText);
-	}
-
-	@Action(PassengerButtons.help.about.callback)
-	async getAboutText(@Ctx() ctx: TaxiBotContext) {
-		const settings = await this.settingsService.getSettings();
-		await ctx.replyWithHTML(settings.aboutText);
-	}
-
-	@Action(PassengerButtons.help.support.callback)
-	async getSupportText(@Ctx() ctx: TaxiBotContext) {
-		const settings = await this.settingsService.getSettings();
-		await ctx.replyWithHTML(settings.supportText);
 	}
 
 	/************************** Пункт Настройки **************************/

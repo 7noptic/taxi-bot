@@ -17,7 +17,7 @@ import {
 	WhatNumberRegistration,
 } from '../../constatnts/message.constants';
 import { registrationKeyboard } from '../../keyboards/registration.keyboard';
-import { passengerProfileKeyboard } from '../../keyboards/passenger-profile.keyboard';
+import { passengerProfileKeyboard } from '../../keyboards/passenger/passenger-profile.keyboard';
 import { TaxiBotContext } from '../../taxi-bot.context';
 import { commonButtons } from '../../buttons/common.buttons';
 import { TaxiBotCommonUpdate } from '../../updates/common.update';

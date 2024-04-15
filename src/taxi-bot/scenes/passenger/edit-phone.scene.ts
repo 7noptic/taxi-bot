@@ -4,7 +4,7 @@ import { ScenesType } from '../scenes.type';
 import { PassengerService } from '../../../passenger/passenger.service';
 import { errorEditInfo, successEditPhone, WhatNumber } from '../../constatnts/message.constants';
 import { ChatId } from '../../../decorators/getChatId.decorator';
-import { passengerProfileKeyboard } from '../../keyboards/passenger-profile.keyboard';
+import { passengerProfileKeyboard } from '../../keyboards/passenger/passenger-profile.keyboard';
 import { TaxiBotContext } from '../../taxi-bot.context';
 import { commonButtons } from '../../buttons/common.buttons';
 import { TaxiBotCommonUpdate } from '../../updates/common.update';

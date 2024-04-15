@@ -1,6 +1,7 @@
 import { Markup } from 'telegraf';
 import { StatusDriver } from '../../types/status-driver.type';
 import { DriverButtons } from '../../buttons/driver.buttons';
+import { commonButtons } from '../../buttons/common.buttons';
 
 export function driverProfileKeyboard(status: StatusDriver) {
 	return Markup.keyboard([
@@ -15,8 +16,8 @@ export function driverProfileKeyboard(status: StatusDriver) {
 			Markup.button.callback(DriverButtons.profile.commission, DriverButtons.profile.commission),
 		],
 		[
-			Markup.button.callback(DriverButtons.profile.help, DriverButtons.profile.help),
-			Markup.button.callback(DriverButtons.profile.profile, DriverButtons.profile.profile),
+			Markup.button.callback(commonButtons.profile.help, commonButtons.profile.help),
+			Markup.button.callback(commonButtons.profile.profile, commonButtons.profile.profile),
 		],
 	]).resize();
 }

@@ -14,7 +14,13 @@ export class OrderController {
 
 	@UsePipes(new ValidationPipe())
 	@Get(':id')
-	async getCommissionForLastWeek(@Param('id') id: number) {
-		return this.orderService.getCommissionForCurrentWeek(id);
+	async getCommissionForLastWeek(@Param('id') id: string) {
+		return this.orderService.getCommissionForCurrentWeek(Number(id));
+	}
+
+	@UsePipes(new ValidationPipe())
+	@Get('infoPassenger/:id')
+	async getPassengerOrdersInfo(@Param('id') id: number) {
+		return this.orderService.getPassengerOrdersInfo(id);
 	}
 }

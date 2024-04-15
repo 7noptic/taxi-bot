@@ -6,6 +6,11 @@ import { TypeId } from '../short-id/Enums/type-id.enum';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { ShortIdService } from '../short-id/short-id.service';
 import { endOfWeek, startOfWeek, subWeeks } from 'date-fns';
+import { OrdersInfoDto } from './dto/orders-info.dto';
+import { DriverOrdersInfoDto } from './dto/driver-orders-info.dto';
+import { getCommissionForWeekPipeline } from './pipelines/getCommissionForWeek.pipeline';
+import { getPassengerOrdersInfoPipeline } from './pipelines/getPassengerOrdersInfo.pipeline';
+import { getDriverOrdersInfoPipeline } from './pipelines/getDriverOrdersInfo.pipeline';
 
 @Injectable()
 export class OrderService {
@@ -34,22 +39,53 @@ export class OrderService {
 	}
 
 	async getCommissionForWeek(start: Date, end: Date, chatId: number) {
-		const orders = await this.orderModel.find({
-			driverId: chatId,
-			createdAt: {
-				$gte: start,
-				$lte: end,
-			},
-			commission: {
-				$gt: 0,
-			},
-		});
-
-		const sumCommission = orders.reduce((total, order) => total + order.commission, 0);
+		const result = await this.orderModel.aggregate(
+			getCommissionForWeekPipeline(chatId, start, end),
+		);
 
 		return {
-			sumCommission,
-			count: orders.length,
+			sumCommission: result.length > 0 ? result[0].sumCommission : 0,
+			count: result.length > 0 ? result[0].count : 0,
 		};
+	}
+
+	async getPassengerOrdersInfo(chatId: number): Promise<OrdersInfoDto> {
+		const result = await this.orderModel.aggregate(getPassengerOrdersInfoPipeline(chatId));
+
+		if (result.length > 0) {
+			return result[0];
+		} else {
+			return {
+				totalCount: 0,
+				driveCount: 0,
+				deliveryCount: 0,
+				canceledCount: 0,
+			};
+		}
+	}
+
+	async getDriverOrdersInfo(chatId: number): Promise<DriverOrdersInfoDto> {
+		const result = await this.orderModel.aggregate(getDriverOrdersInfoPipeline(chatId));
+
+		if (result.length > 0) {
+			return result[0];
+		} else {
+			return {
+				earnedToday: 0,
+				earnedCurrentWeek: 0,
+				countToday: 0,
+				driveCountToday: 0,
+				deliveryCountToday: 0,
+				canceledCountToday: 0,
+				countCurrentWeek: 0,
+				driveCountCurrentWeek: 0,
+				deliveryCountCurrentWeek: 0,
+				canceledCountCurrentWeek: 0,
+				countAll: 0,
+				driveCountAll: 0,
+				deliveryCountAll: 0,
+				canceledCountAll: 0,
+			};
+		}
 	}
 }

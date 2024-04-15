@@ -1,5 +1,5 @@
 import { Markup } from 'telegraf';
-import { commonButtons } from '../buttons/common.buttons';
+import { commonButtons } from '../../buttons/common.buttons';
 
 export function cancelOrderKeyboard() {
 	return Markup.keyboard([

@@ -1,12 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { Passenger } from '../passenger/passenger.model';
 import { HelpBotButtons } from '../help-bot/buttons/help-bot.buttons';
+import { Driver } from '../driver/driver.model';
+import { OrdersInfoDto } from '../order/dto/orders-info.dto';
+import { AccessTypeOrder } from '../driver/Enum/access-type-order';
 
 @Injectable()
 export class ConstantsService {
 	static readonly taxiBotName = '@testimTaxi_bot';
 	static readonly helpBotName = '@HelpForTestimTaxi_bot';
 	static readonly defaultRating = [5, 5, 5, 5, 5, 5, 5, 5, 5, 5];
+	static readonly defaultPriority = 10;
 	static readonly defaultCityPrice = 100;
 	static readonly admin = 'admin';
 	static readonly passenger = 'passenger';
@@ -37,6 +41,8 @@ export class ConstantsService {
 		help: 'https://i.postimg.cc/c4HCQ0xh/pict.jpg',
 		settings: 'https://i.postimg.cc/26r83f94/pict.jpg',
 		addresses: 'https://i.postimg.cc/JhhTyCdY/pict.jpg',
+		commission: 'https://i.postimg.cc/6QvnH8Jk/pict.jpg',
+		statistic: 'https://i.postimg.cc/ydKgvnTR/pict.jpg',
 	};
 	static readonly WelcomeMessage =
 		'<b>Приветствуем!</b> Чтобы сделать заказ необходимо пройти короткую регистрацию.\n\n' +
@@ -69,6 +75,11 @@ export class ConstantsService {
 	static readonly callbackButtonTypeOrder = 'select-type';
 
 	static readonly repeatInputText = '\n\nПовторите ввод';
+	static readonly accessOrderTypeToRus = {
+		[AccessTypeOrder.ALL]: 'Все заказы',
+		[AccessTypeOrder.DRIVE]: 'Поездки',
+		[AccessTypeOrder.DELIVERY]: 'Доставка',
+	};
 
 	static readonly getEndingWord = (number: number, words: string[]) => {
 		const cases = [2, 0, 1, 1, 1, 2];
@@ -91,20 +102,37 @@ export class ConstantsService {
 			? 0
 			: count - ConstantsService.defaultRating.length;
 
-	static readonly getProfileInfoPassenger = (passenger: Passenger) =>
-		`<b>Профиль</b>\n\n` +
-		`Имя: ${passenger.first_name}\n` +
-		`Рейтинг: ⭐️${(passenger.rating.reduce((curr, acc) => acc + curr, 0) / passenger.rating.length).toFixed(2)}` +
-		` (${ConstantsService.getCountRating(passenger.rating.length)} ${ConstantsService.getEndingWord(ConstantsService.getCountRating(passenger.rating.length), ['оценка', 'оценки', 'оценок'])})\n` +
-		`Телефон: ${passenger.phone}\n` +
-		`Населенный пункт: ${passenger.city}\n` +
+	static readonly getProfileInfoDefault = (user: Passenger | Driver) =>
+		`<b>👤 Профиль</b>\n\n` +
+		`Имя: ${user.first_name}\n` +
+		`Рейтинг: ⭐️${(user.rating.reduce((curr, acc) => acc + curr, 0) / user.rating.length).toFixed(2)}` +
+		` (${ConstantsService.getCountRating(user.rating.length)} ${ConstantsService.getEndingWord(ConstantsService.getCountRating(user.rating.length), ['оценка', 'оценки', 'оценок'])})\n` +
+		`Телефон: ${user.phone}\n` +
+		`Населенный пункт: ${user.city}\n`;
+
+	static readonly getProfileInfoPassenger = (passenger: Passenger, orders: OrdersInfoDto) =>
+		ConstantsService.getProfileInfoDefault(passenger) +
 		`\n\n` +
 		`<b>🔄 История заказов</b>` +
 		`\n\n` +
-		`Всего заказов: <b>0</b>\n` +
-		`Поездки: <b>0</b>\n` +
-		`Доставки: <b>0</b>\n` +
-		`Отменено: <b>0</b>\n`;
+		`Всего заказов: <b>${orders.totalCount}</b>\n` +
+		`Поездки: <b>${orders.driveCount}</b>\n` +
+		`Доставки: <b>${orders.deliveryCount}</b>\n` +
+		`Отменено: <b>${orders.canceledCount}</b>\n`;
+
+	static readonly getProfileInfoDriver = (driver: Driver) =>
+		ConstantsService.getProfileInfoDefault(driver) +
+		`Приоритет: ${driver.priority}/${ConstantsService.defaultPriority}⚡️` +
+		`\n\n` +
+		`ℹ️ Чем выше приоритет, тем быстрее Вы получаете новые заказы` +
+		`\n\n` +
+		`Авто: <b>${driver.car.carBrand}</b>\n` +
+		`Цвет: <b>${driver.car.carColor}</b>\n` +
+		`Гос.номер: <b>${driver.car.carNumber}</b>` +
+		`\n\n` +
+		`Заказы: <b>${ConstantsService.accessOrderTypeToRus[driver.accessOrderType]}</b>` +
+		`\n\n` +
+		`ℹ️ Тип принимаемых заказов можно изменить в настройках`;
 
 	static readonly roundToNearest50 = (num: number): number => {
 		return Math.ceil(num / 50) * 50;

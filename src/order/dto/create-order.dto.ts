@@ -1,5 +1,4 @@
 import { TypeOrder } from '../Enum/type-order';
-import { Passenger } from '../../passenger/passenger.model';
 import { IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class CreateOrderDto {
@@ -19,10 +18,6 @@ export class CreateOrderDto {
 	@IsNumber()
 	price: number;
 
-	// @ValidateNested()
-	// @Type(() => Passenger['chatId'])
-	// passengerId: Passenger['chatId'];
-
 	@IsNumber()
-	passengerId: Passenger['chatId'];
+	passengerId: number;
 }

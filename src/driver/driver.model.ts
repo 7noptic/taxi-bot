@@ -3,6 +3,8 @@ import { City } from '../city/city.model';
 import { HydratedDocument } from 'mongoose';
 import { ConstantsService } from '../constants/constants.service';
 import { StatusDriver } from '../taxi-bot/types/status-driver.type';
+import { AccessTypeOrder } from './Enum/access-type-order';
+import { BlockedType } from './Enum/blocked-type';
 
 export type DriverDocument = HydratedDocument<Driver>;
 
@@ -43,8 +45,20 @@ export class Driver {
 	@Prop({ enum: StatusDriver, default: StatusDriver.Offline })
 	status: StatusDriver;
 
+	@Prop({ enum: AccessTypeOrder, default: AccessTypeOrder.ALL })
+	accessOrderType: AccessTypeOrder;
+
 	@Prop({ type: Number, default: 0 })
 	commission: number;
+
+	@Prop({ type: Number, default: ConstantsService.defaultPriority })
+	priority: number;
+
+	@Prop({ type: Boolean, default: false })
+	isBlocked: boolean;
+
+	@Prop({ enum: BlockedType, default: BlockedType.No })
+	blockedType: BlockedType;
 
 	@Prop({ type: Car })
 	car: Car;

@@ -1,5 +1,6 @@
 import { Markup } from 'telegraf';
-import { PassengerButtons } from '../buttons/passenger.buttons';
+import { PassengerButtons } from '../../buttons/passenger.buttons';
+import { commonButtons } from '../../buttons/common.buttons';
 
 export function passengerProfileKeyboard() {
 	return Markup.keyboard([
@@ -10,10 +11,10 @@ export function passengerProfileKeyboard() {
 				PassengerButtons.profile.addresses,
 			),
 
-			Markup.button.callback(PassengerButtons.profile.profile, PassengerButtons.profile.profile),
+			Markup.button.callback(commonButtons.profile.profile, commonButtons.profile.profile),
 		],
 		[
-			Markup.button.callback(PassengerButtons.profile.help, PassengerButtons.profile.help),
+			Markup.button.callback(commonButtons.profile.help, commonButtons.profile.help),
 			Markup.button.callback(PassengerButtons.profile.settings, PassengerButtons.profile.settings),
 		],
 	]).resize();
