@@ -20,4 +20,7 @@ export class CreateOrderDto {
 
 	@IsNumber()
 	passengerId: number;
+
+	@IsString()
+	city: string;
 }

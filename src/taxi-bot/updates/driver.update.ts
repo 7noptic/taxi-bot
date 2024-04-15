@@ -12,6 +12,7 @@ import { OrderService } from '../../order/order.service';
 import { ChatId } from '../../decorators/getChatId.decorator';
 import {
 	commissionText,
+	driverBlockedText,
 	settingsDriverText,
 	startAccessOrderTypeCar,
 	startEditCar,
@@ -19,8 +20,11 @@ import {
 	startEditName,
 	startEditPhone,
 	statisticText,
+	toggleWorkShift,
 } from '../constatnts/message.constants';
 import { setDriverSettingsKeyboard } from '../keyboards/driver/set-settings.keyboard';
+import { StatusDriver } from '../types/status-driver.type';
+import { driverProfileKeyboard } from '../keyboards/driver/profile.keyboard';
 
 @Update()
 export class TaxiBotDriverUpdate {
@@ -106,5 +110,22 @@ export class TaxiBotDriverUpdate {
 		const statistic = await this.orderService.getDriverOrdersInfo(chatId);
 		await ctx.sendPhoto({ url: ConstantsService.images.statistic });
 		await ctx.replyWithHTML(statisticText(statistic));
+	}
+
+	/************************** Статус водителя **************************/
+	@Hears(DriverButtons.profile.status[StatusDriver.Offline])
+	@Hears(DriverButtons.profile.status[StatusDriver.Online])
+	async setStatus(@Ctx() ctx: TaxiBotContext, @ChatId() chatId: number) {
+		const { isBlocked, blockedType } = await this.driverService.findByChatId(chatId);
+		if (!isBlocked) {
+			const { status } = await this.driverService.toggleStatusByChatId(chatId);
+			await ctx.replyWithHTML(toggleWorkShift[status], driverProfileKeyboard(status));
+			return;
+		}
+
+		await ctx.replyWithHTML(
+			driverBlockedText[blockedType],
+			driverProfileKeyboard(StatusDriver.Offline),
+		);
 	}
 }

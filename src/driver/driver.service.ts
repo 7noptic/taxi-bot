@@ -3,10 +3,23 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Driver, DriverDocument } from './driver.model';
 import { Model } from 'mongoose';
 import { CreateDriverDto } from './dto/create-driver.dto';
+import { StatusDriver } from '../taxi-bot/types/status-driver.type';
+import { InjectBot } from 'nestjs-telegraf';
+import { BotName } from '../types/bot-name.type';
+import { Telegraf } from 'telegraf';
+import { TaxiBotContext } from '../taxi-bot/taxi-bot.context';
+import { Order } from '../order/order.model';
+import { Queue } from 'bull';
+import { QueueType } from '../types/queue.type';
+import { InjectQueue } from '@nestjs/bull';
 
 @Injectable()
 export class DriverService {
-	constructor(@InjectModel(Driver.name) private driverModel: Model<DriverDocument>) {}
+	constructor(
+		@InjectModel(Driver.name) private driverModel: Model<DriverDocument>,
+		@InjectBot(BotName.Taxi) private readonly bot: Telegraf<TaxiBotContext>,
+		@InjectQueue(QueueType.Order) private readonly orderQueue: Queue,
+	) {}
 
 	async create(dto: CreateDriverDto) {
 		return this.driverModel.create(dto);
@@ -14,6 +27,31 @@ export class DriverService {
 
 	async findByChatId(chatId: number) {
 		return await this.driverModel.findOne({ chatId }).exec();
+	}
+
+	async toggleStatusByChatId(chatId: number) {
+		return this.driverModel
+			.findOneAndUpdate(
+				{ chatId },
+				[
+					{
+						$set: {
+							status: {
+								$switch: {
+									branches: [
+										{ case: { $eq: ['$status', StatusDriver.Online] }, then: StatusDriver.Offline },
+										{ case: { $eq: ['$status', StatusDriver.Offline] }, then: StatusDriver.Online },
+									],
+									default: '$status',
+								},
+							},
+						},
+					},
+				],
+
+				{ new: true },
+			)
+			.exec();
 	}
 
 	async editName(chatId: Driver['chatId'], new_name: Driver['first_name']) {
@@ -69,5 +107,14 @@ export class DriverService {
 				},
 			},
 		);
+	}
+
+	async sendBulkOrder(order: Order) {
+		const drivers = await this.driverModel.find({ status: StatusDriver.Online, city: order.city });
+		console.log(order);
+		console.log(drivers);
+		drivers.forEach((driver) => {
+			this.orderQueue.add({ order, driver });
+		});
 	}
 }

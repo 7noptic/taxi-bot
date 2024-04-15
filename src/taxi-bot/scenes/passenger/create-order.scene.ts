@@ -1,4 +1,4 @@
-import { Ctx, Hears, Message, On, Wizard, WizardStep } from 'nestjs-telegraf';
+import { Ctx, Hears, InjectBot, Message, On, Wizard, WizardStep } from 'nestjs-telegraf';
 import { WizardContext } from 'telegraf/scenes';
 import { ScenesType } from '../scenes.type';
 import { PassengerService } from '../../../passenger/passenger.service';
@@ -33,6 +33,9 @@ import { commonButtons } from '../../buttons/common.buttons';
 import { TaxiBotCommonUpdate } from '../../updates/common.update';
 import { TaxiBotValidation } from '../../taxi-bot.validation';
 import { passengerProfileKeyboard } from '../../keyboards/passenger/passenger-profile.keyboard';
+import { BotName } from '../../../types/bot-name.type';
+import { Telegraf } from 'telegraf';
+import { DriverService } from '../../../driver/driver.service';
 
 @Wizard(ScenesType.CreateOrder)
 export class CreateOrderScene {
@@ -40,8 +43,10 @@ export class CreateOrderScene {
 		private readonly passengerService: PassengerService,
 		private readonly cityService: CityService,
 		private readonly orderService: OrderService,
+		private readonly driverService: DriverService,
 		private readonly taxiBotService: TaxiBotCommonUpdate,
 		private readonly taxiBotValidation: TaxiBotValidation,
+		@InjectBot(BotName.Taxi) private readonly bot: Telegraf<TaxiBotContext>,
 	) {}
 
 	@WizardStep(1)
@@ -243,6 +248,7 @@ export class CreateOrderScene {
 	): Promise<string> {
 		try {
 			if (data === PassengerButtons.order.final.success.callback) {
+				const { city } = await this.passengerService.findByChatId(chatId);
 				const createOrderDto: CreateOrderDto = {
 					type: state.type,
 					addressFrom: state.addressFrom,
@@ -250,11 +256,14 @@ export class CreateOrderScene {
 					comment: state.comment,
 					price: state.price,
 					passengerId: chatId,
+					city,
 				};
 
-				await this.orderService.create(createOrderDto);
+				const order = await this.orderService.create(createOrderDto);
+				await this.driverService.sendBulkOrder(order);
+				// this.bot.telegram.sendMessage();
 				await ctx.reply(successOrder);
-				await ctx.scene.leave();
+				// await ctx.scene.leave();
 			} else if (data === PassengerButtons.order.final.edit.callback) {
 				await ctx.scene.reenter();
 			}

@@ -4,6 +4,7 @@ import { Passenger } from '../passenger/passenger.model';
 import { Driver } from '../driver/driver.model';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
+import { City } from '../city/city.model';
 
 export type OrderDocument = HydratedDocument<Order>;
 
@@ -35,6 +36,9 @@ export class Order {
 
 	@Prop({ type: Number, ref: Driver.name })
 	driverId: Driver['chatId'];
+
+	@Prop({ type: String, ref: City['name'] })
+	city: City['name'];
 
 	@Prop({ type: Number })
 	commission: number;

@@ -5,6 +5,7 @@ import { PassengerButtons } from '../buttons/passenger.buttons';
 import { DriverButtons } from '../buttons/driver.buttons';
 import { StatusDriver } from '../types/status-driver.type';
 import { DriverOrdersInfoDto } from '../../order/dto/driver-orders-info.dto';
+import { BlockedType } from '../../driver/Enum/blocked-type';
 
 export const WhatName = 'Укажите ваше имя?';
 export const WhatNameRegistration = `${WhatName}\n\nℹ️ Если Вы магазин или кафе и хотите
@@ -146,3 +147,15 @@ export const statisticText = (statistic: DriverOrdersInfoDto) =>
 	`Поездки: <b>${statistic.driveCountAll}</b>\n` +
 	`Доставка: <b>${statistic.deliveryCountAll}</b>\n` +
 	`Отменено: <b>${statistic.canceledCountAll}</b>\n\n`;
+
+export const toggleWorkShift = {
+	[StatusDriver.Online]: 'Вы вышли на смену, ожидайте заказов',
+	[StatusDriver.Offline]: 'Смена завершена',
+};
+
+export const driverBlockedText = {
+	[BlockedType.NotPaid]:
+		'Вам необходимо оплатить комиссию, чтобы вы могли продолжить пользоваться нашим сервисом.\n' +
+		`Сделать это можно нажав на кнопку\n${DriverButtons.profile.commission}`,
+	[BlockedType.NotConfirmed]: 'Ваш аккаунт не подтвержден, дождитесь подтверждения администратором',
+};
