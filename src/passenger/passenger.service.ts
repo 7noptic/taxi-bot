@@ -4,13 +4,21 @@ import { Passenger, PassengerDocument } from './passenger.model';
 import { Model } from 'mongoose';
 import { CreatePassengerDto } from './dto/create-passenger.dto';
 import { CreateAddressDto } from './dto/create-address.dto';
+import { ConstantsService } from '../constants/constants.service';
 
 @Injectable()
 export class PassengerService {
 	constructor(@InjectModel(Passenger.name) private passengerModel: Model<PassengerDocument>) {}
 
 	async create(dto: CreatePassengerDto) {
-		return this.passengerModel.create(dto);
+		try {
+			console.log(dto);
+			const user = await this.passengerModel.create(dto);
+			console.log('useru', user);
+			return user;
+		} catch (e) {
+			console.log('error', e);
+		}
 	}
 
 	async addAddress(chatId: Passenger['chatId'], address: CreateAddressDto) {
@@ -27,9 +35,18 @@ export class PassengerService {
 		}
 
 		const initialLength = beforeUpdatePassenger.address.length;
+		const lowerCaseAddressName = addressName.toLowerCase();
 
 		const afterUpdate = await this.passengerModel
-			.findOneAndUpdate({ chatId }, { $pull: { address: { name: addressName } } }, { new: true })
+			.findOneAndUpdate(
+				{ chatId },
+				{
+					$pull: {
+						address: { name: { $regex: new RegExp('^' + lowerCaseAddressName + '$', 'i') } },
+					},
+				},
+				{ new: true },
+			)
 			.exec();
 
 		if (!afterUpdate) {
@@ -76,5 +93,13 @@ export class PassengerService {
 
 	async findByChatId(chatId: number) {
 		return await this.passengerModel.findOne({ chatId }).exec();
+	}
+
+	async getRatingById(chatId: number) {
+		const { rating } = await this.passengerModel.findOne({ chatId }, { rating: 1 }).lean();
+		if (rating) {
+			return ConstantsService.getUserRating(rating);
+		}
+		return '0';
 	}
 }

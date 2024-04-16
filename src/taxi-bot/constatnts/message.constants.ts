@@ -6,10 +6,12 @@ import { DriverButtons } from '../buttons/driver.buttons';
 import { StatusDriver } from '../types/status-driver.type';
 import { DriverOrdersInfoDto } from '../../order/dto/driver-orders-info.dto';
 import { BlockedType } from '../../driver/Enum/blocked-type';
+import { Order } from '../../order/order.model';
+import { Driver } from '../../driver/driver.model';
 
 export const WhatName = 'Укажите ваше имя?';
 export const WhatNameRegistration = `${WhatName}\n\nℹ️ Если Вы магазин или кафе и хотите
-отправлять свою продукцию с помощью`;
+отправлять свою продукцию с помощью курьеров - укажите название заведения`;
 export const WhatNumber = 'Введите ваш номер телефона в формате +79991112233';
 
 export const WhatNumberRegistration = `${WhatNumber}\n\nℹ️ Либо поделитесь контактом для автоматического ввода номера`;
@@ -106,7 +108,8 @@ export const accessOrder = (
 ) =>
 	`${type}\n\nОткуда: ${addressFrom}\nКуда: ${addressTo}\n${comment ? 'Комментарий: ' + comment + '\n' : ''}\n💵 ${price}₽`;
 
-export const errorPrice = (price: number) => `Сумма должна быть не меньше ${price} рублей`;
+export const errorPrice = (price: number) =>
+	`Некорректно введена цена.\nСумма должна быть не меньше ${price} рублей.`;
 
 export const successOrder = '🔄 Ожидаем ответа от водителей';
 
@@ -159,3 +162,30 @@ export const driverBlockedText = {
 		`Сделать это можно нажав на кнопку\n${DriverButtons.profile.commission}`,
 	[BlockedType.NotConfirmed]: 'Ваш аккаунт не подтвержден, дождитесь подтверждения администратором',
 };
+
+export const NotDrivers = `К сожалению в данный момент нет подходящих водителей.😞\nВозможно они появятся чуть позже и примут ваш заказ.`;
+export const newOrderMessage = (order: Order, rating: string) => {
+	return (
+		`🟢 Новый заказ! <b>${PassengerButtons.order.type[order.type].label}</b>\n\n` +
+		`👤 Рейтинг: ${rating}\n\n` +
+		`Откуда: <b>${order.addressFrom}</b>\n` +
+		`Куда: <b>${order.addressTo}</b>\n` +
+		`${order.comment ? `Комментарий: <b>${order.comment}</b>\n` : '\n'}` +
+		`Стоимость <b>${order.price}₽</b>`
+	);
+};
+
+export const errorValidation = 'Что-то не так с данными 😞';
+
+export const timeDeliveryText = '🕐 Укажите время подачи';
+export const desiredPriceText = '💵 Укажите желаемое вознаграждение';
+export const successfulProposalSubmissionText = `✅ Ваше предложение отправлено пользователю. Ожидайте ответа!`;
+export const driverOffer = (driver: Driver, time: number, price?: number) =>
+	`✅ <b>${driver.first_name} (⭐️ ${ConstantsService.getUserRating(driver.rating)})\n` +
+	`${driver.car.carColor} ${driver.car.carBrand} | ${driver.car.carNumber}</b>\n` +
+	`Предложил вам уехать за <b>${price ? `${price}₽.` : 'вашу цену.'}</b>\n` +
+	`Подача авто в течении <b>${time} минут.</b>`;
+
+export const orderNotAvailable = `Заказ больше недоступен😞`;
+export const startSuccessOrder = 'Чтобы отправить свое предложение по заказу ответьте на вопросы.';
+export const cancelOffer = '❌ Предложение отменено.';

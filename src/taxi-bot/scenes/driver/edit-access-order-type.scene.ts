@@ -16,6 +16,7 @@ import { DriverService } from '../../../driver/driver.service';
 import { driverProfileKeyboard } from '../../keyboards/driver/profile.keyboard';
 import { selectAccessOrderTypeKeyboard } from '../../keyboards/driver/select-access-order-type.keyboard';
 import { Driver } from '../../../driver/driver.model';
+import { AccessTypeOrder } from '../../../driver/Enum/access-type-order';
 
 @Wizard(ScenesType.EditAccessOrderTypeDriver)
 export class EditAccessOrderTypeSceneDriver {
@@ -41,13 +42,16 @@ export class EditAccessOrderTypeSceneDriver {
 	): Promise<string> {
 		try {
 			await ctx.scene.leave();
-			const { status } = await this.driverService.editAccessTypeOrder(chatId, accessOrderType);
-			await ctx.reply(successEditAccessOrderType, driverProfileKeyboard(status));
+			if (Object.values(AccessTypeOrder).includes(accessOrderType)) {
+				const { status } = await this.driverService.editAccessTypeOrder(chatId, accessOrderType);
+				await ctx.reply(successEditAccessOrderType, driverProfileKeyboard(status));
+			} else {
+				await this.showError(ctx, chatId);
+			}
 			return '';
 		} catch (e) {
 			await ctx.scene.leave();
-			const { status } = await this.driverService.findByChatId(chatId);
-			await ctx.reply(errorEditInfo, driverProfileKeyboard(status));
+			await this.showError(ctx, chatId);
 			return '';
 		}
 	}
@@ -55,5 +59,10 @@ export class EditAccessOrderTypeSceneDriver {
 	@Hears(commonButtons.back)
 	async goHome(@Ctx() ctx: TaxiBotContext, @ChatId() chatId: number) {
 		await this.taxiBotService.goHome(ctx, chatId);
+	}
+
+	async showError(@Ctx() ctx: WizardContext & TaxiBotContext, @ChatId() chatId: number) {
+		const { status } = await this.driverService.findByChatId(chatId);
+		await ctx.reply(errorEditInfo, driverProfileKeyboard(status));
 	}
 }

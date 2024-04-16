@@ -11,6 +11,7 @@ import { PassengerAdapter } from '../../../passenger/passenger.adapter';
 import { RegistrationPassengerContext } from '../../contexts/registration-passenger.context';
 import {
 	errorRegistration,
+	errorValidation,
 	greetingPassenger,
 	WhatCity,
 	WhatNameRegistration,
@@ -104,15 +105,23 @@ export class RegisterPassengerScene {
 		@wizardState() state: RegistrationPassengerContext['wizard']['state'],
 	) {
 		try {
-			const createPassengerDto = this.passengerAdapter.convertRegisterInfoToPassenger({
-				...user,
-				city,
-				first_name: state.name,
-				phone: state.phone,
-			});
-			await ctx.scene.leave();
-			await this.passengerService.create(createPassengerDto);
-			await ctx.replyWithHTML(greetingPassenger(state.name), passengerProfileKeyboard());
+			const { name } = await this.cityService.getByName(city);
+			await this.cityService.getByName(city);
+			if (name.length > 0) {
+				const createPassengerDto = this.passengerAdapter.convertRegisterInfoToPassenger({
+					...user,
+					city,
+					first_name: state.name,
+					phone: state.phone,
+					last_name: user.last_name || '',
+				});
+				await this.passengerService.create(createPassengerDto);
+				await ctx.replyWithHTML(greetingPassenger(state.name), passengerProfileKeyboard());
+				await ctx.scene.leave();
+				return;
+			}
+
+			await ctx.reply(errorValidation);
 			return '';
 		} catch (e) {
 			await ctx.scene.leave();

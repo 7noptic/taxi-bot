@@ -11,6 +11,7 @@ import { DriverOrdersInfoDto } from './dto/driver-orders-info.dto';
 import { getCommissionForWeekPipeline } from './pipelines/getCommissionForWeek.pipeline';
 import { getPassengerOrdersInfoPipeline } from './pipelines/getPassengerOrdersInfo.pipeline';
 import { getDriverOrdersInfoPipeline } from './pipelines/getDriverOrdersInfo.pipeline';
+import { StatusOrder } from './Enum/status-order';
 
 @Injectable()
 export class OrderService {
@@ -22,6 +23,24 @@ export class OrderService {
 	async create(dto: CreateOrderDto): Promise<OrderDocument> {
 		const numberOrder = this.shortIdService.generateUniqueId(TypeId.Order);
 		return this.orderModel.create({ ...dto, numberOrder });
+	}
+
+	async findById(id: string) {
+		return this.orderModel.findById(id);
+	}
+
+	async switchOrderStatusById(id: string, status: StatusOrder) {
+		return this.orderModel
+			.findByIdAndUpdate(
+				id,
+				{
+					status: status,
+				},
+				{
+					new: true,
+				},
+			)
+			.exec();
 	}
 
 	async getCommissionForCurrentWeek(chatId: number) {

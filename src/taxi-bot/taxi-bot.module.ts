@@ -21,6 +21,8 @@ import { EditPhoneSceneDriver } from './scenes/driver/edit-phone.scene';
 import { EditNameSceneDriver } from './scenes/driver/edit-name.scene';
 import { EditCarSceneDriver } from './scenes/driver/edit-car.scene';
 import { EditAccessOrderTypeSceneDriver } from './scenes/driver/edit-access-order-type.scene';
+import { BargainOrderScene } from './scenes/driver/bargain-order.scene';
+import { AccessOrderScene } from './scenes/driver/access-order.scene';
 
 @Module({
 	imports: [PassengerModule, DriverModule, CityModule, SettingsModule, OrderModule],
@@ -32,6 +34,8 @@ import { EditAccessOrderTypeSceneDriver } from './scenes/driver/edit-access-orde
 		EditNameScene,
 		EditPhoneScene,
 		EditCityScene,
+		BargainOrderScene,
+		AccessOrderScene,
 		EditNameSceneDriver,
 		EditCarSceneDriver,
 		EditAccessOrderTypeSceneDriver,

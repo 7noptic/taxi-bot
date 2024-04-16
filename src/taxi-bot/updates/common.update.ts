@@ -30,6 +30,7 @@ export class TaxiBotCommonUpdate {
 	async start(@Ctx() ctx: TaxiBotContext, @ChatId() chatId: number) {
 		const passenger = await this.passengerService.findByChatId(chatId);
 		const driver = await this.driverService.findByChatId(chatId);
+		if (ctx?.scene) await ctx.scene.leave();
 
 		if (!passenger && !driver) {
 			await ctx.replyWithHTML(ConstantsService.WelcomeMessage, registrationKeyboard());

@@ -20,6 +20,7 @@ import { session } from 'telegraf';
 import { TaxiBotModule } from '../taxi-bot/taxi-bot.module';
 import { BotName } from '../types/bot-name.type';
 import { HelpBotModule } from '../help-bot/help-bot.module';
+import { BullModule } from '@nestjs/bull';
 
 const store = Mongo({
 	url: 'mongodb://localhost/taxi',
@@ -30,6 +31,12 @@ const store = Mongo({
 	imports: [
 		ConfigModule.forRoot(),
 		MongooseModule.forRoot('mongodb://localhost/taxi'),
+		BullModule.forRoot({
+			redis: {
+				host: '127.0.0.1',
+				port: 6379,
+			},
+		}),
 		OrderModule,
 		CityModule,
 		AuthModule,

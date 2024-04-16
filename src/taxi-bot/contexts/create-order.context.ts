@@ -10,6 +10,7 @@ export interface CreateOrderContext {
 			comment: Order['comment'];
 			price: Order['price'];
 			minPrice: City['minPrice'];
+			id: string;
 		};
 	};
 }

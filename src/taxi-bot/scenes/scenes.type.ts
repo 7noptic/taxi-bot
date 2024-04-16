@@ -12,4 +12,6 @@ export enum ScenesType {
 	EditCityDriver = 'editCityDriver',
 	EditCarDriver = 'editCarDriver',
 	EditAccessOrderTypeDriver = 'editAccessOrderTypeDriver',
+	BargainOrderByDriver = 'bargainOrderByDriver',
+	AccessOrderByDriver = 'accessOrderByDriver',
 }

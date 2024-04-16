@@ -1,17 +1,22 @@
 import { Context } from 'telegraf';
-import { SceneContextScene } from 'telegraf/scenes';
-import { Passenger } from '../passenger/passenger.model';
-import { Driver } from '../driver/driver.model';
-import { UserType } from '../types/user.type';
+import { SceneContextScene, SceneSession, SceneSessionData } from 'telegraf/scenes';
+import { SessionContext } from 'telegraf/session';
 
 export interface TaxiBotContext extends Context {
 	session: TaxiSession;
-	scene: SceneContextScene<Context>;
+	scene: SceneContextScene<SessionContext<SceneSession<TaxiScenes>>>;
 }
 
 export interface TaxiSession {
-	user: Passenger | Driver;
-	userType: UserType;
+	acceptedOrder: {
+		orderId: string;
+		passengerId: number;
+	};
 }
 
-export interface TaxiScenes {}
+export interface TaxiScenes extends SceneSessionData {
+	acceptedOrder: {
+		orderId: string;
+		passengerId: number;
+	};
+}

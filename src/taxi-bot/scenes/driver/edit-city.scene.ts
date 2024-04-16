@@ -46,13 +46,17 @@ export class EditCitySceneDriver {
 	): Promise<string> {
 		try {
 			await ctx.scene.leave();
-			const { status } = await this.driverService.editCity(chatId, city);
-			await ctx.reply(successEditCity, driverProfileKeyboard(status));
+			const { name } = await this.cityService.getByName(city);
+			if (name) {
+				const { status } = await this.driverService.editCity(chatId, city);
+				await ctx.reply(successEditCity, driverProfileKeyboard(status));
+				return '';
+			}
+			await this.showError(ctx, chatId);
 			return '';
 		} catch (e) {
 			await ctx.scene.leave();
-			const { status } = await this.driverService.findByChatId(chatId);
-			await ctx.reply(errorEditInfo, driverProfileKeyboard(status));
+			await this.showError(ctx, chatId);
 			return '';
 		}
 	}
@@ -60,5 +64,10 @@ export class EditCitySceneDriver {
 	@Hears(commonButtons.back)
 	async goHome(@Ctx() ctx: TaxiBotContext, @ChatId() chatId: number) {
 		await this.taxiBotService.goHome(ctx, chatId);
+	}
+
+	async showError(@Ctx() ctx: WizardContext & TaxiBotContext, @ChatId() chatId: number) {
+		const { status } = await this.driverService.findByChatId(chatId);
+		await ctx.reply(errorEditInfo, driverProfileKeyboard(status));
 	}
 }

@@ -21,6 +21,11 @@ export class PassengerController {
 		return this.passengerService.create(dto);
 	}
 
+	@Get('getRating/:chatId')
+	async getRatingById(@Param('chatId') chatId: number) {
+		return this.passengerService.getRatingById(chatId);
+	}
+
 	@Patch(':id')
 	async update(@Param('id') id: string, @Body() dto: CreatePassengerDto) {}
 

@@ -46,12 +46,17 @@ export class EditCityScene {
 	): Promise<string> {
 		try {
 			await ctx.scene.leave();
-			await this.passengerService.editCity(chatId, city);
-			await ctx.reply(successEditCity, passengerProfileKeyboard());
+			const { name } = await this.cityService.getByName(city);
+			if (name) {
+				await this.passengerService.editCity(chatId, city);
+				await ctx.reply(successEditCity, passengerProfileKeyboard());
+				return '';
+			}
+			await this.showError(ctx, chatId);
 			return '';
 		} catch (e) {
 			await ctx.scene.leave();
-			await ctx.reply(errorEditInfo, passengerProfileKeyboard());
+			await this.showError(ctx, chatId);
 			return '';
 		}
 	}
@@ -59,5 +64,9 @@ export class EditCityScene {
 	@Hears(commonButtons.back)
 	async goHome(@Ctx() ctx: TaxiBotContext, @ChatId() chatId: number) {
 		await this.taxiBotService.goHome(ctx, chatId);
+	}
+
+	async showError(@Ctx() ctx: WizardContext & TaxiBotContext, @ChatId() chatId: number) {
+		await ctx.reply(errorEditInfo, passengerProfileKeyboard());
 	}
 }

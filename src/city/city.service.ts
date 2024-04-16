@@ -18,7 +18,7 @@ export class CityService {
 	}
 
 	async getByName(name: string) {
-		return this.cityModel.find({ name }).exec();
+		return this.cityModel.findOne({ name }).exec();
 	}
 
 	async deleteById(id: string) {

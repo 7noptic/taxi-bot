@@ -10,8 +10,10 @@ import { Telegraf } from 'telegraf';
 import { TaxiBotContext } from '../taxi-bot/taxi-bot.context';
 import { Order } from '../order/order.model';
 import { Queue } from 'bull';
-import { QueueType } from '../types/queue.type';
+import { QueueTaskType, QueueType } from '../types/queue.type';
 import { InjectQueue } from '@nestjs/bull';
+import { AccessTypeOrder } from './Enum/access-type-order';
+import { NotDrivers } from '../taxi-bot/constatnts/message.constants';
 
 @Injectable()
 export class DriverService {
@@ -109,12 +111,25 @@ export class DriverService {
 		);
 	}
 
-	async sendBulkOrder(order: Order) {
-		const drivers = await this.driverModel.find({ status: StatusDriver.Online, city: order.city });
-		console.log(order);
-		console.log(drivers);
-		drivers.forEach((driver) => {
-			this.orderQueue.add({ order, driver });
+	async sendBulkOrder(order: Order, passengerRating: string) {
+		const drivers = await this.driverModel.find({
+			status: StatusDriver.Online,
+			city: order.city,
+			$or: [{ accessOrderType: AccessTypeOrder.ALL }, { accessOrderType: order.type }],
 		});
+		if (!drivers.length) {
+			await this.bot.telegram.sendMessage(order.passengerId, NotDrivers);
+			return;
+		}
+
+		await Promise.all(
+			drivers.map(async (driver) => {
+				await this.orderQueue.add(
+					QueueTaskType.SendOrderToDrivers,
+					{ driver, order, passengerRating },
+					{ delay: 100 },
+				);
+			}),
+		);
 	}
 }

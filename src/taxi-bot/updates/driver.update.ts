@@ -13,18 +13,22 @@ import { ChatId } from '../../decorators/getChatId.decorator';
 import {
 	commissionText,
 	driverBlockedText,
+	orderNotAvailable,
 	settingsDriverText,
 	startAccessOrderTypeCar,
 	startEditCar,
 	startEditCity,
 	startEditName,
 	startEditPhone,
+	startSuccessOrder,
 	statisticText,
 	toggleWorkShift,
 } from '../constatnts/message.constants';
 import { setDriverSettingsKeyboard } from '../keyboards/driver/set-settings.keyboard';
 import { StatusDriver } from '../types/status-driver.type';
 import { driverProfileKeyboard } from '../keyboards/driver/profile.keyboard';
+import { GetQueryData } from '../../decorators/getCityFromInlineQuery.decorator';
+import { StatusOrder } from '../../order/Enum/status-order';
 
 @Update()
 export class TaxiBotDriverUpdate {
@@ -127,5 +131,30 @@ export class TaxiBotDriverUpdate {
 			driverBlockedText[blockedType],
 			driverProfileKeyboard(StatusDriver.Offline),
 		);
+	}
+
+	/************************** Заказ **************************/
+	@Action(new RegExp(DriverButtons.order.access.callback))
+	@Action(new RegExp(DriverButtons.order.bargain.callback))
+	async bargainOrder(@Ctx() ctx: TaxiBotContext, @GetQueryData() data: any) {
+		const callbackData = data.split('-');
+		const orderId = callbackData[2];
+		const passengerId = Number(callbackData[3]);
+
+		const { status } = await this.orderService.findById(orderId);
+		if (status === StatusOrder.Created) {
+			ctx.session.acceptedOrder = {
+				orderId,
+				passengerId,
+			};
+			await ctx.reply(startSuccessOrder, backKeyboard());
+			await ctx.scene.enter(
+				callbackData[1] === 'bargain'
+					? ScenesType.BargainOrderByDriver
+					: ScenesType.AccessOrderByDriver,
+			);
+			return;
+		}
+		await ctx.reply(orderNotAvailable);
 	}
 }

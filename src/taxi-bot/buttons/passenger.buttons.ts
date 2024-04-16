@@ -51,4 +51,14 @@ export const PassengerButtons = {
 			},
 		},
 	},
+	offer: {
+		cancel: {
+			label: '❌',
+			callback: 'cancel-offer-',
+		},
+		success: {
+			label: '✅ Поехали',
+			callback: 'success-offer-',
+		},
+	},
 };

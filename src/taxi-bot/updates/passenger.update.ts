@@ -7,6 +7,7 @@ import { ChatId } from '../../decorators/getChatId.decorator';
 import { ScenesType } from '../scenes/scenes.type';
 import { PassengerButtons } from '../buttons/passenger.buttons';
 import {
+	cancelOffer,
 	NoAddresses,
 	settingsText,
 	startCreateOrder,
@@ -22,6 +23,7 @@ import { BotName } from '../../types/bot-name.type';
 import { ConstantsService } from '../../constants/constants.service';
 import { passengerSettingsKeyboard } from '../keyboards/passenger/passenger-settings.keyboard';
 import { cancelOrderKeyboard } from '../keyboards/passenger/cancel-order.keyboard';
+import { GetQueryData } from '../../decorators/getCityFromInlineQuery.decorator';
 
 @Update()
 export class TaxiBotPassengerUpdate {
@@ -90,10 +92,23 @@ export class TaxiBotPassengerUpdate {
 		await ctx.scene.enter(ScenesType.EditCity);
 	}
 
-	/************************** Создание заказа **************************/
+	/************************** Заказ **************************/
 	@Hears(PassengerButtons.profile.callCar)
 	async createOrder(@Ctx() ctx: TaxiBotContext) {
 		await ctx.reply(startCreateOrder, cancelOrderKeyboard());
 		await ctx.scene.enter(ScenesType.CreateOrder);
+	}
+
+	@Action(new RegExp(PassengerButtons.offer.cancel.callback))
+	async cancelOffer(@Ctx() ctx: TaxiBotContext) {
+		await ctx.reply(cancelOffer, cancelOrderKeyboard());
+	}
+
+	@Action(new RegExp(PassengerButtons.offer.success.callback))
+	async successOffer(@Ctx() ctx: TaxiBotContext, @GetQueryData() data: any) {
+		const callbackData = data.split('-');
+		const orderId = callbackData[2];
+		const driverId = Number(callbackData[3]);
+		const price = Number(callbackData[4]) || null;
 	}
 }

@@ -4,6 +4,7 @@ import { ScenesType } from '../scenes.type';
 import { CityService } from '../../../city/city.service';
 import {
 	errorRegistration,
+	errorValidation,
 	greetingDriver,
 	WhatCarBrand,
 	WhatCarColor,
@@ -105,10 +106,15 @@ export class RegisterDriverScene {
 		@Ctx() ctx: WizardContext & TaxiBotContext & RegistrationDriverContext,
 		@GetQueryData() city: string,
 	) {
-		ctx.wizard.state.city = city;
-		await ctx.reply(WhatCarBrand);
+		const { name } = await this.cityService.getByName(city);
+		if (name) {
+			ctx.wizard.state.city = city;
+			await ctx.reply(WhatCarBrand);
 
-		await ctx.wizard.next();
+			await ctx.wizard.next();
+			return;
+		}
+		await ctx.reply(errorValidation);
 		return;
 	}
 
@@ -185,33 +191,6 @@ export class RegisterDriverScene {
 			return '';
 		}
 	}
-
-	//
-	// @On('callback_query')
-	// @WizardStep(4)
-	// async onLocation(
-	// 	@Ctx() ctx: WizardContext & TaxiBotContext & RegistrationPassengerContext,
-	// 	@GetQueryData() city: string,
-	// 	@userInfo() user,
-	// 	@wizardState() state: RegistrationPassengerContext['wizard']['state'],
-	// ) {
-	// 	try {
-	// 		const createPassengerDto = this.passengerAdapter.convertRegisterInfoToPassenger({
-	// 			...user,
-	// 			city,
-	// 			first_name: state.name,
-	// 			phone: state.phone,
-	// 		});
-	// 		await ctx.scene.leave();
-	// 		const passenger = await this.passengerService.create(createPassengerDto);
-	// 		await ctx.replyWithHTML(greetingPassenger(state.name), passengerProfileKeyboard());
-	// 		return '';
-	// 	} catch (e) {
-	// 		await ctx.scene.leave();
-	// 		await ctx.reply(errorRegistration, registrationKeyboard());
-	// 		return '';
-	// 	}
-	// }
 
 	@Hears(commonButtons.back)
 	async goHome(@Ctx() ctx: TaxiBotContext, @ChatId() chatId: number) {

@@ -102,10 +102,14 @@ export class ConstantsService {
 			? 0
 			: count - ConstantsService.defaultRating.length;
 
+	static getUserRating(rating: number[]) {
+		return (rating.reduce((curr, acc) => acc + curr, 0) / rating.length).toFixed(2);
+	}
+
 	static readonly getProfileInfoDefault = (user: Passenger | Driver) =>
 		`<b>👤 Профиль</b>\n\n` +
 		`Имя: ${user.first_name}\n` +
-		`Рейтинг: ⭐️${(user.rating.reduce((curr, acc) => acc + curr, 0) / user.rating.length).toFixed(2)}` +
+		`Рейтинг: ⭐️${ConstantsService.getUserRating(user.rating)}` +
 		` (${ConstantsService.getCountRating(user.rating.length)} ${ConstantsService.getEndingWord(ConstantsService.getCountRating(user.rating.length), ['оценка', 'оценки', 'оценок'])})\n` +
 		`Телефон: ${user.phone}\n` +
 		`Населенный пункт: ${user.city}\n`;
