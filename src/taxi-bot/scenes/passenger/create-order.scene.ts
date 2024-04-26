@@ -1,18 +1,35 @@
-import { Ctx, Hears, InjectBot, Message, On, Wizard, WizardStep } from 'nestjs-telegraf';
+import {
+	Action,
+	Ctx,
+	Hears,
+	InjectBot,
+	Message,
+	On,
+	Start,
+	Wizard,
+	WizardStep,
+} from 'nestjs-telegraf';
 import { WizardContext } from 'telegraf/scenes';
 import { ScenesType } from '../scenes.type';
 import { PassengerService } from '../../../passenger/passenger.service';
 import {
 	accessOrder,
+	cancelOrderForDriver,
 	errorCreateOrder,
 	errorPrice,
 	errorValidation,
+	messageFromPassenger,
+	offerIsNoLongerValid,
+	orderNotAvailable,
 	selectAddressTextFrom,
 	selectAddressTextTo,
 	selectComment,
 	selectPrice,
 	selectTypeOrderText,
+	successOfferForDriver,
+	successOfferText,
 	successOrder,
+	successSendMessage,
 } from '../../constatnts/message.constants';
 import { ChatId } from '../../../decorators/getChatId.decorator';
 import { TaxiBotContext } from '../../taxi-bot.context';
@@ -38,6 +55,9 @@ import { BotName } from '../../../types/bot-name.type';
 import { Telegraf } from 'telegraf';
 import { DriverService } from '../../../driver/driver.service';
 import { StatusOrder } from '../../../order/Enum/status-order';
+import { driverProfileKeyboard } from '../../keyboards/driver/profile.keyboard';
+import { inDriveKeyboard } from '../../keyboards/driver/in-drive.keyboard';
+import { StatusDriver } from '../../types/status-driver.type';
 
 @Wizard(ScenesType.CreateOrder)
 export class CreateOrderScene {
@@ -275,8 +295,8 @@ export class CreateOrderScene {
 				ctx.wizard.state.id = order._id.toString();
 				const rating = await this.passengerService.getRatingById(chatId);
 				await this.driverService.sendBulkOrder(order, rating);
-				await ctx.reply(successOrder);
-				// await ctx.scene.leave();
+				await ctx.replyWithHTML(successOrder(order.numberOrder));
+				await ctx.wizard.next();
 			} else if (data === PassengerButtons.order.final.edit.callback) {
 				await ctx.scene.reenter();
 			} else {
@@ -290,11 +310,94 @@ export class CreateOrderScene {
 		}
 	}
 
-	@Hears(commonButtons.back)
+	@WizardStep(8)
+	@Action(new RegExp(PassengerButtons.offer.success.callback))
+	async successOffer(
+		@Ctx() ctx: TaxiBotContext & WizardContext & CreateOrderContext,
+		@ChatId() chatId: number,
+		@GetQueryData() data: any,
+	) {
+		try {
+			const callbackData = data.split('-');
+			const orderId = callbackData[2];
+			const driverId = Number(callbackData[3]);
+			const submissionTime = Number(callbackData[4]);
+			const price = Number(callbackData[5]) || null;
+			const driver = await this.driverService.findByChatId(driverId);
+			if (driver.isBusy || driver.status === StatusDriver.Offline) {
+				await ctx.reply(offerIsNoLongerValid);
+				return;
+			}
+
+			const order = await this.orderService.selectDriverForOrder(
+				orderId,
+				driverId,
+				submissionTime,
+				price,
+			);
+			const passenger = await this.passengerService.findByChatId(chatId);
+
+			await ctx.sendPhoto({ url: ConstantsService.images.inDrive });
+			await ctx.replyWithHTML(successOfferText(order, driver));
+			await this.bot.telegram.sendMessage(driverId, successOfferForDriver(order, passenger), {
+				parse_mode: 'HTML',
+				reply_markup: inDriveKeyboard().reply_markup,
+			});
+			ctx.wizard.state.driverId = driverId;
+			await ctx.wizard.next();
+		} catch (e) {
+			await ctx.reply(orderNotAvailable);
+		}
+	}
+
+	@On('text')
+	@WizardStep(9)
+	async onText(
+		@Ctx() ctx: WizardContext & TaxiBotContext & CreateOrderContext,
+		@ChatId() chatId: number,
+		@wizardState() state: CreateOrderContext['wizard']['state'],
+		@Message() msg: { text: string },
+	): Promise<string> {
+		try {
+			const order = await this.orderService.findActiveOrderByPassengerId(chatId);
+			if (!order) {
+				await this.taxiBotService.goHome(ctx, chatId);
+				return;
+			}
+			const valid = this.taxiBotValidation.checkMaxMinLengthString(msg.text, 0, 300);
+			if (valid === true) {
+				await ctx.reply(successSendMessage);
+				await this.bot.telegram.sendMessage(state.driverId, messageFromPassenger + msg.text);
+				return;
+			}
+			await ctx.reply(valid);
+			return;
+		} catch (e) {}
+	}
+
 	@Hears(commonButtons.cancelOrder.label)
 	async cancelOrder(@Ctx() ctx: TaxiBotContext & CreateOrderContext, @ChatId() chatId: number) {
 		await this.orderService.switchOrderStatusById(ctx.wizard.state.id, StatusOrder.CancelPassenger);
 		await this.taxiBotService.goHome(ctx, chatId);
+		if (ctx.wizard.state.driverId) {
+			await this.driverService.switchBusyByChatId(ctx.wizard.state.driverId, false);
+			const { status } = await this.driverService.findByChatId(ctx.wizard.state.driverId);
+			await this.bot.telegram.sendMessage(ctx.wizard.state.driverId, cancelOrderForDriver, {
+				reply_markup: driverProfileKeyboard(status).reply_markup,
+			});
+		}
+	}
+
+	@Hears(commonButtons.back)
+	@Start()
+	async back(@Ctx() ctx: TaxiBotContext & CreateOrderContext, @ChatId() chatId: number) {
+		await this.orderService.switchOrderStatusById(ctx.wizard.state.id, StatusOrder.CancelPassenger);
+		await this.taxiBotService.goHome(ctx, chatId);
+	}
+
+	@Action(new RegExp(PassengerButtons.offer.cancel.callback))
+	async cancelOffer(@Ctx() ctx: TaxiBotContext & WizardContext & CreateOrderContext) {
+		await ctx.deleteMessage();
 	}
 
 	async CommentAction(

@@ -21,6 +21,7 @@ import { TaxiBotModule } from '../taxi-bot/taxi-bot.module';
 import { BotName } from '../types/bot-name.type';
 import { HelpBotModule } from '../help-bot/help-bot.module';
 import { BullModule } from '@nestjs/bull';
+import { PaymentModule } from '../payment/payment.module';
 
 const store = Mongo({
 	url: 'mongodb://localhost/taxi',
@@ -37,6 +38,7 @@ const store = Mongo({
 				port: 6379,
 			},
 		}),
+		PaymentModule,
 		OrderModule,
 		CityModule,
 		AuthModule,

@@ -39,6 +39,20 @@ export const DriverButtons = {
 			label: '✅ Принять',
 			callback: 'order-access-',
 		},
+		inDrive: {
+			place: {
+				label: '🅿️ На месте',
+			},
+			go: {
+				label: '🚕 Поехали',
+			},
+			finish: {
+				label: '🏁 Завершить заказ',
+			},
+			cancel: {
+				label: 'Отменить заказ (-3⚡️)',
+			},
+		},
 		time: {
 			'3': {
 				label: '3️⃣',

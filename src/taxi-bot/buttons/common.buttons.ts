@@ -26,4 +26,12 @@ export const commonButtons = {
 			callback: 'support',
 		},
 	},
+	rating: {
+		label: '⭐️',
+		callback: 'select-rate-',
+	},
+	review: {
+		label: '💬 Добавить отзыв',
+		callback: 'add-review-',
+	},
 };

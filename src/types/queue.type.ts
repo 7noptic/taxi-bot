@@ -4,4 +4,5 @@ export enum QueueType {
 
 export enum QueueTaskType {
 	SendOrderToDrivers = 'send-order-to-drivers',
+	SendPaymentToDrivers = 'send-payment-to-drivers',
 }

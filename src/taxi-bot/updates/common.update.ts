@@ -15,6 +15,11 @@ import { helpKeyboard } from '../keyboards/help.keyboard';
 import { SettingsService } from '../../settings/settings.service';
 import { OrderService } from '../../order/order.service';
 import { profileDriverSettingsKeyboard } from '../keyboards/driver/profile-settings.keyboard';
+import { GetQueryData } from '../../decorators/getCityFromInlineQuery.decorator';
+import { addReviewKeyboard } from '../keyboards/add-review.keyboard';
+import { UserType } from '../../types/user.type';
+import { ReviewService } from '../../review/review.service';
+import { ScenesType } from '../scenes/scenes.type';
 
 @Update()
 export class TaxiBotCommonUpdate {
@@ -24,6 +29,7 @@ export class TaxiBotCommonUpdate {
 		private readonly driverService: DriverService,
 		private readonly settingsService: SettingsService,
 		private readonly orderService: OrderService,
+		private readonly reviewService: ReviewService,
 	) {}
 
 	@Start()
@@ -108,5 +114,39 @@ export class TaxiBotCommonUpdate {
 			);
 			return;
 		}
+	}
+
+	/************************** Заказ **************************/
+	@Action(new RegExp(commonButtons.rating.callback))
+	async setRating(@Ctx() ctx: TaxiBotContext, @GetQueryData() data: any, @ChatId() chatId: number) {
+		const callbackData = data.split('-');
+		const userChatId = Number(callbackData[2]);
+		const rate = Number(callbackData[3]);
+		const userType: UserType = callbackData[4];
+		const orderNumber = callbackData[5] + '-' + callbackData[6];
+		switch (userType) {
+			case UserType.Driver:
+				await this.driverService.addRating(userChatId, rate);
+				break;
+			case UserType.Passenger:
+				await this.passengerService.addRating(userChatId, rate);
+				break;
+		}
+		await ctx.editMessageReplyMarkup(addReviewKeyboard(userChatId, orderNumber).reply_markup);
+	}
+
+	@Action(new RegExp(commonButtons.review.callback))
+	async addReview(@Ctx() ctx: TaxiBotContext, @GetQueryData() data: any) {
+		const callbackData = data.split('-');
+		const userChatId = Number(callbackData[2]);
+		const orderNumber = callbackData[3] + '-' + callbackData[4];
+
+		console.log(data);
+
+		ctx.session.addReview = {
+			to: userChatId,
+			numberOrder: orderNumber,
+		};
+		await ctx.scene.enter(ScenesType.AddReview);
 	}
 }

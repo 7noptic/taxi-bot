@@ -40,6 +40,9 @@ export class Order {
 	@Prop({ type: String, ref: City['name'] })
 	city: City['name'];
 
+	@Prop({ type: Number, default: 0 })
+	submissionTime: number;
+
 	@Prop({ type: Number })
 	commission: number;
 }

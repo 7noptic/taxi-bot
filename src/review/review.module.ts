@@ -8,5 +8,6 @@ import { Review, ReviewSchema } from './review.model';
 	imports: [MongooseModule.forFeature([{ name: Review.name, schema: ReviewSchema }])],
 	controllers: [ReviewController],
 	providers: [ReviewService],
+	exports: [ReviewService],
 })
 export class ReviewModule {}

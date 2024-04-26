@@ -24,6 +24,7 @@ import { selectPriceOrderKeyboard } from '../../keyboards/passenger/select-price
 import { BotName } from '../../../types/bot-name.type';
 import { Telegraf } from 'telegraf';
 import { driverOfferKeyboard } from '../../keyboards/passenger/driver-offer.keyboard';
+import { driverProfileKeyboard } from '../../keyboards/driver/profile.keyboard';
 
 @Wizard(ScenesType.BargainOrderByDriver)
 export class BargainOrderScene {
@@ -117,11 +118,12 @@ export class BargainOrderScene {
 				reply_markup: driverOfferKeyboard(
 					ctx.wizard.state.orderId,
 					driver.chatId,
+					ctx.wizard.state.time,
 					ctx.wizard.state.price,
 				),
 			},
 		);
-		await ctx.reply(successfulProposalSubmissionText);
+		await ctx.reply(successfulProposalSubmissionText, driverProfileKeyboard(driver.status));
 		await ctx.scene.leave();
 	}
 

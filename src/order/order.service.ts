@@ -12,12 +12,16 @@ import { getCommissionForWeekPipeline } from './pipelines/getCommissionForWeek.p
 import { getPassengerOrdersInfoPipeline } from './pipelines/getPassengerOrdersInfo.pipeline';
 import { getDriverOrdersInfoPipeline } from './pipelines/getDriverOrdersInfo.pipeline';
 import { StatusOrder } from './Enum/status-order';
+import { DriverService } from '../driver/driver.service';
+import { SettingsService } from '../settings/settings.service';
 
 @Injectable()
 export class OrderService {
 	constructor(
 		@InjectModel(Order.name) private orderModel: Model<OrderDocument>,
 		private readonly shortIdService: ShortIdService,
+		private readonly driverService: DriverService,
+		private readonly settingsService: SettingsService,
 	) {}
 
 	async create(dto: CreateOrderDto): Promise<OrderDocument> {
@@ -41,6 +45,81 @@ export class OrderService {
 				},
 			)
 			.exec();
+	}
+
+	async cancelOrderFromDriver(id: string) {
+		const { driverId } = await this.orderModel
+			.findByIdAndUpdate(
+				id,
+				{
+					status: StatusOrder.CancelDriver,
+				},
+				{
+					new: true,
+				},
+			)
+			.exec();
+
+		await this.driverService.switchBusyByChatId(driverId, false);
+		await this.driverService.downgradeRating(driverId);
+	}
+
+	async successOrderFromDriver(id: string, driverId: number) {
+		const { commission: driverCommission } = await this.driverService.findByChatId(driverId);
+		const { commission: settingsCommission } = await this.settingsService.getSettings();
+		const commission = driverCommission > 0 ? driverCommission : settingsCommission;
+
+		const { price } = await this.orderModel.findById(id);
+		const calculatedCommission = Math.round(price * (commission / 100));
+
+		await this.orderModel
+			.findByIdAndUpdate(
+				id,
+				{
+					status: StatusOrder.Success,
+					commission: calculatedCommission,
+				},
+				{
+					new: true,
+				},
+			)
+			.exec();
+
+		await this.driverService.switchBusyByChatId(driverId, false);
+		await this.driverService.upgradeRating(driverId);
+	}
+
+	async findActiveOrderByDriverId(driverId: number) {
+		return this.orderModel.findOne({
+			driverId,
+			$or: [{ status: StatusOrder.InProcess }, { status: StatusOrder.Wait }],
+		});
+	}
+
+	async findActiveOrderByPassengerId(passengerId: number) {
+		return this.orderModel.findOne({
+			passengerId,
+			$or: [{ status: StatusOrder.InProcess }, { status: StatusOrder.Wait }],
+		});
+	}
+
+	async selectDriverForOrder(
+		id: string,
+		driverId: number,
+		submissionTime: number,
+		price?: number | null,
+	) {
+		const updateParams: any = { driverId, status: StatusOrder.Wait, submissionTime };
+
+		if (price) {
+			updateParams.price = price;
+		}
+
+		const order = await this.orderModel.findByIdAndUpdate(id, updateParams, { new: true }).exec();
+
+		await this.driverService.switchBusyByChatId(driverId, true);
+
+		return order;
 	}
 
 	async getCommissionForCurrentWeek(chatId: number) {

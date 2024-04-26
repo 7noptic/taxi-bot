@@ -11,6 +11,7 @@ export interface CreateOrderContext {
 			price: Order['price'];
 			minPrice: City['minPrice'];
 			id: string;
+			driverId: number;
 		};
 	};
 }

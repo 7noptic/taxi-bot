@@ -12,6 +12,10 @@ export interface TaxiSession {
 		orderId: string;
 		passengerId: number;
 	};
+	addReview: {
+		to: number;
+		numberOrder: string;
+	};
 }
 
 export interface TaxiScenes extends SceneSessionData {

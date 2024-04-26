@@ -23,9 +23,11 @@ import { EditCarSceneDriver } from './scenes/driver/edit-car.scene';
 import { EditAccessOrderTypeSceneDriver } from './scenes/driver/edit-access-order-type.scene';
 import { BargainOrderScene } from './scenes/driver/bargain-order.scene';
 import { AccessOrderScene } from './scenes/driver/access-order.scene';
+import { ReviewModule } from '../review/review.module';
+import { AddReviewScene } from './scenes/add-review.scene';
 
 @Module({
-	imports: [PassengerModule, DriverModule, CityModule, SettingsModule, OrderModule],
+	imports: [PassengerModule, DriverModule, CityModule, SettingsModule, OrderModule, ReviewModule],
 	providers: [
 		RegisterDriverScene,
 		RegisterPassengerScene,
@@ -36,6 +38,7 @@ import { AccessOrderScene } from './scenes/driver/access-order.scene';
 		EditCityScene,
 		BargainOrderScene,
 		AccessOrderScene,
+		AddReviewScene,
 		EditNameSceneDriver,
 		EditCarSceneDriver,
 		EditAccessOrderTypeSceneDriver,

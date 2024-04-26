@@ -27,6 +27,34 @@ export class DriverService {
 		return this.driverModel.create(dto);
 	}
 
+	async switchBusyByChatId(chatId: number, isBusy: boolean) {
+		return this.driverModel.findOneAndUpdate({ chatId }, { isBusy });
+	}
+
+	async downgradeRating(chatId: number) {
+		const updatedDriver = await this.driverModel.findOne({ chatId });
+		updatedDriver.priority = updatedDriver.priority - 3;
+		if (updatedDriver.priority < 0) {
+			updatedDriver.priority = 0;
+		}
+
+		await updatedDriver.save();
+
+		return updatedDriver;
+	}
+
+	async upgradeRating(chatId: number) {
+		const updatedDriver = await this.driverModel.findOne({ chatId });
+		updatedDriver.priority += 1;
+		if (updatedDriver.priority > 10) {
+			updatedDriver.priority = 10;
+		}
+
+		await updatedDriver.save();
+
+		return updatedDriver;
+	}
+
 	async findByChatId(chatId: number) {
 		return await this.driverModel.findOne({ chatId }).exec();
 	}
@@ -131,5 +159,17 @@ export class DriverService {
 				);
 			}),
 		);
+	}
+
+	async addRating(chatId: number, rating: number) {
+		return this.driverModel.findOneAndUpdate(
+			{ chatId },
+			{ $push: { rating: { $each: [rating], $position: 0 } } },
+			{ new: true },
+		);
+	}
+
+	async getAllDriversId() {
+		return this.driverModel.find({}, 'chatId').exec();
 	}
 }

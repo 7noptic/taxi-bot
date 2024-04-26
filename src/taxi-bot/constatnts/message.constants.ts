@@ -82,6 +82,7 @@ export const settingsDriverText =
 	'⚙️ Настройки\n\nЗдесь вы можете изменить имя, номер телефона, населенный пункт, тип принимаемых заказов, автомобиль';
 
 export const successEditName = 'Имя успешно изменено';
+export const successAddReview = 'Отзыв успешно отправлен';
 export const successEditPhone = 'Номер успешно изменён';
 export const successEditCity = 'Город успешно изменён';
 export const successEditCar = 'Автомобиль успешно изменён';
@@ -111,7 +112,8 @@ export const accessOrder = (
 export const errorPrice = (price: number) =>
 	`Некорректно введена цена.\nСумма должна быть не меньше ${price} рублей.`;
 
-export const successOrder = '🔄 Ожидаем ответа от водителей';
+export const successOrder = (numberOrder: string) =>
+	`<b>${numberOrder}</b> создан!\n\n🔄 Ожидаем ответа от водителей`;
 
 export const commissionText = (
 	commissionCurrentWeek: number,
@@ -166,7 +168,8 @@ export const driverBlockedText = {
 export const NotDrivers = `К сожалению в данный момент нет подходящих водителей.😞\nВозможно они появятся чуть позже и примут ваш заказ.`;
 export const newOrderMessage = (order: Order, rating: string) => {
 	return (
-		`🟢 Новый заказ! <b>${PassengerButtons.order.type[order.type].label}</b>\n\n` +
+		`🟢 Новый заказ! <b>${PassengerButtons.order.type[order.type].label}</b>\n` +
+		`ℹ️ <b>${order.numberOrder}</b>\n` +
 		`👤 Рейтинг: ${rating}\n\n` +
 		`Откуда: <b>${order.addressFrom}</b>\n` +
 		`Куда: <b>${order.addressTo}</b>\n` +
@@ -189,3 +192,53 @@ export const driverOffer = (driver: Driver, time: number, price?: number) =>
 export const orderNotAvailable = `Заказ больше недоступен😞`;
 export const startSuccessOrder = 'Чтобы отправить свое предложение по заказу ответьте на вопросы.';
 export const cancelOffer = '❌ Предложение отменено.';
+export const successOfferText = (order: Order, driver: Driver) =>
+	`✅ <b>${order.numberOrder} принят!\n\n` +
+	`👤 ${driver.first_name} ⭐️${ConstantsService.getUserRating(driver.rating)}</b>\n\n` +
+	`Цвет: <b>${driver.car.carColor}</b>\n` +
+	`Авто: <b>${driver.car.carBrand}</b>\n` +
+	`Гос.номер: <b>${driver.car.carNumber}</b>\n\n` +
+	`📞 ${driver.phone}\n\n` +
+	`🕐 Приедет через: <b>${order.submissionTime}</b> минут\n\n` +
+	`✏️ Чтобы связаться с водителем, просто отправьте сообщение.`;
+
+export const successOfferForDriver = (order: Order, passenger: Passenger) =>
+	`✅ <b>${order.numberOrder} принят!\n\n` +
+	`${PassengerButtons.order.type[order.type].label}</b>\n\n` +
+	`Откуда: <b>${order.addressFrom}</b>\n` +
+	`Куда: <b>${order.addressTo}</b>\n` +
+	`${order.comment ? `Комментарий: <b>${order.comment}</b>\n` : ''}\n` +
+	`📞 <a href="tel:${passenger.phone}">${passenger.phone}</a>\n\n` +
+	`🕐 До подачи: <b>${order.submissionTime}</b> минуты\n\n` +
+	`✏️ Чтобы связаться с пассажиром, просто отправьте сообщение.`;
+
+export const cancelOrderForDriver = 'Пользователь отменил заказ';
+export const successSendMessage = '✅ Сообщение успешно отправлено';
+export const successGoOrder = '✅ Начали поездку';
+export const offerIsNoLongerValid = '❌ Предложение больше не действительно😞';
+export const youHaveActiveOrder =
+	'Сначала необходимо завершить текущий заказ, прежде чем брать новый';
+export const comeOnShift = 'Выйдите на смену, чтобы принимать заказы';
+export const driverInPlace = '🅿️ Водитель на месте';
+export const driverGoOrder =
+	'✅ Водитель начал поездку.\nПожалуйста, пристегните ремень безопасности.';
+export const messageFromDriver = '💬 Сообщение от водителя\n\n';
+export const messageFromPassenger = '💬 Сообщение от пассажира\n\n';
+export const cancelOrderByDriver = 'Вы отменили заказ, ваш приоритет будет снижен.';
+export const cancelOrderToPassenger =
+	'Водитель отменил заказ.\n\n Вернитесь в меню и создайте новый.';
+export const errorGlobal = `Что-то пошло не так... 😞\nПопробуйте перезапустить бота выполнив команду /start.\n\nЕсли бот работает некорректно, вы можете обратиться в поддержку ${ConstantsService.helpBotName}`;
+export const successFinishOrderToPassenger = (price: number) =>
+	'✅ Водитель завершил поездку.\n' +
+	`Стоимость - <b>${price}₽</b>\n\n` +
+	'Оцените качество поездки:';
+
+export const successFinishOrderToDriver = (price: number) =>
+	'🎉 <b>Поездка завершена! +1⚡️</b>.\n' +
+	`Сумма заказа - <b>${price}₽</b>\n\n` +
+	'Оцените пользователя:';
+
+export const notBusy = 'Ожидаем новых заказов.';
+export const notBusyPassenger = 'Вернитесь назад, чтобы снова создавать заказы';
+
+export const addReviewText = 'Напишите текст вашего отзыва';

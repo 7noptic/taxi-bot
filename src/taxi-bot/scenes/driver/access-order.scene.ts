@@ -19,6 +19,7 @@ import { timeDriverKeyboard } from '../../keyboards/driver/time-driver.keyboard'
 import { BotName } from '../../../types/bot-name.type';
 import { Telegraf } from 'telegraf';
 import { driverOfferKeyboard } from '../../keyboards/passenger/driver-offer.keyboard';
+import { driverProfileKeyboard } from '../../keyboards/driver/profile.keyboard';
 
 @Wizard(ScenesType.AccessOrderByDriver)
 export class AccessOrderScene {
@@ -55,10 +56,10 @@ export class AccessOrderScene {
 				driverOffer(driver, numberTime),
 				{
 					parse_mode: 'HTML',
-					reply_markup: driverOfferKeyboard(ctx.wizard.state.orderId, driver.chatId),
+					reply_markup: driverOfferKeyboard(ctx.wizard.state.orderId, driver.chatId, numberTime),
 				},
 			);
-			await ctx.reply(successfulProposalSubmissionText);
+			await ctx.reply(successfulProposalSubmissionText, driverProfileKeyboard(driver.status));
 			await ctx.scene.leave();
 			return;
 		}

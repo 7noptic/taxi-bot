@@ -102,4 +102,12 @@ export class PassengerService {
 		}
 		return '0';
 	}
+
+	async addRating(chatId: number, rating: number) {
+		return this.passengerModel.findOneAndUpdate(
+			{ chatId },
+			{ $push: { rating: { $each: [rating], $position: 0 } } },
+			{ new: true },
+		);
+	}
 }

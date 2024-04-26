@@ -43,6 +43,7 @@ export class ConstantsService {
 		addresses: 'https://i.postimg.cc/JhhTyCdY/pict.jpg',
 		commission: 'https://i.postimg.cc/6QvnH8Jk/pict.jpg',
 		statistic: 'https://i.postimg.cc/ydKgvnTR/pict.jpg',
+		inDrive: 'https://i.postimg.cc/kgPjKQFN/photo-1-2022-12-11-17-06-03.jpg',
 	};
 	static readonly WelcomeMessage =
 		'<b>Приветствуем!</b> Чтобы сделать заказ необходимо пройти короткую регистрацию.\n\n' +

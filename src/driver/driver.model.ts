@@ -60,6 +60,9 @@ export class Driver {
 	@Prop({ enum: BlockedType, default: BlockedType.No })
 	blockedType: BlockedType;
 
+	@Prop({ type: Boolean, default: false })
+	isBusy: boolean;
+
 	@Prop({ type: Car })
 	car: Car;
 }
