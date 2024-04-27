@@ -14,6 +14,7 @@ import { QueueTaskType, QueueType } from '../types/queue.type';
 import { InjectQueue } from '@nestjs/bull';
 import { AccessTypeOrder } from './Enum/access-type-order';
 import { NotDrivers } from '../taxi-bot/constatnts/message.constants';
+import { BlockedType } from './Enum/blocked-type';
 
 @Injectable()
 export class DriverService {
@@ -25,6 +26,27 @@ export class DriverService {
 
 	async create(dto: CreateDriverDto) {
 		return this.driverModel.create(dto);
+	}
+
+	async unlockedUser(chatId: number) {
+		return this.driverModel.findOneAndUpdate(
+			{ chatId },
+			{
+				isBlocked: false,
+				blockedType: BlockedType.No,
+			},
+		);
+	}
+
+	async lockedUser(chatId: number, blockedType: BlockedType = BlockedType.NotPaid) {
+		return this.driverModel.findOneAndUpdate(
+			{ chatId },
+			{
+				status: StatusDriver.Offline,
+				isBlocked: true,
+				blockedType,
+			},
+		);
 	}
 
 	async switchBusyByChatId(chatId: number, isBusy: boolean) {
@@ -142,6 +164,7 @@ export class DriverService {
 	async sendBulkOrder(order: Order, passengerRating: string) {
 		const drivers = await this.driverModel.find({
 			status: StatusDriver.Online,
+			isBlocked: false,
 			city: order.city,
 			$or: [{ accessOrderType: AccessTypeOrder.ALL }, { accessOrderType: order.type }],
 		});
@@ -155,7 +178,7 @@ export class DriverService {
 				await this.orderQueue.add(
 					QueueTaskType.SendOrderToDrivers,
 					{ driver, order, passengerRating },
-					{ delay: 100 },
+					// { delay: 100 },
 				);
 			}),
 		);

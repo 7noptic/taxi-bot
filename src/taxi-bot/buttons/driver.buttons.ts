@@ -80,4 +80,10 @@ export const DriverButtons = {
 			},
 		},
 	},
+	payment: {
+		pay: {
+			label: '💵 Оплатить',
+			callback: 'call-payment-',
+		},
+	},
 };

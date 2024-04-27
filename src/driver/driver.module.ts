@@ -4,9 +4,9 @@ import { DriverService } from './driver.service';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Driver, DriverSchema } from './driver.model';
 import { DriverAdapter } from './driver.adapter';
-import { DriverProcessor } from './driver.processor';
 import { BullModule } from '@nestjs/bull';
 import { QueueType } from '../types/queue.type';
+import { OrderProcessor } from './processor/order.processor';
 
 @Module({
 	imports: [
@@ -16,7 +16,7 @@ import { QueueType } from '../types/queue.type';
 		}),
 	],
 	controllers: [DriverController],
-	providers: [DriverService, DriverAdapter, DriverProcessor],
+	providers: [DriverService, DriverAdapter, OrderProcessor],
 	exports: [DriverService, DriverAdapter],
 })
 export class DriverModule {}

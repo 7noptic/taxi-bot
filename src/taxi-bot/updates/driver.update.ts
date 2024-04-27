@@ -23,6 +23,7 @@ import {
 	notBusy,
 	notBusyPassenger,
 	orderNotAvailable,
+	paymentTitle,
 	settingsDriverText,
 	startAccessOrderTypeCar,
 	startEditCar,
@@ -47,6 +48,9 @@ import { goDriveKeyboard } from '../keyboards/driver/go-drive.keyboard';
 import { finishKeyboard } from '../keyboards/driver/finish.keyboard';
 import { selectRateKeyboard } from '../keyboards/select-rate.keyboard';
 import { UserType } from '../../types/user.type';
+import { ConfigService } from '@nestjs/config';
+import { PaymentService } from '../../payment/payment.service';
+import { callPaymentKeyboard } from '../keyboards/driver/call-payment.keyboard';
 
 @Update()
 export class TaxiBotDriverUpdate {
@@ -54,6 +58,8 @@ export class TaxiBotDriverUpdate {
 		@InjectBot(BotName.Taxi) private readonly bot: Telegraf<TaxiBotContext>,
 		private readonly driverService: DriverService,
 		private readonly orderService: OrderService,
+		private readonly configService: ConfigService,
+		private readonly paymentService: PaymentService,
 	) {}
 
 	/************************** Регистрация водителя **************************/
@@ -67,10 +73,34 @@ export class TaxiBotDriverUpdate {
 	@Hears(DriverButtons.profile.commission)
 	async getCommission(@Ctx() ctx: TaxiBotContext, @ChatId() chatId: number) {
 		const { sumCommission, count } = await this.orderService.getCommissionForCurrentWeek(chatId);
-		const { sumCommission: prevSumCommission, count: prevCount } =
-			await this.orderService.getCommissionForPreviousWeek(chatId);
+
+		const payment = await this.paymentService.findNotPaidPayment(chatId);
+		const prevSumCommission = payment ? payment.price : 0;
+
 		await ctx.sendPhoto({ url: ConstantsService.images.commission });
-		await ctx.replyWithHTML(commissionText(sumCommission, count, prevSumCommission, prevCount));
+		await ctx.replyWithHTML(
+			commissionText(sumCommission, count, prevSumCommission, payment ? payment.countOrder : 0),
+			prevSumCommission > 0 ? callPaymentKeyboard(prevSumCommission) : undefined,
+		);
+	}
+
+	@Action(new RegExp(DriverButtons.payment.pay.callback))
+	async payCommission(@Ctx() ctx: TaxiBotContext, @GetQueryData() data: any) {
+		const callbackData = data.split('-');
+		const price = Number(callbackData[2]);
+		await ctx.sendInvoice({
+			title: paymentTitle,
+			currency: 'RUB',
+			description: paymentTitle,
+			payload: 'payload',
+			provider_token: this.configService.get('YOU_KASSA_TOKEN'),
+			prices: [
+				{
+					label: paymentTitle,
+					amount: price,
+				},
+			],
+		});
 	}
 
 	/************************** Настройки профиля **************************/

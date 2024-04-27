@@ -25,9 +25,20 @@ import { BargainOrderScene } from './scenes/driver/bargain-order.scene';
 import { AccessOrderScene } from './scenes/driver/access-order.scene';
 import { ReviewModule } from '../review/review.module';
 import { AddReviewScene } from './scenes/add-review.scene';
+import { ConfigModule } from '@nestjs/config';
+import { PaymentModule } from '../payment/payment.module';
 
 @Module({
-	imports: [PassengerModule, DriverModule, CityModule, SettingsModule, OrderModule, ReviewModule],
+	imports: [
+		PassengerModule,
+		DriverModule,
+		CityModule,
+		SettingsModule,
+		OrderModule,
+		ReviewModule,
+		ConfigModule,
+		PaymentModule,
+	],
 	providers: [
 		RegisterDriverScene,
 		RegisterPassengerScene,
