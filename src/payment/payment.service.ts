@@ -11,6 +11,7 @@ import { Queue } from 'bull';
 import { DriverService } from '../driver/driver.service';
 import { PaymentStatus } from './enum/payment-status';
 import { Cron } from '@nestjs/schedule';
+import { endOfISOWeek, startOfISOWeek, subWeeks } from 'date-fns';
 
 @Injectable()
 export class PaymentService {
@@ -27,15 +28,18 @@ export class PaymentService {
 		return this.paymentModel.create({ ...dto, numberPayment });
 	}
 
-	async findNotPaidPayment(chatId: number) {
-		return this.paymentModel.findOne({ chatId, status: PaymentStatus.NotPaid });
+	async findNotPaidPayment(chatId: number): Promise<Payment[]> {
+		return this.paymentModel.find({ chatId, status: PaymentStatus.NotPaid });
 	}
 
-	async closePayment(chatId: number) {
-		await this.driverService.unlockedUser(chatId);
+	async closePayment(chatId: number, price: number) {
+		const payments = await this.findNotPaidPayment(chatId);
+		if (payments.length === 1) {
+			await this.driverService.unlockedUser(chatId);
+		}
 
 		return this.paymentModel.findOneAndUpdate(
-			{ chatId },
+			{ chatId, price },
 			{
 				status: PaymentStatus.Paid,
 			},
@@ -48,10 +52,16 @@ export class PaymentService {
 		if (!drivers.length) {
 			return;
 		}
-
+		const now = new Date();
+		const startOfPreviousWeek = startOfISOWeek(subWeeks(now, 1));
+		const endOfPreviousWeek = endOfISOWeek(subWeeks(now, 1));
 		await Promise.all(
 			drivers.map(async ({ chatId }) => {
-				await this.paymentQueue.add(QueueTaskType.SendPaymentToDrivers, { chatId });
+				await this.paymentQueue.add(QueueTaskType.SendPaymentToDrivers, {
+					chatId,
+					startOfPreviousWeek,
+					endOfPreviousWeek,
+				});
 			}),
 		);
 	}

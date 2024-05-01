@@ -13,13 +13,27 @@ export function getDriverOrdersInfoPipeline(chatId: number) {
 				_id: null,
 				earnedToday: {
 					$sum: {
-						$cond: { if: { $gte: ['$createdAt', startOfToday] }, then: '$price', else: 0 },
+						$cond: {
+							if: {
+								$and: [
+									{ $gte: ['$createdAt', startOfToday] },
+									{ $eq: ['$status', StatusOrder.Success] },
+								],
+							},
+							then: '$price',
+							else: 0,
+						},
 					},
 				},
 				earnedCurrentWeek: {
 					$sum: {
 						$cond: {
-							if: { $gte: ['$createdAt', startOfCurrentWeek] },
+							if: {
+								$and: [
+									{ $gte: ['$createdAt', startOfCurrentWeek] },
+									{ $eq: ['$status', StatusOrder.Success] },
+								],
+							},
 							then: '$price',
 							else: 0,
 						},

@@ -5,7 +5,6 @@ import { Model } from 'mongoose';
 import { TypeId } from '../short-id/Enums/type-id.enum';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { ShortIdService } from '../short-id/short-id.service';
-import { endOfWeek, startOfWeek, subWeeks } from 'date-fns';
 import { OrdersInfoDto } from './dto/orders-info.dto';
 import { DriverOrdersInfoDto } from './dto/driver-orders-info.dto';
 import { getCommissionForWeekPipeline } from './pipelines/getCommissionForWeek.pipeline';
@@ -120,20 +119,6 @@ export class OrderService {
 		await this.driverService.switchBusyByChatId(driverId, true);
 
 		return order;
-	}
-
-	async getCommissionForCurrentWeek(chatId: number) {
-		const startOfCurrentWeek = startOfWeek(new Date());
-		const endOfCurrentWeek = endOfWeek(new Date());
-
-		return await this.getCommissionForWeek(startOfCurrentWeek, endOfCurrentWeek, chatId);
-	}
-
-	async getCommissionForPreviousWeek(chatId: number) {
-		const startOfPreviousWeek = startOfWeek(subWeeks(new Date(), 1));
-		const endOfPreviousWeek = endOfWeek(subWeeks(new Date(), 1));
-
-		return await this.getCommissionForWeek(startOfPreviousWeek, endOfPreviousWeek, chatId);
 	}
 
 	async getCommissionForWeek(start: Date, end: Date, chatId: number) {

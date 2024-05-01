@@ -30,5 +30,12 @@ export class PassengerController {
 	async update(@Param('id') id: string, @Body() dto: CreatePassengerDto) {}
 
 	@Get(':id')
-	async findFullPassengerData() {}
+	async getFullPassengerInfo(@Param('id') id: string) {
+		return this.passengerService.getFullPassengerInfo(Number(id));
+	}
+
+	@Get('')
+	async getAllPassenger() {
+		return this.passengerService.getAll();
+	}
 }

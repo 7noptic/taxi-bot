@@ -21,7 +21,7 @@ export const WhatCity = 'Выберите город';
 
 export const WhatCarBrand = 'Введите марку и модель автомобиля\nНапример: Lada Granta';
 export const WhatCarColor = 'Введите цвет автомобиля\nНапример: Белый';
-export const WhatCarNumber = 'Введите номер автомобиля\nНапример: аб000в';
+export const WhatCarNumber = 'Введите номер автомобиля\nНапример: а123бв';
 export const WhatAccessOrderType = 'Выберите тип принимаемых заказов';
 export const greeting = (name: string) =>
 	`Мы рады нашему с Вами знакомству,<b>${name}!</b>\nРегистрация завершена`;
@@ -56,7 +56,7 @@ export const startAccessOrderTypeCar = `Чтобы отменить измене
 export const startCreateOrder = `Для создания заказа ответьте на пару вопросов.\n\nЧтобы отменить создание заказа нажмите\n\n${commonButtons.back}`;
 export const WhatNameAddress =
 	'Введите название адреса, например: Дом, Работа, Родители. \nНазвание адреса должно быть уникальным';
-export const WhatAddress = 'Введите адрес, например: ул. Московская 207, дом 6, 1 подъезд';
+export const WhatAddress = 'Введите адрес, например: ул. Московская 207, 1 подъезд';
 
 export const errorAddAddress =
 	'Что-то пошло не так... Проверьте введенные вами данные и повторите добавление адреса снова';
@@ -118,19 +118,27 @@ export const successOrder = (numberOrder: string) =>
 export const commissionText = (
 	commissionCurrentWeek: number,
 	countOrderCurrentWeek: number,
-	commissionLastWeek?: number,
-	countOrderLastWeek?: number,
+	commissionLastWeek?: number[],
+	countOrderLastWeek?: number[],
 ) =>
 	'💵 <b>Комиссия</b>\n\n' +
 	`Комиссия сервиса за текущую неделю - <b>${commissionCurrentWeek}₽</b>\n` +
-	`За <b>${countOrderCurrentWeek} ${ConstantsService.getEndingWord(countOrderCurrentWeek, ['заказ', 'заказа', 'заказов'])}</b>\n\n` +
+	`За <b>${countOrderCurrentWeek} ${ConstantsService.getEndingWord(countOrderCurrentWeek, ['заказ', 'заказа', 'заказов'])}</b>` +
 	`${
-		commissionLastWeek && countOrderLastWeek
-			? `💳 К оплате:  <b>${commissionLastWeek}₽` +
-				`(${countOrderLastWeek} ${ConstantsService.getEndingWord(countOrderLastWeek, ['заказ', 'заказа', 'заказов'])})</b>\n\n`
+		commissionLastWeek.length && countOrderLastWeek.length
+			? `\n\n💳 Оплата за ${countOrderLastWeek.length} недели\n` +
+				commissionLastWeek
+					.map((commission, index) => {
+						return (
+							`Стоимость ${index + 1} ${ConstantsService.getEndingWord(index + 1, ['недели', 'недель', 'недель'])}: ` +
+							`<b>${commission}₽ ` +
+							`(${countOrderLastWeek[index]} ${ConstantsService.getEndingWord(countOrderLastWeek[index], ['заказ', 'заказа', 'заказов'])})</b>`
+						);
+					})
+					.join('\n')
 			: ''
 	}` +
-	'ℹ️ Оплата производится каждый понедельник';
+	'\n\nℹ️ Оплата производится каждый понедельник';
 
 export const statisticText = (statistic: DriverOrdersInfoDto) =>
 	'💵 <b>Заработок</b>\n\n' +
@@ -181,7 +189,7 @@ export const newOrderMessage = (order: Order, rating: string) => {
 export const errorValidation = 'Что-то не так с данными 😞';
 
 export const timeDeliveryText = '🕐 Укажите время подачи';
-export const desiredPriceText = '💵 Укажите желаемое вознаграждение';
+export const desiredPriceText = '💵 Укажите желаемое вознаграждение\nили введите сумму вручную.';
 export const successfulProposalSubmissionText = `✅ Ваше предложение отправлено пользователю. Ожидайте ответа!`;
 export const driverOffer = (driver: Driver, time: number, price?: number) =>
 	`✅ <b>${driver.first_name} (⭐️ ${ConstantsService.getUserRating(driver.rating)})\n` +

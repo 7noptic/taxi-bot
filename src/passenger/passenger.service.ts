@@ -12,9 +12,7 @@ export class PassengerService {
 
 	async create(dto: CreatePassengerDto) {
 		try {
-			console.log(dto);
 			const user = await this.passengerModel.create(dto);
-			console.log('useru', user);
 			return user;
 		} catch (e) {
 			console.log('error', e);
@@ -109,5 +107,57 @@ export class PassengerService {
 			{ $push: { rating: { $each: [rating], $position: 0 } } },
 			{ new: true },
 		);
+	}
+
+	async getAll() {
+		return this.passengerModel.find();
+	}
+
+	async getFullPassengerInfo(chatId: number) {
+		console.log(chatId);
+		const res = (await this.passengerModel
+			.aggregate([
+				{
+					$match: {
+						chatId,
+					},
+				},
+				{
+					$lookup: {
+						from: 'reviews',
+						localField: 'chatId',
+						foreignField: 'from',
+						as: 'reviewFrom',
+					},
+				},
+				{
+					$addFields: {
+						leftReview: {
+							$size: '$reviewFrom',
+						},
+					},
+				},
+				{
+					$lookup: {
+						from: 'reviews',
+						localField: 'chatId',
+						foreignField: 'to',
+						as: 'reviewTo',
+					},
+				},
+				{
+					$addFields: {
+						receivedReview: {
+							$size: '$reviewTo',
+						},
+					},
+				},
+			])
+			.exec()) as (Passenger & {
+			receivedReview: number;
+			leftReview: number;
+		})[];
+		console.log(res);
+		return res;
 	}
 }

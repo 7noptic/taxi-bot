@@ -22,7 +22,14 @@ export class PaymentProcessor {
 	@Process(QueueTaskType.SendPaymentToDrivers)
 	async sendPayment(job: Job) {
 		const chatId: number = job.data.chatId;
-		const { sumCommission, count } = await this.orderService.getCommissionForPreviousWeek(chatId);
+		const startOfPreviousWeek: Date = job.data.startOfPreviousWeek;
+		const endOfPreviousWeek: Date = job.data.endOfPreviousWeek;
+
+		const { sumCommission, count } = await this.orderService.getCommissionForWeek(
+			startOfPreviousWeek,
+			endOfPreviousWeek,
+			chatId,
+		);
 		if (sumCommission == 0) {
 			return;
 		}

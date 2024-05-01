@@ -155,8 +155,13 @@ export class TaxiBotCommonUpdate {
 	}
 
 	@On('successful_payment')
-	async successfulPayment(@Ctx() ctx: TaxiBotContext, @ChatId() chatId: number) {
-		await this.paymentService.closePayment(chatId);
+	async successfulPayment(
+		@Ctx()
+		ctx: TaxiBotContext & { update: { message: { successful_payment: { total_amount: number } } } },
+		@ChatId() chatId: number,
+	) {
+		const price = Math.round(Number(ctx.update.message.successful_payment.total_amount / 100));
+		await this.paymentService.closePayment(chatId, price);
 		await ctx.reply(successfulPayment);
 	}
 }

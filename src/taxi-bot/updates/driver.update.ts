@@ -51,6 +51,8 @@ import { UserType } from '../../types/user.type';
 import { ConfigService } from '@nestjs/config';
 import { PaymentService } from '../../payment/payment.service';
 import { callPaymentKeyboard } from '../keyboards/driver/call-payment.keyboard';
+import { Payment } from '../../payment/payment.model';
+import { endOfISOWeek, startOfISOWeek } from 'date-fns';
 
 @Update()
 export class TaxiBotDriverUpdate {
@@ -72,15 +74,25 @@ export class TaxiBotDriverUpdate {
 	/************************** Комиссия **************************/
 	@Hears(DriverButtons.profile.commission)
 	async getCommission(@Ctx() ctx: TaxiBotContext, @ChatId() chatId: number) {
-		const { sumCommission, count } = await this.orderService.getCommissionForCurrentWeek(chatId);
+		const now = new Date();
+		const startDate = startOfISOWeek(now);
+		const endDate = endOfISOWeek(now);
+		const { sumCommission, count } = await this.orderService.getCommissionForWeek(
+			startDate,
+			endDate,
+			chatId,
+		);
 
-		const payment = await this.paymentService.findNotPaidPayment(chatId);
-		const prevSumCommission = payment ? payment.price : 0;
+		const payments: Payment[] = await this.paymentService.findNotPaidPayment(chatId);
+		const prevSumCommission =
+			payments.length > 0 ? payments.map((payment: Payment) => payment.price) : [];
+		const prevCountOrder =
+			payments.length > 0 ? payments.map((payment: Payment) => payment.countOrder) : [];
 
 		await ctx.sendPhoto({ url: ConstantsService.images.commission });
 		await ctx.replyWithHTML(
-			commissionText(sumCommission, count, prevSumCommission, payment ? payment.countOrder : 0),
-			prevSumCommission > 0 ? callPaymentKeyboard(prevSumCommission) : undefined,
+			commissionText(sumCommission, count, prevSumCommission, prevCountOrder),
+			prevSumCommission.length > 0 ? callPaymentKeyboard(prevSumCommission) : undefined,
 		);
 	}
 
@@ -248,7 +260,6 @@ export class TaxiBotDriverUpdate {
 	async finishOrder(@Ctx() ctx: TaxiBotContext, @ChatId() chatId: number) {
 		const order = await this.orderService.findActiveOrderByDriverId(chatId);
 		const { status } = await this.driverService.findByChatId(chatId);
-		console.log(order);
 		if (!order) {
 			await ctx.reply(errorValidation, driverProfileKeyboard(status ?? StatusDriver.Offline));
 			return;
@@ -278,7 +289,6 @@ export class TaxiBotDriverUpdate {
 	async cancelOrder(@Ctx() ctx: TaxiBotContext, @ChatId() chatId: number) {
 		const order = await this.orderService.findActiveOrderByDriverId(chatId);
 		const { status } = await this.driverService.findByChatId(chatId);
-		console.log(order, order.id);
 		if (!order) {
 			await ctx.reply(errorValidation, driverProfileKeyboard(status ?? StatusDriver.Offline));
 			return;

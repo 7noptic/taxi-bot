@@ -74,7 +74,6 @@ export class CreateOrderScene {
 	@WizardStep(1)
 	async onSceneEnter(@Ctx() ctx: WizardContext): Promise<string> {
 		await ctx.reply(selectTypeOrderText, selectTypeOrderKeyboard());
-
 		await ctx.wizard.next();
 		return;
 	}
@@ -95,12 +94,16 @@ export class CreateOrderScene {
 					selectAddressTextFrom,
 					addresses.length && selectAddressOrderKeyboard(addresses),
 				);
+				console.log(addresses);
+
 				await ctx.wizard.next();
 				return;
 			}
 			await ctx.reply(errorValidation);
 			return;
-		} catch (e) {}
+		} catch (e) {
+			console.log('Error' + e);
+		}
 	}
 
 	@On('callback_query')
