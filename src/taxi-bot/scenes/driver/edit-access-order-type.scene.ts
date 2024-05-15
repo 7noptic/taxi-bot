@@ -13,10 +13,11 @@ import { GetQueryData } from '../../../decorators/getCityFromInlineQuery.decorat
 import { commonButtons } from '../../buttons/common.buttons';
 import { TaxiBotCommonUpdate } from '../../updates/common.update';
 import { DriverService } from '../../../driver/driver.service';
-import { driverProfileKeyboard } from '../../keyboards/driver/profile.keyboard';
 import { selectAccessOrderTypeKeyboard } from '../../keyboards/driver/select-access-order-type.keyboard';
 import { Driver } from '../../../driver/driver.model';
 import { AccessTypeOrder } from '../../../driver/Enum/access-type-order';
+import { selectDriverKeyboard } from '../../keyboards/driver/select-driver-keyboard';
+import { OrderService } from '../../../order/order.service';
 
 @Wizard(ScenesType.EditAccessOrderTypeDriver)
 export class EditAccessOrderTypeSceneDriver {
@@ -24,6 +25,7 @@ export class EditAccessOrderTypeSceneDriver {
 		private readonly driverService: DriverService,
 		private readonly cityService: CityService,
 		private readonly taxiBotService: TaxiBotCommonUpdate,
+		private readonly orderService: OrderService,
 	) {}
 
 	@WizardStep(1)
@@ -44,7 +46,10 @@ export class EditAccessOrderTypeSceneDriver {
 			await ctx.scene.leave();
 			if (Object.values(AccessTypeOrder).includes(accessOrderType)) {
 				const { status } = await this.driverService.editAccessTypeOrder(chatId, accessOrderType);
-				await ctx.reply(successEditAccessOrderType, driverProfileKeyboard(status));
+				await ctx.reply(
+					successEditAccessOrderType,
+					await selectDriverKeyboard({ chatId, status }, this.orderService),
+				);
 			} else {
 				await this.showError(ctx, chatId);
 			}
@@ -63,6 +68,9 @@ export class EditAccessOrderTypeSceneDriver {
 
 	async showError(@Ctx() ctx: WizardContext & TaxiBotContext, @ChatId() chatId: number) {
 		const { status } = await this.driverService.findByChatId(chatId);
-		await ctx.reply(errorEditInfo, driverProfileKeyboard(status));
+		await ctx.reply(
+			errorEditInfo,
+			await selectDriverKeyboard({ chatId, status }, this.orderService),
+		);
 	}
 }

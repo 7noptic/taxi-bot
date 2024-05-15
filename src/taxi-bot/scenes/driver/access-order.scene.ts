@@ -19,7 +19,8 @@ import { timeDriverKeyboard } from '../../keyboards/driver/time-driver.keyboard'
 import { BotName } from '../../../types/bot-name.type';
 import { Telegraf } from 'telegraf';
 import { driverOfferKeyboard } from '../../keyboards/passenger/driver-offer.keyboard';
-import { driverProfileKeyboard } from '../../keyboards/driver/profile.keyboard';
+import { selectDriverKeyboard } from '../../keyboards/driver/select-driver-keyboard';
+import { OrderService } from '../../../order/order.service';
 
 @Wizard(ScenesType.AccessOrderByDriver)
 export class AccessOrderScene {
@@ -27,6 +28,7 @@ export class AccessOrderScene {
 		private readonly driverService: DriverService,
 		private readonly cityService: CityService,
 		private readonly taxiBotService: TaxiBotCommonUpdate,
+		private readonly orderService: OrderService,
 		@InjectBot(BotName.Taxi) private readonly bot: Telegraf<TaxiBotContext>,
 	) {}
 
@@ -50,6 +52,7 @@ export class AccessOrderScene {
 	): Promise<string> {
 		const numberTime = Number(time);
 		if (numberTime > 0 && numberTime < 30) {
+			await ctx?.deleteMessage();
 			const driver = await this.driverService.findByChatId(chatId);
 			await this.bot.telegram.sendMessage(
 				ctx.wizard.state.passengerId,
@@ -59,7 +62,16 @@ export class AccessOrderScene {
 					reply_markup: driverOfferKeyboard(ctx.wizard.state.orderId, driver.chatId, numberTime),
 				},
 			);
-			await ctx.reply(successfulProposalSubmissionText, driverProfileKeyboard(driver.status));
+			await ctx.reply(
+				successfulProposalSubmissionText,
+				await selectDriverKeyboard(
+					{
+						chatId,
+						status: driver.status,
+					},
+					this.orderService,
+				),
+			);
 			await ctx.scene.leave();
 			return;
 		}

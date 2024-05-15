@@ -28,6 +28,7 @@ import { ChatId } from '../../../decorators/getChatId.decorator';
 import { DriverService } from '../../../driver/driver.service';
 import { driverProfileKeyboard } from '../../keyboards/driver/profile.keyboard';
 import { StatusDriver } from '../../types/status-driver.type';
+import { selectCityKeyboard } from '../../keyboards/select-city.keyboard';
 
 @Wizard(ScenesType.RegistrationDriver)
 export class RegisterDriverScene {
@@ -71,10 +72,7 @@ export class RegisterDriverScene {
 		if (valid === true) {
 			ctx.wizard.state.phone = msg.text;
 			const cities = await this.cityService.getAll();
-			await ctx.reply(
-				WhatCity,
-				Markup.inlineKeyboard(cities.map((city) => Markup.button.callback(city.name, city.name))),
-			);
+			await ctx.reply(WhatCity, selectCityKeyboard(cities));
 
 			await ctx.wizard.next();
 			return;

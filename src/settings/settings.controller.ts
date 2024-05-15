@@ -1,47 +1,82 @@
-import { Body, Controller, Get, Patch, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Get, Patch, UsePipes, ValidationPipe } from '@nestjs/common';
 import { SettingsService } from './settings.service';
 import { UpdateCommissionDto } from './dto/update-commission.dto';
 import { UpdatePriceTextDto } from './dto/update-price-text.dto';
 import { UpdateFaqTextDto } from './dto/update-faq-text.dto';
-import { JwtGuard } from '../guards/jwt.guard';
 import { UpdateSupportTextDto } from './dto/update-support-text.dto';
+import { UpdateAboutTextDto } from './dto/update-about-text.dto';
+import { LoggerService } from '../logger/logger.service';
 
 @Controller('settings')
 export class SettingsController {
-	constructor(private readonly settingsService: SettingsService) {}
+	constructor(
+		private readonly settingsService: SettingsService,
+		private readonly loggerService: LoggerService,
+	) {}
 
-	@UseGuards(JwtGuard)
+	// @UseGuards(JwtGuard)
 	@UsePipes(new ValidationPipe())
 	@Get('')
 	async getSettings() {
-		return this.settingsService.getSettings();
+		try {
+			return this.settingsService.getSettings();
+		} catch (e) {
+			this.loggerService.error('getSettings Settings: ' + e?.toString());
+		}
 	}
 
-	@UseGuards(JwtGuard)
+	// @UseGuards(JwtGuard)
 	@UsePipes(new ValidationPipe())
 	@Patch('updateCommission')
 	async updateCommission(@Body() dto: UpdateCommissionDto) {
-		return this.settingsService.updateSettings(dto);
+		try {
+			return this.settingsService.updateSettings(dto);
+		} catch (e) {
+			this.loggerService.error('updateCommission Settings: ' + e?.toString());
+		}
 	}
 
-	@UseGuards(JwtGuard)
+	// @UseGuards(JwtGuard)
 	@UsePipes(new ValidationPipe())
 	@Patch('updatePriceText')
 	async updatePriceText(@Body() dto: UpdatePriceTextDto) {
-		return this.settingsService.updateSettings(dto);
+		try {
+			return this.settingsService.updateSettings(dto);
+		} catch (e) {
+			this.loggerService.error('updatePriceText Settings: ' + e?.toString());
+		}
 	}
 
-	@UseGuards(JwtGuard)
+	// @UseGuards(JwtGuard)
 	@UsePipes(new ValidationPipe())
 	@Patch('updateFaqText')
 	async updateFaqText(@Body() dto: UpdateFaqTextDto) {
-		return this.settingsService.updateSettings(dto);
+		try {
+			return this.settingsService.updateSettings(dto);
+		} catch (e) {
+			this.loggerService.error('updateFaqText Settings: ' + e?.toString());
+		}
 	}
 
-	@UseGuards(JwtGuard)
+	// @UseGuards(JwtGuard)
 	@UsePipes(new ValidationPipe())
-	@Patch('updateFaqText')
+	@Patch('updateSupportText')
 	async updateSupportText(@Body() dto: UpdateSupportTextDto) {
-		return this.settingsService.updateSettings(dto);
+		try {
+			return this.settingsService.updateSettings(dto);
+		} catch (e) {
+			this.loggerService.error('updateSupportText Settings: ' + e?.toString());
+		}
+	}
+
+	// @UseGuards(JwtGuard)
+	@UsePipes(new ValidationPipe())
+	@Patch('updateAboutText')
+	async updateAboutText(@Body() dto: UpdateAboutTextDto) {
+		try {
+			return this.settingsService.updateSettings(dto);
+		} catch (e) {
+			this.loggerService.error('updateAboutText Settings: ' + e?.toString());
+		}
 	}
 }

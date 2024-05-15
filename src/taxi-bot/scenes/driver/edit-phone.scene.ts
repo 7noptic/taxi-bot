@@ -8,7 +8,8 @@ import { commonButtons } from '../../buttons/common.buttons';
 import { TaxiBotCommonUpdate } from '../../updates/common.update';
 import { TaxiBotValidation } from '../../taxi-bot.validation';
 import { DriverService } from '../../../driver/driver.service';
-import { driverProfileKeyboard } from '../../keyboards/driver/profile.keyboard';
+import { selectDriverKeyboard } from '../../keyboards/driver/select-driver-keyboard';
+import { OrderService } from '../../../order/order.service';
 
 @Wizard(ScenesType.EditPhoneDriver)
 export class EditPhoneSceneDriver {
@@ -16,6 +17,7 @@ export class EditPhoneSceneDriver {
 		private readonly driverService: DriverService,
 		private readonly taxiBotService: TaxiBotCommonUpdate,
 		private readonly taxiBotValidation: TaxiBotValidation,
+		private readonly orderService: OrderService,
 	) {}
 
 	@WizardStep(1)
@@ -36,7 +38,16 @@ export class EditPhoneSceneDriver {
 			if (valid === true) {
 				await ctx.scene.leave();
 				const { status } = await this.driverService.editPhone(chatId, msg.text);
-				await ctx.reply(successEditPhone, driverProfileKeyboard(status));
+				await ctx.reply(
+					successEditPhone,
+					await selectDriverKeyboard(
+						{
+							chatId,
+							status,
+						},
+						this.orderService,
+					),
+				);
 				return;
 			}
 			await ctx.reply(valid);
@@ -44,7 +55,16 @@ export class EditPhoneSceneDriver {
 		} catch (e) {
 			await ctx.scene.leave();
 			const { status } = await this.driverService.findByChatId(chatId);
-			await ctx.reply(errorEditInfo, driverProfileKeyboard(status));
+			await ctx.reply(
+				errorEditInfo,
+				await selectDriverKeyboard(
+					{
+						chatId,
+						status,
+					},
+					this.orderService,
+				),
+			);
 			return '';
 		}
 	}

@@ -24,6 +24,7 @@ import { commonButtons } from '../../buttons/common.buttons';
 import { TaxiBotCommonUpdate } from '../../updates/common.update';
 import { TaxiBotValidation } from '../../taxi-bot.validation';
 import { ChatId } from '../../../decorators/getChatId.decorator';
+import { selectCityKeyboard } from '../../keyboards/select-city.keyboard';
 
 @Wizard(ScenesType.RegistrationPassenger)
 export class RegisterPassengerScene {
@@ -67,10 +68,7 @@ export class RegisterPassengerScene {
 		if (valid === true) {
 			ctx.wizard.state.phone = msg.text;
 			const cities = await this.cityService.getAll();
-			await ctx.reply(
-				WhatCity,
-				Markup.inlineKeyboard(cities.map((city) => Markup.button.callback(city.name, city.name))),
-			);
+			await ctx.reply(WhatCity, selectCityKeyboard(cities));
 
 			await ctx.wizard.next();
 			return;

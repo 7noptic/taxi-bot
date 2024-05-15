@@ -13,6 +13,10 @@ import { getDriverOrdersInfoPipeline } from './pipelines/getDriverOrdersInfo.pip
 import { StatusOrder } from './Enum/status-order';
 import { DriverService } from '../driver/driver.service';
 import { SettingsService } from '../settings/settings.service';
+import { QueryType, ResponseType } from '../types/query.type';
+import { getFullOrderInfoPipeline } from './pipelines/getFullOrderInfo.pipeline';
+import { Review } from '../review/review.model';
+import { Appeal } from '../appeal/appeal.model';
 
 @Injectable()
 export class OrderService {
@@ -30,6 +34,13 @@ export class OrderService {
 
 	async findById(id: string) {
 		return this.orderModel.findById(id);
+	}
+
+	async findByNumberOrder(text: string) {
+		return this.orderModel
+			.find({ numberOrder: { $regex: text, $options: 'i' } })
+			.limit(40)
+			.sort({ createdAt: -1 });
 	}
 
 	async switchOrderStatusById(id: string, status: StatusOrder) {
@@ -170,5 +181,34 @@ export class OrderService {
 				canceledCountAll: 0,
 			};
 		}
+	}
+
+	async getLimitAll(currentPageInQuery?: QueryType['currentPage']): Promise<ResponseType<Order[]>> {
+		const perPageCount = 10;
+		const currentPage = Number(currentPageInQuery) || 1;
+		const skip = perPageCount * (currentPage - 1);
+
+		const orders: Order[] = await this.orderModel
+			.find()
+			.sort({ createdAt: -1 })
+			.limit(perPageCount)
+			.skip(skip);
+		const total = await this.orderModel.countDocuments();
+
+		return { data: orders, total, currentPage, perPageCount };
+	}
+
+	async getAll() {
+		return this.orderModel.find().sort({ createdAt: -1 });
+	}
+
+	async getFullOrderInfo(orderId: string) {
+		const order = (
+			await this.orderModel.aggregate(getFullOrderInfoPipeline(orderId)).exec()
+		)[0] as Order & {
+			reviews: Review[];
+			appeals: Appeal[];
+		};
+		return order ?? {};
 	}
 }

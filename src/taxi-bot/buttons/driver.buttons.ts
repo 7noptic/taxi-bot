@@ -3,8 +3,8 @@ import { StatusDriver } from '../types/status-driver.type';
 export const DriverButtons = {
 	profile: {
 		status: {
-			[StatusDriver.Online]: '🟢 Online',
-			[StatusDriver.Offline]: '🔴 Offline',
+			[StatusDriver.Online]: '✅ Завершить смену',
+			[StatusDriver.Offline]: '🚕 Выйти на смену',
 		},
 		statistics: '📊 Статистика',
 		commission: '💳 Комиссия',

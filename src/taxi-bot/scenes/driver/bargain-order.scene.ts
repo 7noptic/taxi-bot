@@ -24,7 +24,8 @@ import { selectPriceOrderKeyboard } from '../../keyboards/passenger/select-price
 import { BotName } from '../../../types/bot-name.type';
 import { Telegraf } from 'telegraf';
 import { driverOfferKeyboard } from '../../keyboards/passenger/driver-offer.keyboard';
-import { driverProfileKeyboard } from '../../keyboards/driver/profile.keyboard';
+import { selectDriverKeyboard } from '../../keyboards/driver/select-driver-keyboard';
+import { OrderService } from '../../../order/order.service';
 
 @Wizard(ScenesType.BargainOrderByDriver)
 export class BargainOrderScene {
@@ -32,6 +33,7 @@ export class BargainOrderScene {
 		private readonly driverService: DriverService,
 		private readonly cityService: CityService,
 		private readonly taxiBotService: TaxiBotCommonUpdate,
+		private readonly orderService: OrderService,
 		@InjectBot(BotName.Taxi) private readonly bot: Telegraf<TaxiBotContext>,
 	) {}
 
@@ -55,6 +57,7 @@ export class BargainOrderScene {
 	): Promise<string> {
 		const numberTime = Number(time);
 		if (numberTime > 0 && numberTime < 30) {
+			await ctx?.deleteMessage();
 			ctx.wizard.state.time = numberTime;
 			const { city } = await this.driverService.findByChatId(chatId);
 			const minPrice = await this.cityService.getMinPriceByName(city);
@@ -78,6 +81,7 @@ export class BargainOrderScene {
 			const numberPrice = Number(price);
 			if (numberPrice > 0 && numberPrice < 100_000) {
 				ctx.wizard.state.price = numberPrice;
+				await ctx?.deleteMessage();
 				await this.onPrice(ctx, chatId);
 				return;
 			}
@@ -123,7 +127,16 @@ export class BargainOrderScene {
 				),
 			},
 		);
-		await ctx.reply(successfulProposalSubmissionText, driverProfileKeyboard(driver.status));
+		await ctx.reply(
+			successfulProposalSubmissionText,
+			await selectDriverKeyboard(
+				{
+					chatId,
+					status: driver.status,
+				},
+				this.orderService,
+			),
+		);
 		await ctx.scene.leave();
 	}
 

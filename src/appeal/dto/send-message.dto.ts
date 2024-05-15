@@ -1,7 +1,7 @@
 import { MessagesDto } from './create-appeal.dto';
 import { PassengerDocument } from '../../passenger/passenger.model';
 import { AdminDocument } from '../../admin/admin.model';
-import { IsNumber, IsString } from 'class-validator';
+import { IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class SendMessageDto implements Omit<MessagesDto, 'date'> {
 	@IsString()
@@ -10,6 +10,7 @@ export class SendMessageDto implements Omit<MessagesDto, 'date'> {
 	@IsString()
 	text: string;
 
+	@IsOptional()
 	@IsNumber()
-	chatId: number;
+	chatId?: number;
 }

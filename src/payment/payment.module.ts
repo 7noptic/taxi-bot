@@ -10,6 +10,7 @@ import { QueueType } from '../types/queue.type';
 import { PaymentProcessor } from './processor/payment.processor';
 import { OrderModule } from '../order/order.module';
 import { BlockedProcessor } from './processor/blocked.processor';
+import { LoggerService } from '../logger/logger.service';
 
 @Module({
 	imports: [
@@ -26,7 +27,7 @@ import { BlockedProcessor } from './processor/blocked.processor';
 		DriverModule,
 		OrderModule,
 	],
-	providers: [PaymentService, PaymentProcessor, BlockedProcessor],
+	providers: [PaymentService, PaymentProcessor, BlockedProcessor, LoggerService],
 	controllers: [PaymentController],
 	exports: [PaymentService],
 })

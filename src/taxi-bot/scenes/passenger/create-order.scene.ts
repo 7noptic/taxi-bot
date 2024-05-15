@@ -16,6 +16,7 @@ import {
 	accessOrder,
 	cancelOrderForDriver,
 	errorCreateOrder,
+	errorMain,
 	errorPrice,
 	errorValidation,
 	messageFromPassenger,
@@ -50,14 +51,17 @@ import { CreateOrderDto } from '../../../order/dto/create-order.dto';
 import { commonButtons } from '../../buttons/common.buttons';
 import { TaxiBotCommonUpdate } from '../../updates/common.update';
 import { TaxiBotValidation } from '../../taxi-bot.validation';
-import { passengerProfileKeyboard } from '../../keyboards/passenger/passenger-profile.keyboard';
 import { BotName } from '../../../types/bot-name.type';
 import { Telegraf } from 'telegraf';
 import { DriverService } from '../../../driver/driver.service';
 import { StatusOrder } from '../../../order/Enum/status-order';
-import { driverProfileKeyboard } from '../../keyboards/driver/profile.keyboard';
 import { inDriveKeyboard } from '../../keyboards/driver/in-drive.keyboard';
 import { StatusDriver } from '../../types/status-driver.type';
+import { selectDriverKeyboard } from '../../keyboards/driver/select-driver-keyboard';
+import { selectPassengerKeyboard } from '../../keyboards/passenger/select-passenger-keyboard';
+import { Throttle } from '@nestjs/throttler';
+import { throttles } from '../../../app/app.throttles';
+import { LoggerService } from '../../../logger/logger.service';
 
 @Wizard(ScenesType.CreateOrder)
 export class CreateOrderScene {
@@ -68,6 +72,7 @@ export class CreateOrderScene {
 		private readonly driverService: DriverService,
 		private readonly taxiBotService: TaxiBotCommonUpdate,
 		private readonly taxiBotValidation: TaxiBotValidation,
+		private readonly loggerService: LoggerService,
 		@InjectBot(BotName.Taxi) private readonly bot: Telegraf<TaxiBotContext>,
 	) {}
 
@@ -86,23 +91,22 @@ export class CreateOrderScene {
 		@ChatId() chatId: number,
 	): Promise<string> {
 		try {
-			const selectedType = type.split(ConstantsService.callbackButtonTypeOrder)[1] as TypeOrder;
-			if (Object.values(TypeOrder).includes(selectedType)) {
-				ctx.wizard.state.type = selectedType;
+			const selectedType = type.split(ConstantsService.callbackButtonTypeOrder)[1] || '';
+			if (Object.values(TypeOrder).includes(selectedType as TypeOrder)) {
+				ctx.wizard.state.type = selectedType as TypeOrder;
 				const { address: addresses } = await this.passengerService.findByChatId(chatId);
 				await ctx.reply(
 					selectAddressTextFrom,
 					addresses.length && selectAddressOrderKeyboard(addresses),
 				);
-				console.log(addresses);
-
 				await ctx.wizard.next();
 				return;
 			}
-			await ctx.reply(errorValidation);
 			return;
 		} catch (e) {
-			console.log('Error' + e);
+			await ctx.reply(errorMain);
+			await this.taxiBotService.goHome(ctx, chatId);
+			this.loggerService.error('onTypeOrder: ' + e?.toString());
 		}
 	}
 
@@ -110,17 +114,25 @@ export class CreateOrderScene {
 	@WizardStep(3)
 	async onAddressFromCallback(
 		@Ctx() ctx: WizardContext & TaxiBotContext & CreateOrderContext,
-		@GetQueryData() addressFrom: string,
+		@GetQueryData() addressNameFrom: string,
 		@ChatId() chatId: number,
 	): Promise<string> {
 		try {
-			ctx.wizard.state.addressFrom = addressFrom;
-			const { address: addresses } = await this.passengerService.findByChatId(chatId);
-			await ctx.reply(
-				selectAddressTextTo,
-				addresses.length && selectAddressOrderKeyboard(addresses),
-			);
-			await ctx.wizard.next();
+			if (addressNameFrom) {
+				ctx.wizard.state.addressFrom = await this.passengerService.findAddressByName(
+					chatId,
+					addressNameFrom,
+				);
+
+				const { address: addresses } = await this.passengerService.findByChatId(chatId);
+
+				await ctx.reply(
+					selectAddressTextTo,
+					addresses.length && selectAddressOrderKeyboard(addresses),
+				);
+				await ctx.wizard.next();
+			}
+
 			return;
 		} catch (e) {}
 	}
@@ -153,13 +165,19 @@ export class CreateOrderScene {
 	@WizardStep(4)
 	async onAddressToCallback(
 		@Ctx() ctx: WizardContext & TaxiBotContext & CreateOrderContext,
-		@GetQueryData() addressTo: string,
+		@GetQueryData() addressNameTo: string,
+		@ChatId() chatId: number,
 	): Promise<string> {
 		try {
-			ctx.wizard.state.addressTo = addressTo;
-			await ctx.reply(selectComment, skipCommentOrderKeyboard());
-			await ctx.wizard.next();
-			return;
+			if (addressNameTo) {
+				ctx.wizard.state.addressTo = await this.passengerService.findAddressByName(
+					chatId,
+					addressNameTo,
+				);
+				await ctx.reply(selectComment, skipCommentOrderKeyboard());
+				await ctx.wizard.next();
+				return;
+			}
 		} catch (e) {}
 	}
 
@@ -308,7 +326,7 @@ export class CreateOrderScene {
 			}
 		} catch (e) {
 			await ctx.scene.leave();
-			await ctx.reply(errorCreateOrder, passengerProfileKeyboard());
+			await ctx.reply(errorCreateOrder, await selectPassengerKeyboard(chatId, this.orderService));
 			return '';
 		}
 	}
@@ -353,6 +371,7 @@ export class CreateOrderScene {
 		}
 	}
 
+	@Throttle(throttles.send_photo)
 	@On('text')
 	@WizardStep(9)
 	async onText(
@@ -375,7 +394,9 @@ export class CreateOrderScene {
 			}
 			await ctx.reply(valid);
 			return;
-		} catch (e) {}
+		} catch (e) {
+			this.loggerService.error('onText: ' + e?.toString());
+		}
 	}
 
 	@Hears(commonButtons.cancelOrder.label)
@@ -384,9 +405,18 @@ export class CreateOrderScene {
 		await this.taxiBotService.goHome(ctx, chatId);
 		if (ctx.wizard.state.driverId) {
 			await this.driverService.switchBusyByChatId(ctx.wizard.state.driverId, false);
-			const { status } = await this.driverService.findByChatId(ctx.wizard.state.driverId);
+			const { status, chatId: driverChatId } = await this.driverService.findByChatId(
+				ctx.wizard.state.driverId,
+			);
+			const keyboard = await selectDriverKeyboard(
+				{
+					chatId: driverChatId,
+					status,
+				},
+				this.orderService,
+			);
 			await this.bot.telegram.sendMessage(ctx.wizard.state.driverId, cancelOrderForDriver, {
-				reply_markup: driverProfileKeyboard(status).reply_markup,
+				reply_markup: keyboard.reply_markup,
 			});
 		}
 	}
@@ -394,13 +424,13 @@ export class CreateOrderScene {
 	@Hears(commonButtons.back)
 	@Start()
 	async back(@Ctx() ctx: TaxiBotContext & CreateOrderContext, @ChatId() chatId: number) {
-		await this.orderService.switchOrderStatusById(ctx.wizard.state.id, StatusOrder.CancelPassenger);
+		// await this.orderService.switchOrderStatusById(ctx.wizard.state.id, StatusOrder.CancelPassenger);
 		await this.taxiBotService.goHome(ctx, chatId);
 	}
 
 	@Action(new RegExp(PassengerButtons.offer.cancel.callback))
 	async cancelOffer(@Ctx() ctx: TaxiBotContext & WizardContext & CreateOrderContext) {
-		await ctx.deleteMessage();
+		await ctx?.deleteMessage();
 	}
 
 	async CommentAction(

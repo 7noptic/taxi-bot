@@ -25,6 +25,8 @@ export class Passenger {
 	first_name: string;
 	@Prop({ type: String, default: '' })
 	last_name: string;
+	@Prop({ type: Boolean, default: false })
+	isBlocked: boolean;
 	@Prop({ type: String, ref: City.name })
 	city: City['name'];
 	@Prop({ type: [Number], default: ConstantsService.defaultRating, _id: false })

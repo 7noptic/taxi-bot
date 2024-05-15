@@ -15,6 +15,8 @@ import { InjectQueue } from '@nestjs/bull';
 import { AccessTypeOrder } from './Enum/access-type-order';
 import { NotDrivers } from '../taxi-bot/constatnts/message.constants';
 import { BlockedType } from './Enum/blocked-type';
+import { QueryType, ResponseType } from '../types/query.type';
+import { getFullDriverInfoPipeline } from './pipelines/getFullDriverInfo.pipeline';
 
 @Injectable()
 export class DriverService {
@@ -194,5 +196,41 @@ export class DriverService {
 
 	async getAllDriversId() {
 		return this.driverModel.find({}, 'chatId').exec();
+	}
+
+	async getLimitAll(
+		currentPageInQuery?: QueryType['currentPage'],
+	): Promise<ResponseType<Driver[]>> {
+		const perPageCount = 10;
+		const currentPage = Number(currentPageInQuery) || 1;
+		const skip = perPageCount * (currentPage - 1);
+
+		const drivers: Driver[] = await this.driverModel
+			.find()
+			.sort({ createdAt: -1 })
+			.limit(perPageCount)
+			.skip(skip);
+		const total = await this.driverModel.countDocuments();
+
+		return { data: drivers, total, currentPage, perPageCount };
+	}
+
+	async getAll() {
+		return this.driverModel.find().sort({ createdAt: -1 });
+	}
+
+	async getFullDriverInfo(chatId: number) {
+		return (
+			await this.driverModel.aggregate(getFullDriverInfoPipeline(chatId)).exec()
+		)[0] as Driver & {
+			receivedReview: number;
+			leftReview: number;
+		};
+	}
+
+	async update(chatId: number, updatedDriver: Partial<Driver>) {
+		return this.driverModel
+			.findOneAndUpdate({ chatId }, { $set: updatedDriver }, { new: true })
+			.exec();
 	}
 }

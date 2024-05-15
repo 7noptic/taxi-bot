@@ -23,6 +23,9 @@ import { HelpBotModule } from '../help-bot/help-bot.module';
 import { BullModule } from '@nestjs/bull';
 import { PaymentModule } from '../payment/payment.module';
 import { ScheduleModule } from '@nestjs/schedule';
+import { ThrottlerModule } from '@nestjs/throttler';
+import { LoggerModule } from '../logger/logger.module';
+import { SocketService } from '../socket/socket.service';
 
 const store = Mongo({
 	url: 'mongodb://localhost/taxi',
@@ -33,6 +36,12 @@ const store = Mongo({
 	imports: [
 		ConfigModule.forRoot(),
 		MongooseModule.forRoot('mongodb://localhost/taxi'),
+		ThrottlerModule.forRoot([
+			{
+				ttl: 60,
+				limit: 10,
+			},
+		]),
 		BullModule.forRoot({
 			redis: {
 				host: '127.0.0.1',
@@ -42,6 +51,7 @@ const store = Mongo({
 		ScheduleModule.forRoot(),
 		PaymentModule,
 		OrderModule,
+		LoggerModule,
 		CityModule,
 		AuthModule,
 		DriverModule,
@@ -75,7 +85,7 @@ const store = Mongo({
 		TaxiBotModule,
 	],
 	controllers: [AppController],
-	providers: [AppService, SettingsService],
+	providers: [AppService, SettingsService, SocketService],
 })
 export class AppModule {
 	constructor(private readonly settingsService: SettingsService) {}

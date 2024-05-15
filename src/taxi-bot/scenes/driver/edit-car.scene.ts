@@ -14,12 +14,13 @@ import { CityService } from '../../../city/city.service';
 import { commonButtons } from '../../buttons/common.buttons';
 import { TaxiBotCommonUpdate } from '../../updates/common.update';
 import { DriverService } from '../../../driver/driver.service';
-import { driverProfileKeyboard } from '../../keyboards/driver/profile.keyboard';
 import { RegistrationDriverContext } from '../../contexts/registration-driver.context';
 import { TaxiBotValidation } from '../../taxi-bot.validation';
 import { userInfo } from '../../../decorators/getUserInfo.decorator';
 import { wizardState } from '../../../decorators/getWizardState';
 import { Driver } from '../../../driver/driver.model';
+import { selectDriverKeyboard } from '../../keyboards/driver/select-driver-keyboard';
+import { OrderService } from '../../../order/order.service';
 
 @Wizard(ScenesType.EditCarDriver)
 export class EditCarSceneDriver {
@@ -28,6 +29,7 @@ export class EditCarSceneDriver {
 		private readonly cityService: CityService,
 		private readonly taxiBotService: TaxiBotCommonUpdate,
 		private readonly taxiBotValidation: TaxiBotValidation,
+		private readonly orderService: OrderService,
 	) {}
 
 	@WizardStep(1)
@@ -92,7 +94,10 @@ export class EditCarSceneDriver {
 					carBrand: state.carBrand,
 				};
 				const { status } = await this.driverService.editCar(chatId, car);
-				await ctx.reply(successEditCar, driverProfileKeyboard(status));
+				await ctx.reply(
+					successEditCar,
+					await selectDriverKeyboard({ chatId, status }, this.orderService),
+				);
 				return;
 			}
 			await ctx.reply(valid);
@@ -100,7 +105,10 @@ export class EditCarSceneDriver {
 		} catch (e) {
 			await ctx.scene.leave();
 			const { status } = await this.driverService.findByChatId(chatId);
-			await ctx.reply(errorEditInfo, driverProfileKeyboard(status));
+			await ctx.reply(
+				errorEditInfo,
+				await selectDriverKeyboard({ chatId, status }, this.orderService),
+			);
 			return '';
 		}
 	}

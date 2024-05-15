@@ -4,11 +4,12 @@ import { ScenesType } from '../scenes.type';
 import { PassengerService } from '../../../passenger/passenger.service';
 import { errorEditInfo, successEditName, WhatName } from '../../constatnts/message.constants';
 import { ChatId } from '../../../decorators/getChatId.decorator';
-import { passengerProfileKeyboard } from '../../keyboards/passenger/passenger-profile.keyboard';
 import { TaxiBotContext } from '../../taxi-bot.context';
 import { commonButtons } from '../../buttons/common.buttons';
 import { TaxiBotCommonUpdate } from '../../updates/common.update';
 import { TaxiBotValidation } from '../../taxi-bot.validation';
+import { selectPassengerKeyboard } from '../../keyboards/passenger/select-passenger-keyboard';
+import { OrderService } from '../../../order/order.service';
 
 @Wizard(ScenesType.EditName)
 export class EditNameScene {
@@ -16,6 +17,7 @@ export class EditNameScene {
 		private readonly passengerService: PassengerService,
 		private readonly taxiBotService: TaxiBotCommonUpdate,
 		private readonly taxiBotValidation: TaxiBotValidation,
+		private readonly orderService: OrderService,
 	) {}
 
 	@WizardStep(1)
@@ -36,14 +38,14 @@ export class EditNameScene {
 			if (valid === true) {
 				await ctx.scene.leave();
 				await this.passengerService.editName(chatId, msg.text);
-				await ctx.reply(successEditName, passengerProfileKeyboard());
+				await ctx.reply(successEditName, await selectPassengerKeyboard(chatId, this.orderService));
 				return;
 			}
 			await ctx.reply(valid);
 			return;
 		} catch (e) {
 			await ctx.scene.leave();
-			await ctx.reply(errorEditInfo, passengerProfileKeyboard());
+			await ctx.reply(errorEditInfo, await selectPassengerKeyboard(chatId, this.orderService));
 			return '';
 		}
 	}

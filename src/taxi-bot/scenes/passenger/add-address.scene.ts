@@ -13,11 +13,12 @@ import {
 import { AddAddressContext } from '../../contexts/add-address.context';
 import { CreateAddressDto } from '../../../passenger/dto/create-address.dto';
 import { ChatId } from '../../../decorators/getChatId.decorator';
-import { passengerProfileKeyboard } from '../../keyboards/passenger/passenger-profile.keyboard';
 import { TaxiBotValidation } from '../../taxi-bot.validation';
 import { commonButtons } from '../../buttons/common.buttons';
 import { TaxiBotContext } from '../../taxi-bot.context';
 import { TaxiBotCommonUpdate } from '../../updates/common.update';
+import { selectPassengerKeyboard } from '../../keyboards/passenger/select-passenger-keyboard';
+import { OrderService } from '../../../order/order.service';
 
 @Wizard(ScenesType.AddAddress)
 export class AddAddressScene {
@@ -25,6 +26,7 @@ export class AddAddressScene {
 		private readonly passengerService: PassengerService,
 		private readonly taxiBotValidation: TaxiBotValidation,
 		private readonly taxiBotService: TaxiBotCommonUpdate,
+		private readonly orderService: OrderService,
 	) {}
 
 	@WizardStep(1)
@@ -59,7 +61,7 @@ export class AddAddressScene {
 		state: RegistrationPassengerContext['wizard']['state'],
 	): Promise<string> {
 		try {
-			const valid = this.taxiBotValidation.checkMaxMinLengthString(msg.text, 5, 100);
+			const valid = this.taxiBotValidation.checkMaxMinLengthString(msg.text, 5, 80);
 			if (valid === true) {
 				const address: CreateAddressDto = {
 					name: state.name,
@@ -68,14 +70,17 @@ export class AddAddressScene {
 
 				await ctx.scene.leave();
 				await this.passengerService.addAddress(chatId, address);
-				await ctx.reply(successAddAddress, passengerProfileKeyboard());
+				await ctx.reply(
+					successAddAddress,
+					await selectPassengerKeyboard(chatId, this.orderService),
+				);
 				return '';
 			}
 			await ctx.reply(valid);
 			return;
 		} catch (e) {
 			await ctx.scene.leave();
-			await ctx.reply(errorAddAddress, passengerProfileKeyboard());
+			await ctx.reply(errorAddAddress, await selectPassengerKeyboard(chatId, this.orderService));
 			return '';
 		}
 	}

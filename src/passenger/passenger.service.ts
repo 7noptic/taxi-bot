@@ -1,10 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Passenger, PassengerDocument } from './passenger.model';
+import { Address, Passenger, PassengerDocument } from './passenger.model';
 import { Model } from 'mongoose';
 import { CreatePassengerDto } from './dto/create-passenger.dto';
 import { CreateAddressDto } from './dto/create-address.dto';
 import { ConstantsService } from '../constants/constants.service';
+import { getFullPassengerInfoPipeline } from './piplines/getFullPassengerInfo.pipeline';
+import { QueryType, ResponseType } from '../types/query.type';
 
 @Injectable()
 export class PassengerService {
@@ -17,6 +19,14 @@ export class PassengerService {
 		} catch (e) {
 			console.log('error', e);
 		}
+	}
+
+	async findAddressByName(
+		chatId: Passenger['chatId'],
+		addressName: Address['name'],
+	): Promise<Address['address']> {
+		const passenger = await this.passengerModel.findOne({ chatId }).exec();
+		return passenger?.address?.find((address) => address.name === addressName)?.address || '';
 	}
 
 	async addAddress(chatId: Passenger['chatId'], address: CreateAddressDto) {
@@ -89,6 +99,12 @@ export class PassengerService {
 		);
 	}
 
+	async update(chatId: number, updatedPassenger: Partial<Passenger>) {
+		return this.passengerModel
+			.findOneAndUpdate({ chatId }, { $set: updatedPassenger }, { new: true })
+			.exec();
+	}
+
 	async findByChatId(chatId: number) {
 		return await this.passengerModel.findOne({ chatId }).exec();
 	}
@@ -109,55 +125,33 @@ export class PassengerService {
 		);
 	}
 
+	async getLimitAll(
+		currentPageInQuery?: QueryType['currentPage'],
+	): Promise<ResponseType<Passenger[]>> {
+		const perPageCount = 10;
+		const currentPage = Number(currentPageInQuery) || 1;
+		const skip = perPageCount * (currentPage - 1);
+
+		const passengers: Passenger[] = await this.passengerModel
+			.find()
+			.sort({ createdAt: -1 })
+			.limit(perPageCount)
+			.skip(skip);
+		const total = await this.passengerModel.countDocuments();
+
+		return { data: passengers, total, currentPage, perPageCount };
+	}
+
 	async getAll() {
-		return this.passengerModel.find();
+		return this.passengerModel.find().sort({ createdAt: -1 });
 	}
 
 	async getFullPassengerInfo(chatId: number) {
-		console.log(chatId);
-		const res = (await this.passengerModel
-			.aggregate([
-				{
-					$match: {
-						chatId,
-					},
-				},
-				{
-					$lookup: {
-						from: 'reviews',
-						localField: 'chatId',
-						foreignField: 'from',
-						as: 'reviewFrom',
-					},
-				},
-				{
-					$addFields: {
-						leftReview: {
-							$size: '$reviewFrom',
-						},
-					},
-				},
-				{
-					$lookup: {
-						from: 'reviews',
-						localField: 'chatId',
-						foreignField: 'to',
-						as: 'reviewTo',
-					},
-				},
-				{
-					$addFields: {
-						receivedReview: {
-							$size: '$reviewTo',
-						},
-					},
-				},
-			])
-			.exec()) as (Passenger & {
+		return (
+			await this.passengerModel.aggregate(getFullPassengerInfoPipeline(chatId)).exec()
+		)[0] as Passenger & {
 			receivedReview: number;
 			leftReview: number;
-		})[];
-		console.log(res);
-		return res;
+		};
 	}
 }

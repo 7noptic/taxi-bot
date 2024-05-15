@@ -27,6 +27,7 @@ import { ReviewModule } from '../review/review.module';
 import { AddReviewScene } from './scenes/add-review.scene';
 import { ConfigModule } from '@nestjs/config';
 import { PaymentModule } from '../payment/payment.module';
+import { LoggerModule } from '../logger/logger.module';
 
 @Module({
 	imports: [
@@ -38,6 +39,7 @@ import { PaymentModule } from '../payment/payment.module';
 		ReviewModule,
 		ConfigModule,
 		PaymentModule,
+		LoggerModule,
 	],
 	providers: [
 		RegisterDriverScene,

@@ -64,7 +64,8 @@ export class ConstantsService {
 		SuccessClosedAppeal: '✅ Обращение успешно закрыто',
 		ErrorClosedAppeal:
 			'❌ Что-то пошло не так.\nПопробуйте перезапустить бота выполнив команду /start',
-		WhatNumberOrder: 'Введите номер заказа или отправьте "-", если вопрос не по заказу',
+		WhatNumberOrder:
+			'Введите номер заказа\nНапример: <b>Заказ-lDDxFJ</b>\n\nИли отправьте "-", если вопрос не по заказу',
 		WhatMessage: 'Введите сообщение, оператор постарается вам ответить как можно скорее',
 		OpenAppeal: 'Для создания обращения ответьте на пару вопросов',
 		SuccessOpenAppeal:
@@ -81,6 +82,7 @@ export class ConstantsService {
 		[AccessTypeOrder.DRIVE]: 'Поездки',
 		[AccessTypeOrder.DELIVERY]: 'Доставка',
 	};
+	static readonly defaultMaxAddresses = 10;
 
 	static readonly getEndingWord = (number: number, words: string[]) => {
 		const cases = [2, 0, 1, 1, 1, 2];

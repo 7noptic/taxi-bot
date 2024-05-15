@@ -9,15 +9,20 @@ import { ConstantsService } from '../../constants/constants.service';
 import { CreateAppealDto } from '../../appeal/dto/create-appeal.dto';
 import { CloseAppealKeyboard } from '../keyboards/close-appeal.keyboard';
 import { OpenAppealKeyboard } from '../keyboards/open-appeal.keyboard';
+import { TaxiBotValidation } from '../../taxi-bot/taxi-bot.validation';
 
 @Wizard(ScenesAppealType.OpenAppeal)
 export class OpenAppealScene {
-	constructor(private readonly appealService: AppealService) {}
+	constructor(
+		private readonly appealService: AppealService,
+		private readonly taxiBotValidation: TaxiBotValidation,
+	) {}
 
 	@WizardStep(1)
 	async onSceneEnter(@Ctx() ctx: WizardContext): Promise<string> {
 		await ctx.wizard.next();
-		return ConstantsService.HelpBotMessage.WhatNumberOrder;
+		await ctx.replyWithHTML(ConstantsService.HelpBotMessage.WhatNumberOrder);
+		return;
 	}
 
 	@On('text')
@@ -26,9 +31,14 @@ export class OpenAppealScene {
 		@Ctx() ctx: WizardContext & OpenAppealContext,
 		@Message() msg: { text: string },
 	): Promise<string> {
-		ctx.wizard.state.numberOrder = msg.text;
-		await ctx.wizard.next();
-		return ConstantsService.HelpBotMessage.WhatMessage;
+		const valid = this.taxiBotValidation.checkMaxMinLengthString(msg.text, 1, 20);
+		if (valid === true) {
+			ctx.wizard.state.numberOrder = msg.text;
+			await ctx.wizard.next();
+			return ConstantsService.HelpBotMessage.WhatMessage;
+		}
+		await ctx.reply(valid);
+		return;
 	}
 
 	@On('text')

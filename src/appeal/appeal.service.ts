@@ -7,12 +7,15 @@ import { ShortIdService } from '../short-id/short-id.service';
 import { TypeId } from '../short-id/Enums/type-id.enum';
 import { SendMessageDto } from './dto/send-message.dto';
 import { APPEAL_NOT_FOUND } from './appeal.constants';
+import { QueryType, ResponseType } from '../types/query.type';
+import { SocketService } from '../socket/socket.service';
 
 @Injectable()
 export class AppealService {
 	constructor(
 		@InjectModel(Appeal.name) private appealModel: Model<AppealDocument>,
 		private readonly shortIdService: ShortIdService,
+		private readonly socketService: SocketService,
 	) {}
 
 	async create(dto: CreateAppealDto): Promise<AppealDocument> {
@@ -68,7 +71,36 @@ export class AppealService {
 		if (!updatedAppeal) {
 			throw new NotFoundException(APPEAL_NOT_FOUND);
 		}
+		this.socketService.handleUpdateAppeal(updatedAppeal);
 
 		return updatedAppeal;
+	}
+
+	async getLimitAll(
+		currentPageInQuery?: QueryType['currentPage'],
+	): Promise<ResponseType<Appeal[]>> {
+		const perPageCount = 10;
+		const currentPage = Number(currentPageInQuery) || 1;
+		const skip = perPageCount * (currentPage - 1);
+
+		const appeals: Appeal[] = await this.appealModel
+			.find()
+			.sort({ status: -1, createdAt: -1 })
+			.limit(perPageCount)
+			.skip(skip);
+		const total = await this.appealModel.countDocuments();
+
+		return { data: appeals, total, currentPage, perPageCount };
+	}
+
+	async getAll() {
+		return this.appealModel.find().sort({ status: -1, createdAt: -1 });
+	}
+
+	async findByNumberAppeal(text: string) {
+		return this.appealModel
+			.find({ numberAppeal: { $regex: text, $options: 'i' } })
+			.limit(40)
+			.sort({ createdAt: -1 });
 	}
 }

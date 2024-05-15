@@ -1,0 +1,30 @@
+import { Injectable, LoggerService as ILoggerService } from '@nestjs/common';
+import * as fs from 'fs';
+import { LoggerType } from './logger.type';
+
+@Injectable()
+export class LoggerService implements ILoggerService {
+	log(message: string) {
+		this.writeToFile(`[${new Date().toLocaleString()}]: 📢 ` + message, LoggerType.Log);
+	}
+
+	error(message: string) {
+		this.writeToFile(`[${new Date().toLocaleString()}]: ❌ ` + message, LoggerType.Error);
+	}
+
+	warn(message: string) {
+		this.writeToFile(`[${new Date().toLocaleString()}]: ⚠️ ` + message, LoggerType.Warn);
+	}
+
+	debug(message: string) {
+		this.writeToFile(`[${new Date().toLocaleString()}]: 🐞 ` + message, LoggerType.Debug);
+	}
+
+	private writeToFile(message: string, loggerType: LoggerType) {
+		fs.appendFile(`logs/${loggerType}.txt`, message + '\n', (err) => {
+			if (err) {
+				console.error('Error writing to file: ', err);
+			}
+		});
+	}
+}

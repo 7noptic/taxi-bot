@@ -4,13 +4,14 @@ import { ScenesType } from '../scenes.type';
 import { PassengerService } from '../../../passenger/passenger.service';
 import { errorEditInfo, successEditCity, WhatCity } from '../../constatnts/message.constants';
 import { ChatId } from '../../../decorators/getChatId.decorator';
-import { passengerProfileKeyboard } from '../../keyboards/passenger/passenger-profile.keyboard';
 import { TaxiBotContext } from '../../taxi-bot.context';
-import { Markup } from 'telegraf';
 import { CityService } from '../../../city/city.service';
 import { GetQueryData } from '../../../decorators/getCityFromInlineQuery.decorator';
 import { commonButtons } from '../../buttons/common.buttons';
 import { TaxiBotCommonUpdate } from '../../updates/common.update';
+import { selectPassengerKeyboard } from '../../keyboards/passenger/select-passenger-keyboard';
+import { OrderService } from '../../../order/order.service';
+import { selectCityKeyboard } from '../../keyboards/select-city.keyboard';
 
 @Wizard(ScenesType.EditCity)
 export class EditCityScene {
@@ -18,20 +19,19 @@ export class EditCityScene {
 		private readonly passengerService: PassengerService,
 		private readonly cityService: CityService,
 		private readonly taxiBotService: TaxiBotCommonUpdate,
+		private readonly orderService: OrderService,
 	) {}
 
 	@WizardStep(1)
 	async onSceneEnter(@Ctx() ctx: WizardContext): Promise<string> {
 		try {
 			const cities = await this.cityService.getAll();
-			await ctx.reply(
-				WhatCity,
-				Markup.inlineKeyboard(cities.map((city) => Markup.button.callback(city.name, city.name))),
-			);
+			await ctx.reply(WhatCity, selectCityKeyboard(cities));
 
 			await ctx.wizard.next();
 			return;
 		} catch (e) {
+			console.log(e);
 			await ctx.scene.leave();
 			return errorEditInfo;
 		}
@@ -49,7 +49,7 @@ export class EditCityScene {
 			const { name } = await this.cityService.getByName(city);
 			if (name) {
 				await this.passengerService.editCity(chatId, city);
-				await ctx.reply(successEditCity, passengerProfileKeyboard());
+				await ctx.reply(successEditCity, await selectPassengerKeyboard(chatId, this.orderService));
 				return '';
 			}
 			await this.showError(ctx, chatId);
@@ -67,6 +67,6 @@ export class EditCityScene {
 	}
 
 	async showError(@Ctx() ctx: WizardContext & TaxiBotContext, @ChatId() chatId: number) {
-		await ctx.reply(errorEditInfo, passengerProfileKeyboard());
+		await ctx.reply(errorEditInfo, await selectPassengerKeyboard(chatId, this.orderService));
 	}
 }
