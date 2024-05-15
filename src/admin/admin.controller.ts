@@ -39,6 +39,8 @@ export class AdminController {
 		}
 	}
 
+	@UseGuards(JwtGuard)
+	@UsePipes(new ValidationPipe())
 	@Delete(':id')
 	async deleteById(@Param('id') id: string) {
 		try {

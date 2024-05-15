@@ -8,6 +8,7 @@ import {
 	Param,
 	Patch,
 	Post,
+	UseGuards,
 	UsePipes,
 	ValidationPipe,
 } from '@nestjs/common';
@@ -23,6 +24,7 @@ import { QueryType } from '../types/query.type';
 import { LoggerService } from '../logger/logger.service';
 import { OpenAppealKeyboard } from '../help-bot/keyboards/open-appeal.keyboard';
 import { successAppeal } from '../taxi-bot/constatnts/message.constants';
+import { JwtGuard } from '../guards/jwt.guard';
 
 @Controller('appeal')
 export class AppealController {
@@ -32,6 +34,8 @@ export class AppealController {
 		@InjectBot(BotName.Help) private readonly helpBot: Telegraf<HelpBotContext>,
 	) {}
 
+	@UseGuards(JwtGuard)
+	@UsePipes(new ValidationPipe())
 	@UsePipes(new ValidationPipe())
 	@Post('create')
 	async create(@Body() dto: CreateAppealDto) {
@@ -42,6 +46,7 @@ export class AppealController {
 		}
 	}
 
+	@UseGuards(JwtGuard)
 	@UsePipes(new ValidationPipe())
 	@HttpCode(200)
 	@Post('sendMessage/:id')
@@ -54,6 +59,8 @@ export class AppealController {
 		}
 	}
 
+	@UseGuards(JwtGuard)
+	@UsePipes(new ValidationPipe())
 	@Get(':id')
 	async getById(@Param('id') id: string) {
 		try {
@@ -63,6 +70,8 @@ export class AppealController {
 		}
 	}
 
+	@UseGuards(JwtGuard)
+	@UsePipes(new ValidationPipe())
 	@Patch('close/:chatId')
 	async closeAppealByChatId(@Param('chatId') chatId: string) {
 		try {
@@ -80,6 +89,8 @@ export class AppealController {
 		}
 	}
 
+	@UseGuards(JwtGuard)
+	@UsePipes(new ValidationPipe())
 	@Delete(':id')
 	async deleteById(@Param('id') id: string) {
 		try {
@@ -93,6 +104,7 @@ export class AppealController {
 		}
 	}
 
+	@UseGuards(JwtGuard)
 	@UsePipes(new ValidationPipe())
 	@Patch(':id')
 	async updateById(@Param('id') id: string, @Body() dto: Partial<CreateAppealDto>) {
@@ -107,6 +119,8 @@ export class AppealController {
 		}
 	}
 
+	@UseGuards(JwtGuard)
+	@UsePipes(new ValidationPipe())
 	@HttpCode(200)
 	@Post('findByUser/:userId')
 	async findByUserId(@Param('userId') userId: string) {

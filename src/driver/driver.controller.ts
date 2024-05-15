@@ -6,6 +6,7 @@ import {
 	Param,
 	Patch,
 	Post,
+	UseGuards,
 	UsePipes,
 	ValidationPipe,
 } from '@nestjs/common';
@@ -15,6 +16,7 @@ import { QueryType } from '../types/query.type';
 import { PASSENGER_NOT_FOUND } from '../passenger/passenger.message';
 import { Driver } from './driver.model';
 import { LoggerService } from '../logger/logger.service';
+import { JwtGuard } from '../guards/jwt.guard';
 
 @Controller('driver')
 export class DriverController {
@@ -23,6 +25,7 @@ export class DriverController {
 		private readonly loggerService: LoggerService,
 	) {}
 
+	@UseGuards(JwtGuard)
 	@UsePipes(new ValidationPipe())
 	@Post('create')
 	async create(@Body() dto: CreateDriverDto) {
@@ -33,6 +36,8 @@ export class DriverController {
 		}
 	}
 
+	@UseGuards(JwtGuard)
+	@UsePipes(new ValidationPipe())
 	@Get('getLimitOrder/:currentPage')
 	async getLimitOrder(@Param('currentPage') currentPage: QueryType['currentPage']) {
 		try {
@@ -42,6 +47,8 @@ export class DriverController {
 		}
 	}
 
+	@UseGuards(JwtGuard)
+	@UsePipes(new ValidationPipe())
 	@Post('all')
 	async getAllOrder() {
 		try {
@@ -51,6 +58,8 @@ export class DriverController {
 		}
 	}
 
+	@UseGuards(JwtGuard)
+	@UsePipes(new ValidationPipe())
 	@Get('byChatId/:chatId')
 	async getByChatId(@Param('chatId') chatId: string) {
 		try {
@@ -64,6 +73,7 @@ export class DriverController {
 		}
 	}
 
+	@UseGuards(JwtGuard)
 	@UsePipes(new ValidationPipe())
 	@Patch(':id')
 	async update(@Param('id') id: string, @Body() dto: Partial<Driver>) {
@@ -78,6 +88,8 @@ export class DriverController {
 		}
 	}
 
+	@UseGuards(JwtGuard)
+	@UsePipes(new ValidationPipe())
 	@Get(':id')
 	async getFullDriverInfo(@Param('id') id: string) {
 		try {

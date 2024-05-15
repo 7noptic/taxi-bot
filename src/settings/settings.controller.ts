@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Patch, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Get, Patch, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
 import { SettingsService } from './settings.service';
 import { UpdateCommissionDto } from './dto/update-commission.dto';
 import { UpdatePriceTextDto } from './dto/update-price-text.dto';
@@ -6,6 +6,7 @@ import { UpdateFaqTextDto } from './dto/update-faq-text.dto';
 import { UpdateSupportTextDto } from './dto/update-support-text.dto';
 import { UpdateAboutTextDto } from './dto/update-about-text.dto';
 import { LoggerService } from '../logger/logger.service';
+import { JwtGuard } from '../guards/jwt.guard';
 
 @Controller('settings')
 export class SettingsController {
@@ -14,7 +15,7 @@ export class SettingsController {
 		private readonly loggerService: LoggerService,
 	) {}
 
-	// @UseGuards(JwtGuard)
+	@UseGuards(JwtGuard)
 	@UsePipes(new ValidationPipe())
 	@Get('')
 	async getSettings() {
@@ -25,7 +26,7 @@ export class SettingsController {
 		}
 	}
 
-	// @UseGuards(JwtGuard)
+	@UseGuards(JwtGuard)
 	@UsePipes(new ValidationPipe())
 	@Patch('updateCommission')
 	async updateCommission(@Body() dto: UpdateCommissionDto) {
@@ -36,7 +37,7 @@ export class SettingsController {
 		}
 	}
 
-	// @UseGuards(JwtGuard)
+	@UseGuards(JwtGuard)
 	@UsePipes(new ValidationPipe())
 	@Patch('updatePriceText')
 	async updatePriceText(@Body() dto: UpdatePriceTextDto) {
@@ -47,7 +48,7 @@ export class SettingsController {
 		}
 	}
 
-	// @UseGuards(JwtGuard)
+	@UseGuards(JwtGuard)
 	@UsePipes(new ValidationPipe())
 	@Patch('updateFaqText')
 	async updateFaqText(@Body() dto: UpdateFaqTextDto) {
@@ -58,7 +59,7 @@ export class SettingsController {
 		}
 	}
 
-	// @UseGuards(JwtGuard)
+	@UseGuards(JwtGuard)
 	@UsePipes(new ValidationPipe())
 	@Patch('updateSupportText')
 	async updateSupportText(@Body() dto: UpdateSupportTextDto) {
@@ -69,7 +70,7 @@ export class SettingsController {
 		}
 	}
 
-	// @UseGuards(JwtGuard)
+	@UseGuards(JwtGuard)
 	@UsePipes(new ValidationPipe())
 	@Patch('updateAboutText')
 	async updateAboutText(@Body() dto: UpdateAboutTextDto) {

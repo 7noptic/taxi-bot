@@ -6,6 +6,7 @@ import {
 	Param,
 	Patch,
 	Post,
+	UseGuards,
 	UsePipes,
 	ValidationPipe,
 } from '@nestjs/common';
@@ -15,6 +16,7 @@ import { PASSENGER_NOT_FOUND } from './passenger.message';
 import { Passenger } from './passenger.model';
 import { QueryType } from '../types/query.type';
 import { LoggerService } from '../logger/logger.service';
+import { JwtGuard } from '../guards/jwt.guard';
 
 @Controller('passenger')
 export class PassengerController {
@@ -23,6 +25,7 @@ export class PassengerController {
 		private readonly loggerService: LoggerService,
 	) {}
 
+	@UseGuards(JwtGuard)
 	@UsePipes(new ValidationPipe())
 	@Post('create')
 	async create(@Body() dto: CreatePassengerDto) {
@@ -33,6 +36,8 @@ export class PassengerController {
 		}
 	}
 
+	@UseGuards(JwtGuard)
+	@UsePipes(new ValidationPipe())
 	@Get('getRating/:chatId')
 	async getRatingById(@Param('chatId') chatId: number) {
 		try {
@@ -42,6 +47,7 @@ export class PassengerController {
 		}
 	}
 
+	@UseGuards(JwtGuard)
 	@UsePipes(new ValidationPipe())
 	@Patch(':id')
 	async update(@Param('id') id: string, @Body() dto: Partial<Passenger>) {
@@ -56,6 +62,8 @@ export class PassengerController {
 		}
 	}
 
+	@UseGuards(JwtGuard)
+	@UsePipes(new ValidationPipe())
 	@Get('byChatId/:chatId')
 	async getByChatId(@Param('chatId') chatId: string) {
 		try {
@@ -69,6 +77,8 @@ export class PassengerController {
 		}
 	}
 
+	@UseGuards(JwtGuard)
+	@UsePipes(new ValidationPipe())
 	@Get(':id')
 	async getFullPassengerInfo(@Param('id') id: string) {
 		try {
@@ -82,6 +92,8 @@ export class PassengerController {
 		}
 	}
 
+	@UseGuards(JwtGuard)
+	@UsePipes(new ValidationPipe())
 	@Get('getLimitOrder/:currentPage')
 	async getLimitPassenger(@Param('currentPage') currentPage: QueryType['currentPage']) {
 		try {
@@ -91,6 +103,8 @@ export class PassengerController {
 		}
 	}
 
+	@UseGuards(JwtGuard)
+	@UsePipes(new ValidationPipe())
 	@Post('all')
 	async getAllPassenger() {
 		try {
