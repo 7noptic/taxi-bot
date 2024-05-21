@@ -25,6 +25,7 @@ import { PaymentModule } from '../payment/payment.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { LoggerModule } from '../logger/logger.module';
+import { NewsletterModule } from '../newsletter/newsletter.module';
 import { SocketService } from '../socket/socket.service';
 
 const store = Mongo({
@@ -61,6 +62,8 @@ const store = Mongo({
 		HelpBotModule,
 		ReviewModule,
 		SettingsModule,
+		NewsletterModule,
+
 		MongooseModule.forFeature([{ name: Settings.name, schema: SettingsSchema }]),
 		TelegrafModule.forRootAsync({
 			imports: [ConfigModule],

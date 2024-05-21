@@ -17,6 +17,8 @@ import { NotDrivers } from '../taxi-bot/constatnts/message.constants';
 import { BlockedType } from './Enum/blocked-type';
 import { QueryType, ResponseType } from '../types/query.type';
 import { getFullDriverInfoPipeline } from './pipelines/getFullDriverInfo.pipeline';
+import { AddCommissionDto } from '../order/dto/add-commission.dto';
+import { addDays } from 'date-fns';
 
 @Injectable()
 export class DriverService {
@@ -232,5 +234,14 @@ export class DriverService {
 		return this.driverModel
 			.findOneAndUpdate({ chatId }, { $set: updatedDriver }, { new: true })
 			.exec();
+	}
+
+	async updateCommission(chatId: number, { commission, countDays }: AddCommissionDto) {
+		const commissionExpiryDate = addDays(new Date(), countDays);
+		return this.driverModel.findOneAndUpdate(
+			{ chatId },
+			{ $set: { commission, commissionExpiryDate } },
+			{ new: true },
+		);
 	}
 }

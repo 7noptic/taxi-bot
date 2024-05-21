@@ -37,7 +37,7 @@ export class CityService {
 
 	async findByName(name: string) {
 		return this.cityModel
-			.find({ numberOrder: { $regex: name, $options: 'i' } })
+			.find({ name: { $regex: name, $options: 'i' } })
 			.limit(40)
 			.sort({ createdAt: -1 });
 	}

@@ -440,7 +440,10 @@ export class CreateOrderScene {
 		const { city } = await this.passengerService.findByChatId(chatId);
 		const minPrice = await this.cityService.getMinPriceByName(city);
 		ctx.wizard.state.minPrice = minPrice;
-		await ctx.reply(selectPrice, selectPriceOrderKeyboard(minPrice));
+		await ctx.reply(
+			selectPrice,
+			selectPriceOrderKeyboard(ConstantsService.roundToNearest50(minPrice)),
+		);
 		await ctx.wizard.next();
 		return;
 	}

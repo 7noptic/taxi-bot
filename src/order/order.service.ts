@@ -17,6 +17,10 @@ import { QueryType, ResponseType } from '../types/query.type';
 import { getFullOrderInfoPipeline } from './pipelines/getFullOrderInfo.pipeline';
 import { Review } from '../review/review.model';
 import { Appeal } from '../appeal/appeal.model';
+import { getStatisticsByCityPipeline } from './pipelines/getStatisticsByCity.pipeline';
+import { startOfDay, startOfMonth, startOfWeek } from 'date-fns';
+import { getAllStatisticPipeline } from './pipelines/getAllStatistic.pipeline';
+import { ResultStatisticAllDto } from './dto/result-statistic-all.dto';
 
 @Injectable()
 export class OrderService {
@@ -75,9 +79,13 @@ export class OrderService {
 	}
 
 	async successOrderFromDriver(id: string, driverId: number) {
-		const { commission: driverCommission } = await this.driverService.findByChatId(driverId);
+		const { commission: driverCommission, commissionExpiryDate } =
+			await this.driverService.findByChatId(driverId);
 		const { commission: settingsCommission } = await this.settingsService.getSettings();
-		const commission = driverCommission > 0 ? driverCommission : settingsCommission;
+		const commission =
+			driverCommission > 0 && commissionExpiryDate > new Date()
+				? driverCommission
+				: settingsCommission;
 
 		const { price } = await this.orderModel.findById(id);
 		const calculatedCommission = Math.round(price * (commission / 100));
@@ -210,5 +218,76 @@ export class OrderService {
 			appeals: Appeal[];
 		};
 		return order ?? {};
+	}
+
+	async getStatisticsByCity() {
+		// : Promise<ResultStatisticByCityDto>
+		const stats = await this.orderModel.aggregate(getStatisticsByCityPipeline());
+
+		return stats;
+	}
+
+	async getAllStatistic(): Promise<ResultStatisticAllDto> {
+		const today = startOfDay(new Date());
+		const weekStart = startOfWeek(today);
+		const monthStart = startOfMonth(today);
+		const allOrders = await this.orderModel.aggregate([{ $match: {} }, getAllStatisticPipeline()]);
+
+		const todayOrders = await this.orderModel.aggregate([
+			{ $match: { createdAt: { $gte: today } } },
+			getAllStatisticPipeline(),
+		]);
+
+		const weekOrders = await this.orderModel.aggregate([
+			{ $match: { createdAt: { $gte: weekStart } } },
+			getAllStatisticPipeline(),
+		]);
+
+		const monthOrders = await this.orderModel.aggregate([
+			{ $match: { createdAt: { $gte: monthStart } } },
+			getAllStatisticPipeline(),
+		]);
+		const [allOrdersResult, todayOrdersResult, weekOrdersResult, monthOrdersResult] =
+			await Promise.all([allOrders, todayOrders, weekOrders, monthOrders]);
+
+		return {
+			all: {
+				totalOrders: allOrdersResult[0]?.totalOrders || 0,
+				totalCancelOrders: allOrdersResult[0]?.totalCancelOrders || 0,
+				totalSuccess: allOrdersResult[0]?.totalSuccessOrders || 0,
+				totalDriverOrders: allOrdersResult[0]?.totalDriverOrders || 0,
+				totalDeliveryOrders: allOrdersResult[0]?.totalDeliveryOrders || 0,
+				totalPrice: allOrdersResult[0]?.totalPrice || 0,
+				totalCommission: allOrdersResult[0]?.totalCommission || 0,
+			},
+
+			today: {
+				totalOrders: todayOrdersResult[0]?.totalOrders || 0,
+				totalCancelOrders: todayOrdersResult[0]?.totalCancelOrders || 0,
+				totalSuccess: todayOrdersResult[0]?.totalSuccessOrders || 0,
+				totalDriverOrders: todayOrdersResult[0]?.totalDriverOrders || 0,
+				totalDeliveryOrders: todayOrdersResult[0]?.totalDeliveryOrders || 0,
+				totalPrice: todayOrdersResult[0]?.totalPrice || 0,
+				totalCommission: todayOrdersResult[0]?.totalCommission || 0,
+			},
+			week: {
+				totalOrders: weekOrdersResult[0]?.totalOrders || 0,
+				totalCancelOrders: weekOrdersResult[0]?.totalCancelOrders || 0,
+				totalSuccess: weekOrdersResult[0]?.totalSuccessOrders || 0,
+				totalDriverOrders: weekOrdersResult[0]?.totalDriverOrders || 0,
+				totalDeliveryOrders: weekOrdersResult[0]?.totalDeliveryOrders || 0,
+				totalPrice: weekOrdersResult[0]?.totalPrice || 0,
+				totalCommission: weekOrdersResult[0]?.totalCommission || 0,
+			},
+			month: {
+				totalOrders: monthOrdersResult[0]?.totalOrders || 0,
+				totalCancelOrders: monthOrdersResult[0]?.totalCancelOrders || 0,
+				totalSuccess: monthOrdersResult[0]?.totalSuccessOrders || 0,
+				totalDriverOrders: monthOrdersResult[0]?.totalDriverOrders || 0,
+				totalDeliveryOrders: monthOrdersResult[0]?.totalDeliveryOrders || 0,
+				totalPrice: monthOrdersResult[0]?.totalPrice || 0,
+				totalCommission: monthOrdersResult[0]?.totalCommission || 0,
+			},
+		};
 	}
 }

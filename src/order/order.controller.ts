@@ -102,4 +102,24 @@ export class OrderController {
 			this.loggerService.error('getCommissionForLastWeek Order: ' + e?.toString());
 		}
 	}
+
+	@UseGuards(JwtGuard)
+	@Get('byCity')
+	async getStatisticsByCity() {
+		try {
+			return this.orderService.getStatisticsByCity();
+		} catch (e) {
+			this.loggerService.error('getStatisticsByCity Order: ' + e?.toString());
+		}
+	}
+
+	@UseGuards(JwtGuard)
+	@Get('allStatistic')
+	async getAllStatistic() {
+		try {
+			return this.orderService.getAllStatistic();
+		} catch (e) {
+			this.loggerService.error('getStatisticsByCity Order: ' + e?.toString());
+		}
+	}
 }

@@ -17,6 +17,7 @@ import { PASSENGER_NOT_FOUND } from '../passenger/passenger.message';
 import { Driver } from './driver.model';
 import { LoggerService } from '../logger/logger.service';
 import { JwtGuard } from '../guards/jwt.guard';
+import { AddCommissionDto } from '../order/dto/add-commission.dto';
 
 @Controller('driver')
 export class DriverController {
@@ -100,6 +101,21 @@ export class DriverController {
 			return driver;
 		} catch (e) {
 			this.loggerService.error('getFullDriverInfo Driver: ' + e?.toString());
+		}
+	}
+
+	@UseGuards(JwtGuard)
+	@UsePipes(new ValidationPipe())
+	@Patch('updateCommission/:id')
+	async updateCommission(@Param('id') id: string, @Body() dto: AddCommissionDto) {
+		try {
+			const driver = await this.driverService.updateCommission(Number(id), dto);
+			if (!driver) {
+				throw new NotFoundException(PASSENGER_NOT_FOUND);
+			}
+			return driver;
+		} catch (e) {
+			this.loggerService.error('updateCommission Driver: ' + e?.toString());
 		}
 	}
 }

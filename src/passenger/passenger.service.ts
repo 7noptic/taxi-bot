@@ -154,4 +154,8 @@ export class PassengerService {
 			leftReview: number;
 		};
 	}
+
+	async getAllPassengersId() {
+		return this.passengerModel.find({}, 'chatId').exec();
+	}
 }

@@ -26,6 +26,7 @@ import { Telegraf } from 'telegraf';
 import { driverOfferKeyboard } from '../../keyboards/passenger/driver-offer.keyboard';
 import { selectDriverKeyboard } from '../../keyboards/driver/select-driver-keyboard';
 import { OrderService } from '../../../order/order.service';
+import { ConstantsService } from '../../../constants/constants.service';
 
 @Wizard(ScenesType.BargainOrderByDriver)
 export class BargainOrderScene {
@@ -62,7 +63,10 @@ export class BargainOrderScene {
 			const { city } = await this.driverService.findByChatId(chatId);
 			const minPrice = await this.cityService.getMinPriceByName(city);
 			ctx.wizard.state.minPrice = minPrice;
-			await ctx.reply(desiredPriceText, selectPriceOrderKeyboard(minPrice));
+			await ctx.reply(
+				desiredPriceText,
+				selectPriceOrderKeyboard(ConstantsService.roundToNearest50(minPrice)),
+			);
 			await ctx.wizard.next();
 			return;
 		}

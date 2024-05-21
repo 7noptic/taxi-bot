@@ -4,6 +4,7 @@ import { Admin, AdminDocument } from './admin.model';
 import { Model } from 'mongoose';
 import { CreateAdminDto } from './dto/create-admin.dto';
 import { genSalt, hash } from 'bcryptjs';
+import { QueryType, ResponseType } from '../types/query.type';
 
 @Injectable()
 export class AdminService {
@@ -29,5 +30,35 @@ export class AdminService {
 
 	async deleteById(id: string) {
 		return this.adminModel.findByIdAndDelete(id);
+	}
+
+	async getByEmail(email: string) {
+		return this.adminModel.findOne({ email });
+	}
+
+	async findByName(email: string) {
+		return this.adminModel
+			.find({ email: { $regex: email, $options: 'i' } })
+			.limit(40)
+			.sort({ createdAt: -1 });
+	}
+
+	async getLimitAll(currentPageInQuery?: QueryType['currentPage']): Promise<ResponseType<Admin[]>> {
+		const perPageCount = 10;
+		const currentPage = Number(currentPageInQuery) || 1;
+		const skip = perPageCount * (currentPage - 1);
+
+		const admins: Admin[] = await this.adminModel
+			.find()
+			.sort({ createdAt: -1 })
+			.limit(perPageCount)
+			.skip(skip);
+		const total = await this.adminModel.countDocuments();
+
+		return { data: admins, total, currentPage, perPageCount };
+	}
+
+	async getAll() {
+		return this.adminModel.find().sort({ createdAt: -1 });
 	}
 }

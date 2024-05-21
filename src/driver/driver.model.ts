@@ -51,6 +51,9 @@ export class Driver {
 	@Prop({ type: Number, default: 0 })
 	commission: number;
 
+	@Prop({ type: Date, default: new Date() })
+	commissionExpiryDate: Date;
+
 	@Prop({ type: Number, default: ConstantsService.defaultPriority })
 	priority: number;
 
