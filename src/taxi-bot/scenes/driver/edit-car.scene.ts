@@ -3,14 +3,15 @@ import { WizardContext } from 'telegraf/scenes';
 import { ScenesType } from '../scenes.type';
 import {
 	errorEditInfo,
+	errorValidation,
 	successEditCar,
+	WarningEditCar,
 	WhatCarBrand,
 	WhatCarColor,
 	WhatCarNumber,
 } from '../../constatnts/message.constants';
 import { ChatId } from '../../../decorators/getChatId.decorator';
 import { TaxiBotContext } from '../../taxi-bot.context';
-import { CityService } from '../../../city/city.service';
 import { commonButtons } from '../../buttons/common.buttons';
 import { TaxiBotCommonUpdate } from '../../updates/common.update';
 import { DriverService } from '../../../driver/driver.service';
@@ -26,7 +27,6 @@ import { OrderService } from '../../../order/order.service';
 export class EditCarSceneDriver {
 	constructor(
 		private readonly driverService: DriverService,
-		private readonly cityService: CityService,
 		private readonly taxiBotService: TaxiBotCommonUpdate,
 		private readonly taxiBotValidation: TaxiBotValidation,
 		private readonly orderService: OrderService,
@@ -34,9 +34,9 @@ export class EditCarSceneDriver {
 
 	@WizardStep(1)
 	async onSceneEnter(@Ctx() ctx: WizardContext): Promise<string> {
-		await ctx.reply(WhatCarBrand);
-		await ctx.wizard.next();
-		return;
+		await ctx.replyWithHTML(WarningEditCar);
+		ctx.wizard.next();
+		return WhatCarBrand;
 	}
 
 	@On('text')
@@ -48,12 +48,12 @@ export class EditCarSceneDriver {
 		const valid = this.taxiBotValidation.checkMaxMinLengthString(msg.text, 3, 50);
 		if (valid === true) {
 			ctx.wizard.state.carBrand = msg.text;
-			await ctx.reply(WhatCarColor);
+			await ctx.replyWithHTML(WhatCarColor);
 
 			await ctx.wizard.next();
 			return;
 		}
-		await ctx.reply(valid);
+		await ctx.replyWithHTML(valid);
 		return;
 	}
 
@@ -66,12 +66,12 @@ export class EditCarSceneDriver {
 		const valid = this.taxiBotValidation.checkMaxMinLengthString(msg.text, 3, 30);
 		if (valid === true) {
 			ctx.wizard.state.carColor = msg.text;
-			await ctx.reply(WhatCarNumber);
+			await ctx.replyWithHTML(WhatCarNumber);
 
 			await ctx.wizard.next();
 			return;
 		}
-		await ctx.reply(valid);
+		await ctx.replyWithHTML(valid);
 		return;
 	}
 
@@ -85,27 +85,30 @@ export class EditCarSceneDriver {
 		@wizardState() state: RegistrationDriverContext['wizard']['state'],
 	) {
 		try {
-			const valid = this.taxiBotValidation.checkMaxMinLengthString(msg.text, 5, 10);
+			const carNumber = msg.text.toUpperCase();
+			const regex = /^[A-Я][0-9]{3}[A-Я]{2}[0-9]{1,3}$/;
+
+			const valid = regex.test(carNumber);
 			if (valid === true) {
 				await ctx.scene.leave();
 				const car: Driver['car'] = {
-					carNumber: msg.text,
+					carNumber,
 					carColor: state.carColor,
 					carBrand: state.carBrand,
 				};
 				const { status } = await this.driverService.editCar(chatId, car);
-				await ctx.reply(
+				await ctx.replyWithHTML(
 					successEditCar,
 					await selectDriverKeyboard({ chatId, status }, this.orderService),
 				);
 				return;
 			}
-			await ctx.reply(valid);
+			await ctx.replyWithHTML(errorValidation);
 			return;
 		} catch (e) {
 			await ctx.scene.leave();
 			const { status } = await this.driverService.findByChatId(chatId);
-			await ctx.reply(
+			await ctx.replyWithHTML(
 				errorEditInfo,
 				await selectDriverKeyboard({ chatId, status }, this.orderService),
 			);

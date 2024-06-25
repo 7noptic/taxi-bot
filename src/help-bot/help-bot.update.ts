@@ -32,18 +32,21 @@ export class HelpBotUpdate {
 			const user = passenger || driver;
 
 			if (!user) {
-				await ctx.reply(ConstantsService.HelpBotMessage.NotRegistration, Markup.removeKeyboard());
+				await ctx.replyWithHTML(
+					ConstantsService.HelpBotMessage.NotRegistration,
+					Markup.removeKeyboard(),
+				);
 				return;
 			} else {
 				const openedAppeal = await this.appealService.findOpenedAppealByChatId(chatId);
 				if (openedAppeal) {
-					await ctx.reply(
+					await ctx.replyWithHTML(
 						ConstantsService.HelpBotMessage.GreetingWithCloseAppeal,
 						CloseAppealKeyboard(),
 					);
 					return;
 				}
-				await ctx.reply(
+				await ctx.replyWithHTML(
 					ConstantsService.HelpBotMessage.GreetingWithOpenAppeal,
 					OpenAppealKeyboard(),
 				);
@@ -56,7 +59,7 @@ export class HelpBotUpdate {
 	@Hears(HelpBotButtons.open.label)
 	async openAppeal(@Ctx() ctx: HelpBotContext, @ChatId() chatId: number) {
 		try {
-			await ctx.reply(ConstantsService.HelpBotMessage.OpenAppeal, Markup.removeKeyboard());
+			await ctx.replyWithHTML(ConstantsService.HelpBotMessage.OpenAppeal, Markup.removeKeyboard());
 			await ctx.scene.enter(ScenesAppealType.OpenAppeal);
 		} catch (e) {
 			this.loggerService.error('openAppeal HelpBotUpdate: ' + e?.toString());
@@ -68,11 +71,14 @@ export class HelpBotUpdate {
 		try {
 			const closedAppeal = await this.appealService.closeAppealByChatId(chatId);
 			if (closedAppeal) {
-				await ctx.reply(ConstantsService.HelpBotMessage.SuccessClosedAppeal, OpenAppealKeyboard());
+				await ctx.replyWithHTML(
+					ConstantsService.HelpBotMessage.SuccessClosedAppeal,
+					OpenAppealKeyboard(),
+				);
 				return;
 			}
 
-			await ctx.reply(ConstantsService.HelpBotMessage.ErrorClosedAppeal);
+			await ctx.replyWithHTML(ConstantsService.HelpBotMessage.ErrorClosedAppeal);
 		} catch (e) {
 			this.loggerService.error('closeAppeal HelpBotUpdate: ' + e?.toString());
 		}
@@ -93,11 +99,14 @@ export class HelpBotUpdate {
 					chatId,
 				};
 				await this.appealService.sendMessage(openedAppeal._id.toString(), message);
-				await ctx.reply(ConstantsService.HelpBotMessage.SuccessSendMessage);
+				await ctx.replyWithHTML(ConstantsService.HelpBotMessage.SuccessSendMessage);
 				return;
 			}
 
-			await ctx.reply(ConstantsService.HelpBotMessage.NotOpenedAppeal, OpenAppealKeyboard());
+			await ctx.replyWithHTML(
+				ConstantsService.HelpBotMessage.NotOpenedAppeal,
+				OpenAppealKeyboard(),
+			);
 		} catch (e) {
 			this.loggerService.error('onText HelpBotUpdate: ' + e?.toString());
 		}

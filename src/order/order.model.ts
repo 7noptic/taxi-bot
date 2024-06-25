@@ -45,6 +45,9 @@ export class Order {
 
 	@Prop({ type: Number })
 	commission: number;
+
+	@Prop({ type: Date, default: new Date() })
+	findDriverAt: Date;
 }
 
 export const OrderSchema = SchemaFactory.createForClass(Order);

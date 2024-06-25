@@ -39,14 +39,17 @@ export class DeleteAddressScene {
 		try {
 			await ctx.scene.leave();
 			const countDeletedAddress = await this.passengerService.deleteAddress(chatId, msg.text);
-			await ctx.reply(
+			await ctx.replyWithHTML(
 				countDeletedAddress > 0 ? successDeleteAddress : errorDeleteAddress,
 				await selectPassengerKeyboard(chatId, this.orderService),
 			);
 			return '';
 		} catch (e) {
 			await ctx.scene.leave();
-			await ctx.reply(errorDeleteAddress, await selectPassengerKeyboard(chatId, this.orderService));
+			await ctx.replyWithHTML(
+				errorDeleteAddress,
+				await selectPassengerKeyboard(chatId, this.orderService),
+			);
 			return '';
 		}
 	}

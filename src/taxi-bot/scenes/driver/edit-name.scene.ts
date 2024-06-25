@@ -38,7 +38,7 @@ export class EditNameSceneDriver {
 			if (valid === true) {
 				await ctx.scene.leave();
 				const { status } = await this.driverService.editName(chatId, msg.text);
-				await ctx.reply(
+				await ctx.replyWithHTML(
 					successEditName,
 					await selectDriverKeyboard(
 						{
@@ -50,12 +50,12 @@ export class EditNameSceneDriver {
 				);
 				return;
 			}
-			await ctx.reply(valid);
+			await ctx.replyWithHTML(valid);
 			return;
 		} catch (e) {
 			await ctx.scene.leave();
 			const { status } = await this.driverService.findByChatId(chatId);
-			await ctx.reply(
+			await ctx.replyWithHTML(
 				errorEditInfo,
 				await selectDriverKeyboard(
 					{

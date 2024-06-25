@@ -49,14 +49,14 @@ export class AddReviewScene {
 					text: msg.text,
 				};
 				await this.reviewService.createReview(dto);
-				await ctx.reply(successAddReview);
+				await ctx.replyWithHTML(successAddReview);
 				return;
 			}
-			await ctx.reply(valid);
+			await ctx.replyWithHTML(valid);
 			return;
 		} catch (e) {
 			await ctx.scene.leave();
-			await ctx.reply(errorEditInfo);
+			await ctx.replyWithHTML(errorEditInfo);
 			return '';
 		}
 	}

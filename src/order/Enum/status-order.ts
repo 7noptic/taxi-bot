@@ -1,4 +1,5 @@
 export enum StatusOrder {
+	DriverInBusy = 'driverInBusy', // Водитель выполняет другой заказ
 	Created = 'created', // Создан, но не найден водитель
 	Wait = 'wait', // Найден водитель и водитель в пути к пассажиру
 	InProcess = 'inProcess', // Водитель везет пассажира

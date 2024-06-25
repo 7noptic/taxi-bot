@@ -26,7 +26,7 @@ export class EditCitySceneDriver {
 	async onSceneEnter(@Ctx() ctx: WizardContext): Promise<string> {
 		try {
 			const cities = await this.cityService.getAll();
-			await ctx.reply(WhatCity, selectCityKeyboard(cities));
+			await ctx.replyWithHTML(WhatCity, selectCityKeyboard(cities));
 
 			await ctx.wizard.next();
 			return;
@@ -48,7 +48,7 @@ export class EditCitySceneDriver {
 			const { name } = await this.cityService.getByName(city);
 			if (name) {
 				const { status } = await this.driverService.editCity(chatId, city);
-				await ctx.reply(
+				await ctx.replyWithHTML(
 					successEditCity,
 					await selectDriverKeyboard(
 						{
@@ -76,7 +76,7 @@ export class EditCitySceneDriver {
 
 	async showError(@Ctx() ctx: WizardContext & TaxiBotContext, @ChatId() chatId: number) {
 		const { status } = await this.driverService.findByChatId(chatId);
-		await ctx.reply(
+		await ctx.replyWithHTML(
 			errorEditInfo,
 			await selectDriverKeyboard(
 				{

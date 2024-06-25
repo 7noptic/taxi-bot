@@ -38,14 +38,20 @@ export class EditNameScene {
 			if (valid === true) {
 				await ctx.scene.leave();
 				await this.passengerService.editName(chatId, msg.text);
-				await ctx.reply(successEditName, await selectPassengerKeyboard(chatId, this.orderService));
+				await ctx.replyWithHTML(
+					successEditName,
+					await selectPassengerKeyboard(chatId, this.orderService),
+				);
 				return;
 			}
-			await ctx.reply(valid);
+			await ctx.replyWithHTML(valid);
 			return;
 		} catch (e) {
 			await ctx.scene.leave();
-			await ctx.reply(errorEditInfo, await selectPassengerKeyboard(chatId, this.orderService));
+			await ctx.replyWithHTML(
+				errorEditInfo,
+				await selectPassengerKeyboard(chatId, this.orderService),
+			);
 			return '';
 		}
 	}

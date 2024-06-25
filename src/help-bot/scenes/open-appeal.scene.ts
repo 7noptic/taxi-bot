@@ -37,7 +37,7 @@ export class OpenAppealScene {
 			await ctx.wizard.next();
 			return ConstantsService.HelpBotMessage.WhatMessage;
 		}
-		await ctx.reply(valid);
+		await ctx.replyWithHTML(valid);
 		return;
 	}
 
@@ -65,11 +65,17 @@ export class OpenAppealScene {
 
 			await ctx.scene.leave();
 			await this.appealService.create(appeal);
-			await ctx.reply(ConstantsService.HelpBotMessage.SuccessOpenAppeal, CloseAppealKeyboard());
+			await ctx.replyWithHTML(
+				ConstantsService.HelpBotMessage.SuccessOpenAppeal,
+				CloseAppealKeyboard(),
+			);
 			return '';
 		} catch (e) {
 			await ctx.scene.leave();
-			await ctx.reply(ConstantsService.HelpBotMessage.ErrorClosedAppeal, OpenAppealKeyboard());
+			await ctx.replyWithHTML(
+				ConstantsService.HelpBotMessage.ErrorClosedAppeal,
+				OpenAppealKeyboard(),
+			);
 			return '';
 		}
 	}

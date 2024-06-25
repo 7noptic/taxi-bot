@@ -3,8 +3,8 @@ import { StatusDriver } from '../types/status-driver.type';
 export const DriverButtons = {
 	profile: {
 		status: {
-			[StatusDriver.Online]: '✅ Завершить смену',
-			[StatusDriver.Offline]: '🚕 Выйти на смену',
+			[StatusDriver.Online]: '🟢 На линии',
+			[StatusDriver.Offline]: '⚪ Занят',
 		},
 		statistics: '📊 Статистика',
 		commission: '💳 Комиссия',
@@ -55,27 +55,27 @@ export const DriverButtons = {
 		},
 		time: {
 			'3': {
-				label: '3️⃣',
+				label: '3 мин',
 				callback: '3',
 			},
 			'5': {
-				label: '5️⃣',
+				label: '5 мин',
 				callback: '5',
 			},
 			'7': {
-				label: '7️⃣',
+				label: '7 мин',
 				callback: '7',
 			},
 			'10': {
-				label: '🔟',
+				label: '10 мин',
 				callback: '10',
 			},
 			'15': {
-				label: '1️⃣5️⃣',
+				label: '15 мин',
 				callback: '15',
 			},
 			'20': {
-				label: '2️⃣0️⃣',
+				label: '20 мин',
 				callback: '20',
 			},
 		},

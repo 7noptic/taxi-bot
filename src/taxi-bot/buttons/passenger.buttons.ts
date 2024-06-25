@@ -50,6 +50,10 @@ export const PassengerButtons = {
 				callback: 'success-order',
 			},
 		},
+		leaving: {
+			label: '🚶 Уже выхожу!',
+			callback: 'already-leave',
+		},
 	},
 	offer: {
 		cancel: {

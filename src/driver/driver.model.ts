@@ -57,10 +57,10 @@ export class Driver {
 	@Prop({ type: Number, default: ConstantsService.defaultPriority })
 	priority: number;
 
-	@Prop({ type: Boolean, default: false })
+	@Prop({ type: Boolean, default: true })
 	isBlocked: boolean;
 
-	@Prop({ enum: BlockedType, default: BlockedType.No })
+	@Prop({ enum: BlockedType, default: BlockedType.NotConfirmed })
 	blockedType: BlockedType;
 
 	@Prop({ type: Boolean, default: false })

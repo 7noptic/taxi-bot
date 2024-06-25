@@ -9,13 +9,18 @@ export async function selectDriverKeyboard(
 	{ chatId, status }: Pick<Driver, 'chatId' | 'status'>,
 	orderService: OrderService,
 ) {
-	const order = await orderService.findActiveOrderByDriverId(chatId);
+	let order = await orderService.findActiveOrderByDriverId(chatId);
+
+	if (!order) {
+		order = await orderService.findSecondActiveOrderByDriverId(chatId);
+	}
+
 	if (order) {
 		switch (order.status) {
 			case StatusOrder.Wait:
 				return goDriveKeyboard();
 			case StatusOrder.InProcess:
-				return finishKeyboard();
+				return finishKeyboard(status);
 			default:
 				return driverProfileKeyboard(status);
 		}

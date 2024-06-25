@@ -13,7 +13,8 @@ export class TaxiBotValidation {
 	}
 
 	isPhone(phoneNumber: string): true | string {
-		const phoneRegex = /^(?:(?:\+?7|8)[- ]?)?(\(?\d{3}\)?[- ]?)?[\d\- ]{7,10}$/;
+		// const phoneRegex = /^(?:(?:\+?7|8)[- ]?)?(\(?\d{3}\)?[- ]?)?[\d\- ]{7,10}$/;
+		const phoneRegex = /^((\+7)+([0-9]){10})$/;
 		if (phoneRegex.test(phoneNumber)) {
 			return true;
 		}

@@ -4,7 +4,6 @@ import { Address, Passenger, PassengerDocument } from './passenger.model';
 import { Model } from 'mongoose';
 import { CreatePassengerDto } from './dto/create-passenger.dto';
 import { CreateAddressDto } from './dto/create-address.dto';
-import { ConstantsService } from '../constants/constants.service';
 import { getFullPassengerInfoPipeline } from './piplines/getFullPassengerInfo.pipeline';
 import { QueryType, ResponseType } from '../types/query.type';
 
@@ -26,13 +25,42 @@ export class PassengerService {
 		addressName: Address['name'],
 	): Promise<Address['address']> {
 		const passenger = await this.passengerModel.findOne({ chatId }).exec();
-		return passenger?.address?.find((address) => address.name === addressName)?.address || '';
+		return (
+			passenger?.address?.find((address) => address.name === addressName)?.address ||
+			passenger?.savedAddress?.find((address) => address.name === addressName)?.address ||
+			''
+		);
 	}
 
 	async addAddress(chatId: Passenger['chatId'], address: CreateAddressDto) {
 		return await this.passengerModel
 			.findOneAndUpdate({ chatId }, { $push: { address: address } }, { new: true })
 			.exec();
+	}
+
+	async addSavedAddress(chatId: Passenger['chatId'], address: string) {
+		const passenger = await this.passengerModel.findOne({ chatId });
+		const newAddress: CreateAddressDto = {
+			name: 'Saved-0',
+			address,
+		};
+
+		if (passenger.savedAddress.length >= 3) {
+			passenger.savedAddress.pop();
+		}
+
+		passenger.savedAddress.unshift(newAddress);
+
+		passenger.savedAddress = [
+			...passenger.savedAddress.map(
+				(addressItem: Address, index: number): Address => ({
+					address: addressItem.address,
+					name: `Saved-${index}`,
+				}),
+			),
+		];
+
+		return await passenger.save();
 	}
 
 	async deleteAddress(chatId: number, addressName: string): Promise<number> {
@@ -112,9 +140,9 @@ export class PassengerService {
 	async getRatingById(chatId: number) {
 		const { rating } = await this.passengerModel.findOne({ chatId }, { rating: 1 }).lean();
 		if (rating) {
-			return ConstantsService.getUserRating(rating);
+			return rating;
 		}
-		return '0';
+		return [];
 	}
 
 	async addRating(chatId: number, rating: number) {

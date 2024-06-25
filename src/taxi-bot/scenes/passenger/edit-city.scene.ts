@@ -26,7 +26,7 @@ export class EditCityScene {
 	async onSceneEnter(@Ctx() ctx: WizardContext): Promise<string> {
 		try {
 			const cities = await this.cityService.getAll();
-			await ctx.reply(WhatCity, selectCityKeyboard(cities));
+			await ctx.replyWithHTML(WhatCity, selectCityKeyboard(cities));
 
 			await ctx.wizard.next();
 			return;
@@ -49,7 +49,10 @@ export class EditCityScene {
 			const { name } = await this.cityService.getByName(city);
 			if (name) {
 				await this.passengerService.editCity(chatId, city);
-				await ctx.reply(successEditCity, await selectPassengerKeyboard(chatId, this.orderService));
+				await ctx.replyWithHTML(
+					successEditCity,
+					await selectPassengerKeyboard(chatId, this.orderService),
+				);
 				return '';
 			}
 			await this.showError(ctx, chatId);
@@ -67,6 +70,9 @@ export class EditCityScene {
 	}
 
 	async showError(@Ctx() ctx: WizardContext & TaxiBotContext, @ChatId() chatId: number) {
-		await ctx.reply(errorEditInfo, await selectPassengerKeyboard(chatId, this.orderService));
+		await ctx.replyWithHTML(
+			errorEditInfo,
+			await selectPassengerKeyboard(chatId, this.orderService),
+		);
 	}
 }

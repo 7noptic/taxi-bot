@@ -47,12 +47,12 @@ export class TaxiBotCommonUpdate {
 			if (!passenger && !driver) {
 				await ctx.replyWithHTML(ConstantsService.WelcomeMessage, registrationKeyboard());
 			} else if (passenger) {
-				await ctx.reply(
+				await ctx.replyWithHTML(
 					ConstantsService.greetingMessage,
 					await selectPassengerKeyboard(chatId, this.orderService),
 				);
 			} else if (driver) {
-				await ctx.reply(
+				await ctx.replyWithHTML(
 					ConstantsService.greetingMessage,
 					await selectDriverKeyboard(
 						{
@@ -76,19 +76,19 @@ export class TaxiBotCommonUpdate {
 			if (ctx?.scene) await ctx.scene.leave();
 			const passenger = await this.passengerService.findByChatId(chatId);
 			if (passenger) {
-				await ctx.reply(goBack, await selectPassengerKeyboard(chatId, this.orderService));
+				await ctx.replyWithHTML(goBack, await selectPassengerKeyboard(chatId, this.orderService));
 				return;
 			}
 			const driver = await this.driverService.findByChatId(chatId);
 
 			if (driver) {
-				await ctx.reply(
+				await ctx.replyWithHTML(
 					goBack,
 					await selectDriverKeyboard({ chatId, status: driver.status }, this.orderService),
 				);
 				return;
 			}
-			await ctx.reply(goBack, registrationKeyboard());
+			await ctx.replyWithHTML(goBack, registrationKeyboard());
 		} catch (e) {
 			this.loggerService.error('goHome: ' + e?.toString());
 		}
@@ -99,8 +99,16 @@ export class TaxiBotCommonUpdate {
 	@Hears(commonButtons.profile.help)
 	async getHelp(@Ctx() ctx: TaxiBotContext) {
 		try {
-			await ctx.sendPhoto({ url: ConstantsService.images.help });
-			await ctx.replyWithHTML(commonButtons.profile.help, helpKeyboard());
+			await ctx.replyWithPhoto(
+				{
+					url: ConstantsService.images.help,
+				},
+				{
+					caption: commonButtons.profile.help,
+					parse_mode: 'HTML',
+					reply_markup: helpKeyboard().reply_markup,
+				},
+			);
 		} catch (e) {
 			this.loggerService.error('getHelp: ' + e?.toString());
 		}
@@ -158,16 +166,28 @@ export class TaxiBotCommonUpdate {
 			const passenger = await this.passengerService.findByChatId(chatId);
 			if (passenger) {
 				const ordersInfo = await this.orderService.getPassengerOrdersInfo(chatId);
-				await ctx.sendPhoto({ url: ConstantsService.images.profile });
-				await ctx.replyWithHTML(ConstantsService.getProfileInfoPassenger(passenger, ordersInfo));
+				await ctx.replyWithPhoto(
+					{
+						url: ConstantsService.images.profile,
+					},
+					{
+						caption: ConstantsService.getProfileInfoPassenger(passenger, ordersInfo),
+						parse_mode: 'HTML',
+					},
+				);
 				return;
 			}
 			const driver = await this.driverService.findByChatId(chatId);
 			if (driver) {
-				await ctx.sendPhoto({ url: ConstantsService.images.profile });
-				await ctx.replyWithHTML(
-					ConstantsService.getProfileInfoDriver(driver),
-					profileDriverSettingsKeyboard(),
+				await ctx.replyWithPhoto(
+					{
+						url: ConstantsService.images.profile,
+					},
+					{
+						caption: ConstantsService.getProfileInfoDriver(driver),
+						parse_mode: 'HTML',
+						reply_markup: profileDriverSettingsKeyboard().reply_markup,
+					},
 				);
 				return;
 			}
@@ -239,7 +259,7 @@ export class TaxiBotCommonUpdate {
 		try {
 			const price = Math.round(Number(ctx.update.message.successful_payment.total_amount / 100));
 			await this.paymentService.closePayment(chatId, price);
-			await ctx.reply(successfulPayment);
+			await ctx.replyWithHTML(successfulPayment);
 		} catch (e) {
 			this.loggerService.error('successfulPayment: ' + e?.toString());
 		}

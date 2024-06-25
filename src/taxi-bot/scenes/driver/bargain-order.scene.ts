@@ -44,8 +44,8 @@ export class BargainOrderScene {
 	): Promise<string> {
 		ctx.wizard.state.orderId = ctx.session.acceptedOrder.orderId;
 		ctx.wizard.state.passengerId = ctx.session.acceptedOrder.passengerId;
-		await ctx.reply(timeDeliveryText, timeDriverKeyboard());
-		await ctx.wizard.next();
+		await ctx.replyWithHTML(timeDeliveryText, timeDriverKeyboard());
+		ctx.wizard.next();
 		return;
 	}
 
@@ -63,14 +63,14 @@ export class BargainOrderScene {
 			const { city } = await this.driverService.findByChatId(chatId);
 			const minPrice = await this.cityService.getMinPriceByName(city);
 			ctx.wizard.state.minPrice = minPrice;
-			await ctx.reply(
+			await ctx.replyWithHTML(
 				desiredPriceText,
 				selectPriceOrderKeyboard(ConstantsService.roundToNearest50(minPrice)),
 			);
 			await ctx.wizard.next();
 			return;
 		}
-		await ctx.reply(errorValidation);
+		await ctx.replyWithHTML(errorValidation);
 		return;
 	}
 
@@ -89,7 +89,7 @@ export class BargainOrderScene {
 				await this.onPrice(ctx, chatId);
 				return;
 			}
-			await ctx.reply(errorValidation);
+			await ctx.replyWithHTML(errorValidation);
 			return;
 		} catch (e) {}
 	}
@@ -108,7 +108,7 @@ export class BargainOrderScene {
 				await this.onPrice(ctx, chatId);
 				return;
 			}
-			await ctx.reply(errorPrice(state.minPrice));
+			await ctx.replyWithHTML(errorPrice(state.minPrice));
 			return;
 		} catch (e) {}
 	}
@@ -131,7 +131,7 @@ export class BargainOrderScene {
 				),
 			},
 		);
-		await ctx.reply(
+		await ctx.replyWithHTML(
 			successfulProposalSubmissionText,
 			await selectDriverKeyboard(
 				{

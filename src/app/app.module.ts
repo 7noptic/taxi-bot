@@ -11,7 +11,7 @@ import { AdminModule } from '../admin/admin.module';
 import { AppealModule } from '../appeal/appeal.module';
 import { ReviewModule } from '../review/review.module';
 import { SettingsModule } from '../settings/settings.module';
-import { MongooseModule } from '@nestjs/mongoose';
+import { MongooseModule, MongooseModuleOptions } from '@nestjs/mongoose';
 import { SettingsService } from '../settings/settings.service';
 import { Settings, SettingsSchema } from '../settings/settings.model';
 import { TelegrafModule } from 'nestjs-telegraf';
@@ -28,25 +28,34 @@ import { LoggerModule } from '../logger/logger.module';
 import { NewsletterModule } from '../newsletter/newsletter.module';
 import { SocketService } from '../socket/socket.service';
 
-const store = Mongo({
-	url: 'mongodb://localhost/taxi',
-	database: 'taxi-bot',
-});
-
 @Module({
 	imports: [
 		ConfigModule.forRoot(),
-		MongooseModule.forRoot('mongodb://localhost/taxi'),
+		MongooseModule.forRootAsync({
+			imports: [ConfigModule],
+			inject: [ConfigService],
+			useFactory: async (configService: ConfigService): Promise<MongooseModuleOptions> => {
+				return {
+					uri: configService.get('MONGO_DB'),
+				};
+			},
+		}),
 		ThrottlerModule.forRoot([
 			{
 				ttl: 60,
 				limit: 10,
 			},
 		]),
-		BullModule.forRoot({
-			redis: {
-				host: '127.0.0.1',
-				port: 6379,
+		BullModule.forRootAsync({
+			imports: [ConfigModule],
+			inject: [ConfigService],
+			useFactory: async (configService: ConfigService) => {
+				return {
+					redis: {
+						host: configService.get('REDIS_HOST'),
+						port: 6379,
+					},
+				};
 			},
 		}),
 		ScheduleModule.forRoot(),
@@ -70,7 +79,14 @@ const store = Mongo({
 			botName: BotName.Taxi,
 			useFactory: (configService: ConfigService) => ({
 				token: configService.get('TAXI_BOT_TOKEN'),
-				middlewares: [session({ store })],
+				middlewares: [
+					session({
+						store: Mongo({
+							url: configService.get('MONGO_DB'),
+							database: 'taxi-bot',
+						}),
+					}),
+				],
 				include: [TaxiBotModule],
 			}),
 			inject: [ConfigService],
@@ -80,7 +96,14 @@ const store = Mongo({
 			botName: BotName.Help,
 			useFactory: async (configService: ConfigService) => ({
 				token: configService.get('HELP_BOT_TOKEN'),
-				middlewares: [session({ store })],
+				middlewares: [
+					session({
+						store: Mongo({
+							url: configService.get('MONGO_DB'),
+							database: 'taxi-bot',
+						}),
+					}),
+				],
 				include: [HelpBotModule],
 			}),
 			inject: [ConfigService],

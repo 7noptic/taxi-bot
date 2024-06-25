@@ -30,7 +30,7 @@ export class EditAccessOrderTypeSceneDriver {
 
 	@WizardStep(1)
 	async onSceneEnter(@Ctx() ctx: WizardContext): Promise<string> {
-		await ctx.reply(WhatAccessOrderType, selectAccessOrderTypeKeyboard());
+		await ctx.replyWithHTML(WhatAccessOrderType, selectAccessOrderTypeKeyboard());
 		await ctx.wizard.next();
 		return;
 	}
@@ -46,7 +46,7 @@ export class EditAccessOrderTypeSceneDriver {
 			await ctx.scene.leave();
 			if (Object.values(AccessTypeOrder).includes(accessOrderType)) {
 				const { status } = await this.driverService.editAccessTypeOrder(chatId, accessOrderType);
-				await ctx.reply(
+				await ctx.replyWithHTML(
 					successEditAccessOrderType,
 					await selectDriverKeyboard({ chatId, status }, this.orderService),
 				);
@@ -68,7 +68,7 @@ export class EditAccessOrderTypeSceneDriver {
 
 	async showError(@Ctx() ctx: WizardContext & TaxiBotContext, @ChatId() chatId: number) {
 		const { status } = await this.driverService.findByChatId(chatId);
-		await ctx.reply(
+		await ctx.replyWithHTML(
 			errorEditInfo,
 			await selectDriverKeyboard({ chatId, status }, this.orderService),
 		);

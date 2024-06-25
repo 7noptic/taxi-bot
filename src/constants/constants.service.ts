@@ -4,11 +4,13 @@ import { HelpBotButtons } from '../help-bot/buttons/help-bot.buttons';
 import { Driver } from '../driver/driver.model';
 import { OrdersInfoDto } from '../order/dto/orders-info.dto';
 import { AccessTypeOrder } from '../driver/Enum/access-type-order';
+import { UserType } from '../types/user.type';
 
 @Injectable()
 export class ConstantsService {
-	static readonly taxiBotName = '@testimTaxi_bot';
-	static readonly helpBotName = '@HelpForTestimTaxi_bot';
+	static readonly taxiBotName = '@podvezy43_bot';
+	static readonly helpBotName = '@podvezy_help43_bot';
+	static readonly KirillName = '@podvezybothelp';
 	static readonly defaultRating = [5, 5, 5, 5, 5, 5, 5, 5, 5, 5];
 	static readonly defaultPriority = 10;
 	static readonly defaultCityPrice = 100;
@@ -37,18 +39,14 @@ export class ConstantsService {
 		'соглашение.';
 	static readonly supportTextDefault = `Для обращения в поддержку напишите этому боту ${ConstantsService.helpBotName}`;
 	static readonly images = {
-		profile: 'https://i.postimg.cc/gJT76zSQ/profile.jpg',
-		help: 'https://i.postimg.cc/c4HCQ0xh/pict.jpg',
-		settings: 'https://i.postimg.cc/26r83f94/pict.jpg',
-		addresses: 'https://i.postimg.cc/JhhTyCdY/pict.jpg',
-		commission: 'https://i.postimg.cc/6QvnH8Jk/pict.jpg',
-		statistic: 'https://i.postimg.cc/ydKgvnTR/pict.jpg',
-		inDrive: 'https://i.postimg.cc/kgPjKQFN/photo-1-2022-12-11-17-06-03.jpg',
+		profile: 'https://i.postimg.cc/hjbsx0kb/Picsart-24-06-04-00-13-00-690-1.jpg',
+		help: 'https://i.postimg.cc/FHQpH8dC/Picsart-24-06-04-00-11-05-807-1.jpg',
+		settings: 'https://i.postimg.cc/MGgNtt3C/Picsart-24-06-04-00-12-08-222-2.jpg',
+		addresses: 'https://i.postimg.cc/1zTh2yXY/Picsart-24-06-04-00-12-38-999-1.jpg',
+		commission: 'https://i.postimg.cc/050XJ8xR/Picsart-24-06-04-00-13-36-577-1.jpg',
+		statistic: 'https://i.postimg.cc/SKxWXhyd/Picsart-24-06-04-00-10-40-662-1.jpg',
+		inDrive: 'https://i.postimg.cc/bvp2nRLT/IMG-20240603-121843-1.jpg',
 	};
-	static readonly WelcomeMessage =
-		'<b>Приветствуем!</b> Чтобы сделать заказ необходимо пройти короткую регистрацию.\n\n' +
-		'Регистрируясь, Вы даёте согласие на обработку персональных данных в соответствии с\n' +
-		'Политикой конфиденциальности и Пользовательским соглашением';
 	static readonly GreetingDriverMessage =
 		'Супер, давай познакомимся немного поближе что-бы ты смог пользоваться нашим удобным сервисом.';
 	static readonly GreetingPassengerMessage =
@@ -75,7 +73,6 @@ export class ConstantsService {
 		SuccessSendMessage: '✅ Сообщение успешно отправлено',
 	};
 	static readonly callbackButtonTypeOrder = 'select-type';
-
 	static readonly repeatInputText = '\n\nПовторите ввод';
 	static readonly accessOrderTypeToRus = {
 		[AccessTypeOrder.ALL]: 'Все заказы',
@@ -83,6 +80,13 @@ export class ConstantsService {
 		[AccessTypeOrder.DELIVERY]: 'Доставка',
 	};
 	static readonly defaultMaxAddresses = 10;
+
+	static readonly WelcomeMessage =
+		'<b>Приветствуем!</b> На клавиатуре выберите в роли кого вы хотите использовать этого бота?.\n\n';
+
+	static readonly RegistrationMessage = (typeUser: UserType) =>
+		`<b>Приветствуем!</b> Чтобы перейти к регистрации в качестве ${typeUser === UserType.Driver ? 'водителя' : 'пользователя'}, ` +
+		`необходимо ознакомиться и согласиться с условиями Политики Конфиденциальности и Оферты.`;
 
 	static readonly getEndingWord = (number: number, words: string[]) => {
 		const cases = [2, 0, 1, 1, 1, 2];
@@ -106,7 +110,7 @@ export class ConstantsService {
 			: count - ConstantsService.defaultRating.length;
 
 	static getUserRating(rating: number[]) {
-		return (rating.reduce((curr, acc) => acc + curr, 0) / rating.length).toFixed(2);
+		return (rating?.reduce((curr, acc) => acc + curr, 0) / rating.length).toFixed(2);
 	}
 
 	static readonly getProfileInfoDefault = (user: Passenger | Driver) =>

@@ -33,6 +33,8 @@ export class Passenger {
 	rating: number[];
 	@Prop({ type: () => [Address], default: [] })
 	address: Address[];
+	@Prop({ type: () => [Address], default: [] })
+	savedAddress: Address[];
 }
 
 export const PassengerSchema = SchemaFactory.createForClass(Passenger);

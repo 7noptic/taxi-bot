@@ -40,7 +40,7 @@ export class DriverController {
 	@UseGuards(JwtGuard)
 	@UsePipes(new ValidationPipe())
 	@Get('getLimitOrder/:currentPage')
-	async getLimitOrder(@Param('currentPage') currentPage: QueryType['currentPage']) {
+	async getLimitDriver(@Param('currentPage') currentPage: QueryType['currentPage']) {
 		try {
 			return this.driverService.getLimitAll(currentPage);
 		} catch (e) {
@@ -50,8 +50,19 @@ export class DriverController {
 
 	@UseGuards(JwtGuard)
 	@UsePipes(new ValidationPipe())
+	@Get('blocked/getLimitOrder/:currentPage')
+	async getLimitDriverBLocked(@Param('currentPage') currentPage: QueryType['currentPage']) {
+		try {
+			return this.driverService.getLimitBlocked(currentPage);
+		} catch (e) {
+			this.loggerService.error('getLimitOrder Driver: ' + e?.toString());
+		}
+	}
+
+	@UseGuards(JwtGuard)
+	@UsePipes(new ValidationPipe())
 	@Post('all')
-	async getAllOrder() {
+	async getAllDriver() {
 		try {
 			return this.driverService.getAll();
 		} catch (e) {
@@ -86,6 +97,51 @@ export class DriverController {
 			return driver;
 		} catch (e) {
 			this.loggerService.error('update Driver: ' + e?.toString());
+		}
+	}
+
+	@UseGuards(JwtGuard)
+	@UsePipes(new ValidationPipe())
+	@Patch('locked/:id')
+	async lockedDriver(@Param('id') id: string) {
+		try {
+			const driver = await this.driverService.lockedUser(Number(id));
+			if (!driver) {
+				throw new NotFoundException(PASSENGER_NOT_FOUND);
+			}
+			return driver;
+		} catch (e) {
+			this.loggerService.error('lockedDriver Driver: ' + e?.toString());
+		}
+	}
+
+	@UseGuards(JwtGuard)
+	@UsePipes(new ValidationPipe())
+	@Patch('unlocked/:id')
+	async unlockedDriver(@Param('id') id: string) {
+		try {
+			const driver = await this.driverService.unlockedUser(Number(id));
+			if (!driver) {
+				throw new NotFoundException(PASSENGER_NOT_FOUND);
+			}
+			return driver;
+		} catch (e) {
+			this.loggerService.error('unlockedDriver Driver: ' + e?.toString());
+		}
+	}
+
+	@UseGuards(JwtGuard)
+	@UsePipes(new ValidationPipe())
+	@Patch('activated/:id')
+	async activatedDriver(@Param('id') id: string) {
+		try {
+			const driver = await this.driverService.activatedUser(Number(id));
+			if (!driver) {
+				throw new NotFoundException(PASSENGER_NOT_FOUND);
+			}
+			return driver;
+		} catch (e) {
+			this.loggerService.error('activatedDriver Driver: ' + e?.toString());
 		}
 	}
 

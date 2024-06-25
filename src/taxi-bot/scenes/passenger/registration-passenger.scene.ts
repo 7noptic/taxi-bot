@@ -14,8 +14,8 @@ import {
 	errorValidation,
 	greetingPassenger,
 	WhatCity,
-	WhatNameRegistration,
-	WhatNumberRegistration,
+	WhatNameRegistrationPassenger,
+	WhatNumberRegistrationPassenger,
 } from '../../constatnts/message.constants';
 import { registrationKeyboard } from '../../keyboards/registration.keyboard';
 import { passengerProfileKeyboard } from '../../keyboards/passenger/passenger-profile.keyboard';
@@ -25,6 +25,9 @@ import { TaxiBotCommonUpdate } from '../../updates/common.update';
 import { TaxiBotValidation } from '../../taxi-bot.validation';
 import { ChatId } from '../../../decorators/getChatId.decorator';
 import { selectCityKeyboard } from '../../keyboards/select-city.keyboard';
+import { ConstantsService } from '../../../constants/constants.service';
+import { UserType } from '../../../types/user.type';
+import { SuccessTermKeyboard } from '../../keyboards/success-term.keyboard';
 
 @Wizard(ScenesType.RegistrationPassenger)
 export class RegisterPassengerScene {
@@ -36,10 +39,28 @@ export class RegisterPassengerScene {
 		private readonly taxiBotValidation: TaxiBotValidation,
 	) {}
 
-	@WizardStep(1)
+	@WizardStep(0)
 	async onSceneEnter(@Ctx() ctx: WizardContext): Promise<string> {
-		await ctx.wizard.next();
-		return WhatNameRegistration;
+		await ctx.replyWithHTML(
+			ConstantsService.RegistrationMessage(UserType.Passenger),
+			SuccessTermKeyboard(),
+		);
+
+		ctx.wizard.next();
+
+		return;
+	}
+
+	@On('callback_query')
+	@WizardStep(1)
+	async onCheckedTerms(
+		@Ctx() ctx: WizardContext,
+		@GetQueryData() checked: string,
+	): Promise<string> {
+		if (checked === commonButtons.success.callback) {
+			ctx.wizard.next();
+			return WhatNameRegistrationPassenger;
+		}
 	}
 
 	@On('text')
@@ -52,9 +73,9 @@ export class RegisterPassengerScene {
 		if (valid === true) {
 			ctx.wizard.state.name = msg.text;
 			await ctx.wizard.next();
-			return WhatNumberRegistration;
+			return WhatNumberRegistrationPassenger;
 		}
-		await ctx.reply(valid);
+		await ctx.replyWithHTML(valid);
 		return;
 	}
 
@@ -68,12 +89,12 @@ export class RegisterPassengerScene {
 		if (valid === true) {
 			ctx.wizard.state.phone = msg.text;
 			const cities = await this.cityService.getAll();
-			await ctx.reply(WhatCity, selectCityKeyboard(cities));
+			await ctx.replyWithHTML(WhatCity, selectCityKeyboard(cities));
 
 			await ctx.wizard.next();
 			return;
 		}
-		await ctx.reply(valid);
+		await ctx.replyWithHTML(valid);
 		return;
 	}
 
@@ -85,7 +106,7 @@ export class RegisterPassengerScene {
 	): Promise<string> {
 		ctx.wizard.state.phone = msg.contact.phone_number;
 		const cities = await this.cityService.getAll();
-		await ctx.reply(
+		await ctx.replyWithHTML(
 			WhatCity,
 			Markup.inlineKeyboard(cities.map((city) => Markup.button.callback(city.name, city.name))),
 		);
@@ -119,11 +140,11 @@ export class RegisterPassengerScene {
 				return;
 			}
 
-			await ctx.reply(errorValidation);
+			await ctx.replyWithHTML(errorValidation);
 			return '';
 		} catch (e) {
 			await ctx.scene.leave();
-			await ctx.reply(errorRegistration, registrationKeyboard());
+			await ctx.replyWithHTML(errorRegistration, registrationKeyboard());
 			return '';
 		}
 	}

@@ -47,7 +47,7 @@ export class AddAddressScene {
 			await ctx.wizard.next();
 			return WhatAddress;
 		}
-		await ctx.reply(valid);
+		await ctx.replyWithHTML(valid);
 		return;
 	}
 
@@ -70,17 +70,20 @@ export class AddAddressScene {
 
 				await ctx.scene.leave();
 				await this.passengerService.addAddress(chatId, address);
-				await ctx.reply(
+				await ctx.replyWithHTML(
 					successAddAddress,
 					await selectPassengerKeyboard(chatId, this.orderService),
 				);
 				return '';
 			}
-			await ctx.reply(valid);
+			await ctx.replyWithHTML(valid);
 			return;
 		} catch (e) {
 			await ctx.scene.leave();
-			await ctx.reply(errorAddAddress, await selectPassengerKeyboard(chatId, this.orderService));
+			await ctx.replyWithHTML(
+				errorAddAddress,
+				await selectPassengerKeyboard(chatId, this.orderService),
+			);
 			return '';
 		}
 	}

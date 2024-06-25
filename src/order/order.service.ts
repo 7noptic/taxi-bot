@@ -87,15 +87,16 @@ export class OrderService {
 				? driverCommission
 				: settingsCommission;
 
-		const { price } = await this.orderModel.findById(id);
-		const calculatedCommission = Math.round(price * (commission / 100));
+		// const { price } = await this.orderModel.findById(id);
+		// const calculatedCommission = Math.round(price * (commission / 100));
 
 		await this.orderModel
 			.findByIdAndUpdate(
 				id,
 				{
 					status: StatusOrder.Success,
-					commission: calculatedCommission,
+					commission,
+					// commission: calculatedCommission,
 				},
 				{
 					new: true,
@@ -103,21 +104,32 @@ export class OrderService {
 			)
 			.exec();
 
-		await this.driverService.switchBusyByChatId(driverId, false);
+		// await this.driverService.switchBusyByChatId(driverId, false);
 		await this.driverService.upgradeRating(driverId);
 	}
 
-	async findActiveOrderByDriverId(driverId: number) {
+	async findActiveOrderByDriverId(driverId: number): Promise<OrderDocument> {
 		return this.orderModel.findOne({
 			driverId,
 			$or: [{ status: StatusOrder.InProcess }, { status: StatusOrder.Wait }],
 		});
 	}
 
+	async findSecondActiveOrderByDriverId(driverId: number): Promise<OrderDocument> {
+		return this.orderModel.findOne({
+			driverId,
+			status: StatusOrder.DriverInBusy,
+		});
+	}
+
 	async findActiveOrderByPassengerId(passengerId: number) {
 		return this.orderModel.findOne({
 			passengerId,
-			$or: [{ status: StatusOrder.InProcess }, { status: StatusOrder.Wait }],
+			$or: [
+				{ status: StatusOrder.InProcess },
+				{ status: StatusOrder.Wait },
+				{ status: StatusOrder.DriverInBusy },
+			],
 		});
 	}
 
@@ -125,9 +137,15 @@ export class OrderService {
 		id: string,
 		driverId: number,
 		submissionTime: number,
+		driverIsBusy: boolean,
 		price?: number | null,
 	) {
-		const updateParams: any = { driverId, status: StatusOrder.Wait, submissionTime };
+		const updateParams: Partial<Order> = {
+			driverId,
+			status: driverIsBusy ? StatusOrder.DriverInBusy : StatusOrder.Wait,
+			submissionTime,
+			findDriverAt: new Date(),
+		};
 
 		if (price) {
 			updateParams.price = price;

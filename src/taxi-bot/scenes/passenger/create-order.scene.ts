@@ -15,13 +15,16 @@ import { PassengerService } from '../../../passenger/passenger.service';
 import {
 	accessOrder,
 	cancelOrderForDriver,
+	cancelOrderTimeout,
 	errorCreateOrder,
 	errorMain,
 	errorPrice,
 	errorValidation,
 	messageFromPassenger,
+	NotDrivers,
 	offerIsNoLongerValid,
 	orderNotAvailable,
+	passengerAlreadyLeaving,
 	selectAddressTextFrom,
 	selectAddressTextTo,
 	selectComment,
@@ -65,6 +68,8 @@ import { LoggerService } from '../../../logger/logger.service';
 
 @Wizard(ScenesType.CreateOrder)
 export class CreateOrderScene {
+	timeout: number;
+
 	constructor(
 		private readonly passengerService: PassengerService,
 		private readonly cityService: CityService,
@@ -78,8 +83,8 @@ export class CreateOrderScene {
 
 	@WizardStep(1)
 	async onSceneEnter(@Ctx() ctx: WizardContext): Promise<string> {
-		await ctx.reply(selectTypeOrderText, selectTypeOrderKeyboard());
-		await ctx.wizard.next();
+		await ctx.replyWithHTML(selectTypeOrderText, selectTypeOrderKeyboard());
+		ctx.wizard.next();
 		return;
 	}
 
@@ -93,18 +98,30 @@ export class CreateOrderScene {
 		try {
 			const selectedType = type.split(ConstantsService.callbackButtonTypeOrder)[1] || '';
 			if (Object.values(TypeOrder).includes(selectedType as TypeOrder)) {
+				await ctx.deleteMessage();
 				ctx.wizard.state.type = selectedType as TypeOrder;
-				const { address: addresses } = await this.passengerService.findByChatId(chatId);
-				await ctx.reply(
+				const {
+					address: addresses,
+					savedAddress,
+					city,
+				} = await this.passengerService.findByChatId(chatId);
+				if (!(await this.driverService.checkActiveDrivers({ city, type: ctx.wizard.state.type }))) {
+					await ctx.replyWithHTML(NotDrivers);
+					await this.cancelOrder(ctx, chatId);
+					return;
+				}
+
+				await ctx.replyWithHTML(
 					selectAddressTextFrom,
-					addresses.length && selectAddressOrderKeyboard(addresses),
+					(addresses.length || savedAddress.length) &&
+						selectAddressOrderKeyboard(addresses, savedAddress),
 				);
-				await ctx.wizard.next();
+				ctx.wizard.next();
 				return;
 			}
 			return;
 		} catch (e) {
-			await ctx.reply(errorMain);
+			await ctx.replyWithHTML(errorMain);
 			await this.taxiBotService.goHome(ctx, chatId);
 			this.loggerService.error('onTypeOrder: ' + e?.toString());
 		}
@@ -119,18 +136,20 @@ export class CreateOrderScene {
 	): Promise<string> {
 		try {
 			if (addressNameFrom) {
-				ctx.wizard.state.addressFrom = await this.passengerService.findAddressByName(
-					chatId,
-					addressNameFrom,
-				);
+				await ctx.deleteMessage();
+				ctx.wizard.state.addressFrom =
+					(await this.passengerService.findAddressByName(chatId, addressNameFrom)) ||
+					addressNameFrom;
 
-				const { address: addresses } = await this.passengerService.findByChatId(chatId);
+				const { address: addresses, savedAddress } =
+					await this.passengerService.findByChatId(chatId);
 
-				await ctx.reply(
+				await ctx.replyWithHTML(
 					selectAddressTextTo,
-					addresses.length && selectAddressOrderKeyboard(addresses),
+					(addresses.length || savedAddress.length) &&
+						selectAddressOrderKeyboard(addresses, savedAddress),
 				);
-				await ctx.wizard.next();
+				ctx.wizard.next();
 			}
 
 			return;
@@ -148,15 +167,18 @@ export class CreateOrderScene {
 			const valid = this.taxiBotValidation.checkMaxMinLengthString(msg.text, 5, 100);
 			if (valid === true) {
 				ctx.wizard.state.addressFrom = msg.text;
-				const { address: addresses } = await this.passengerService.findByChatId(chatId);
-				await ctx.reply(
+				const { address: addresses, savedAddress } =
+					await this.passengerService.findByChatId(chatId);
+				await ctx.replyWithHTML(
 					selectAddressTextTo,
-					addresses.length && selectAddressOrderKeyboard(addresses),
+					(addresses.length || savedAddress.length) &&
+						selectAddressOrderKeyboard(addresses, savedAddress),
 				);
-				await ctx.wizard.next();
+				await this.passengerService.addSavedAddress(chatId, ctx.wizard.state.addressFrom);
+				ctx.wizard.next();
 				return;
 			}
-			await ctx.reply(valid);
+			await ctx.replyWithHTML(valid);
 			return;
 		} catch (e) {}
 	}
@@ -170,12 +192,11 @@ export class CreateOrderScene {
 	): Promise<string> {
 		try {
 			if (addressNameTo) {
-				ctx.wizard.state.addressTo = await this.passengerService.findAddressByName(
-					chatId,
-					addressNameTo,
-				);
-				await ctx.reply(selectComment, skipCommentOrderKeyboard());
-				await ctx.wizard.next();
+				await ctx.deleteMessage();
+				ctx.wizard.state.addressTo =
+					(await this.passengerService.findAddressByName(chatId, addressNameTo)) || addressNameTo;
+				await ctx.replyWithHTML(selectComment, skipCommentOrderKeyboard());
+				ctx.wizard.next();
 				return;
 			}
 		} catch (e) {}
@@ -192,11 +213,12 @@ export class CreateOrderScene {
 			const valid = this.taxiBotValidation.checkMaxMinLengthString(msg.text, 5, 100);
 			if (valid === true) {
 				ctx.wizard.state.addressTo = msg.text;
-				await ctx.reply(selectComment, skipCommentOrderKeyboard());
-				await ctx.wizard.next();
+				await ctx.replyWithHTML(selectComment, skipCommentOrderKeyboard());
+				ctx.wizard.next();
+				await this.passengerService.addSavedAddress(chatId, ctx.wizard.state.addressTo);
 				return;
 			}
-			await ctx.reply(valid);
+			await ctx.replyWithHTML(valid);
 			return;
 		} catch (e) {}
 	}
@@ -208,6 +230,7 @@ export class CreateOrderScene {
 		@ChatId() chatId: number,
 	) {
 		try {
+			await ctx.deleteMessage();
 			ctx.wizard.state.comment = '';
 			await this.CommentAction(ctx, chatId);
 			return;
@@ -228,7 +251,7 @@ export class CreateOrderScene {
 				await this.CommentAction(ctx, chatId);
 				return;
 			}
-			await ctx.reply(valid);
+			await ctx.replyWithHTML(valid);
 			return;
 		} catch (e) {}
 	}
@@ -243,8 +266,9 @@ export class CreateOrderScene {
 		try {
 			const numberPrice = Number(price);
 			if (numberPrice > 0 && numberPrice < 100_000) {
+				await ctx.deleteMessage();
 				ctx.wizard.state.price = numberPrice;
-				await ctx.reply(
+				await ctx.replyWithHTML(
 					accessOrder(
 						PassengerButtons.order.type[state.type].label,
 						state.addressFrom,
@@ -254,10 +278,10 @@ export class CreateOrderScene {
 					),
 					finalOrderKeyboard(),
 				);
-				await ctx.wizard.next();
+				ctx.wizard.next();
 				return;
 			}
-			await ctx.reply(errorValidation);
+			await ctx.replyWithHTML(errorValidation);
 			return;
 		} catch (e) {}
 	}
@@ -273,7 +297,7 @@ export class CreateOrderScene {
 		try {
 			ctx.wizard.state.price = Number(msg.text.replace(/\D/g, ''));
 			if (ctx.wizard.state.price >= state.minPrice && ctx.wizard.state.price < 100_000) {
-				await ctx.reply(
+				await ctx.replyWithHTML(
 					accessOrder(
 						PassengerButtons.order.type[state.type].label,
 						state.addressFrom,
@@ -283,10 +307,10 @@ export class CreateOrderScene {
 					),
 					finalOrderKeyboard(),
 				);
-				await ctx.wizard.next();
+				ctx.wizard.next();
 				return;
 			}
-			await ctx.reply(errorPrice(state.minPrice));
+			await ctx.replyWithHTML(errorPrice(state.minPrice));
 			return;
 		} catch (e) {}
 	}
@@ -301,6 +325,7 @@ export class CreateOrderScene {
 	): Promise<string> {
 		try {
 			if (data === PassengerButtons.order.final.success.callback) {
+				await ctx.deleteMessage();
 				const { city } = await this.passengerService.findByChatId(chatId);
 				const createOrderDto: CreateOrderDto = {
 					type: state.type,
@@ -317,16 +342,28 @@ export class CreateOrderScene {
 				const rating = await this.passengerService.getRatingById(chatId);
 				await this.driverService.sendBulkOrder(order, rating);
 				await ctx.replyWithHTML(successOrder(order.numberOrder));
-				await ctx.wizard.next();
+				// @ts-ignore
+				this.timeout = setTimeout(
+					async () => {
+						await this.cancelOrder(ctx, chatId, true);
+					},
+					15 * 60 * 1000, // 15 минут
+				);
+
+				ctx.wizard.next();
 			} else if (data === PassengerButtons.order.final.edit.callback) {
+				await ctx.deleteMessage();
 				await ctx.scene.reenter();
 			} else {
-				await ctx.reply(errorValidation);
+				await ctx.replyWithHTML(errorValidation);
 				return;
 			}
 		} catch (e) {
 			await ctx.scene.leave();
-			await ctx.reply(errorCreateOrder, await selectPassengerKeyboard(chatId, this.orderService));
+			await ctx.replyWithHTML(
+				errorCreateOrder,
+				await selectPassengerKeyboard(chatId, this.orderService),
+			);
 			return '';
 		}
 	}
@@ -345,8 +382,11 @@ export class CreateOrderScene {
 			const submissionTime = Number(callbackData[4]);
 			const price = Number(callbackData[5]) || null;
 			const driver = await this.driverService.findByChatId(driverId);
+			const activeOrderFromDriver = await this.orderService.findActiveOrderByDriverId(driverId);
+			await ctx?.deleteMessage();
+
 			if (driver.isBusy || driver.status === StatusDriver.Offline) {
-				await ctx.reply(offerIsNoLongerValid);
+				await ctx.replyWithHTML(offerIsNoLongerValid);
 				return;
 			}
 
@@ -354,20 +394,36 @@ export class CreateOrderScene {
 				orderId,
 				driverId,
 				submissionTime,
+				!!activeOrderFromDriver,
 				price,
 			);
 			const passenger = await this.passengerService.findByChatId(chatId);
 
-			await ctx.sendPhoto({ url: ConstantsService.images.inDrive });
-			await ctx.replyWithHTML(successOfferText(order, driver));
-			await this.bot.telegram.sendMessage(driverId, successOfferForDriver(order, passenger), {
-				parse_mode: 'HTML',
-				reply_markup: inDriveKeyboard().reply_markup,
-			});
+			await ctx.replyWithPhoto(
+				{
+					url: ConstantsService.images.inDrive,
+				},
+				{
+					caption: successOfferText(order, driver, !!activeOrderFromDriver),
+					parse_mode: 'HTML',
+				},
+			);
+			if (this.timeout) {
+				clearTimeout(this.timeout);
+			}
+			await this.bot.telegram.sendMessage(
+				driverId,
+				successOfferForDriver(order, passenger, !!activeOrderFromDriver),
+				{
+					parse_mode: 'HTML',
+					reply_markup: !activeOrderFromDriver ? inDriveKeyboard().reply_markup : undefined,
+				},
+			);
+
 			ctx.wizard.state.driverId = driverId;
-			await ctx.wizard.next();
+			ctx.wizard.next();
 		} catch (e) {
-			await ctx.reply(orderNotAvailable);
+			await ctx.replyWithHTML(orderNotAvailable);
 		}
 	}
 
@@ -386,65 +442,110 @@ export class CreateOrderScene {
 				await this.taxiBotService.goHome(ctx, chatId);
 				return;
 			}
+			if (!order || order.status == StatusOrder.DriverInBusy) {
+				return;
+			}
 			const valid = this.taxiBotValidation.checkMaxMinLengthString(msg.text, 0, 300);
 			if (valid === true) {
-				await ctx.reply(successSendMessage);
+				await ctx.replyWithHTML(successSendMessage);
 				await this.bot.telegram.sendMessage(state.driverId, messageFromPassenger + msg.text);
 				return;
 			}
-			await ctx.reply(valid);
+			await ctx.replyWithHTML(valid);
 			return;
 		} catch (e) {
 			this.loggerService.error('onText: ' + e?.toString());
 		}
 	}
 
+	@Throttle(throttles.send_photo)
+	@Action(PassengerButtons.order.leaving.callback)
+	@WizardStep(9)
+	async onAlreadyLeaving(
+		@Ctx() ctx: WizardContext & TaxiBotContext & CreateOrderContext,
+		@wizardState() state: CreateOrderContext['wizard']['state'],
+	): Promise<string> {
+		try {
+			await ctx.replyWithHTML(successSendMessage);
+			await this.bot.telegram.sendMessage(state.driverId, passengerAlreadyLeaving);
+			return;
+		} catch (e) {
+			this.loggerService.error('onAlreadyLeaving: ' + e?.toString());
+		}
+	}
+
 	@Hears(commonButtons.cancelOrder.label)
-	async cancelOrder(@Ctx() ctx: TaxiBotContext & CreateOrderContext, @ChatId() chatId: number) {
-		await this.orderService.switchOrderStatusById(ctx.wizard.state.id, StatusOrder.CancelPassenger);
-		await this.taxiBotService.goHome(ctx, chatId);
-		if (ctx.wizard.state.driverId) {
-			await this.driverService.switchBusyByChatId(ctx.wizard.state.driverId, false);
-			const { status, chatId: driverChatId } = await this.driverService.findByChatId(
-				ctx.wizard.state.driverId,
+	async cancelOrder(
+		@Ctx() ctx: WizardContext & TaxiBotContext & CreateOrderContext,
+		@ChatId() chatId: number,
+		isCancelTimeout?: boolean,
+	) {
+		try {
+			await this.orderService.switchOrderStatusById(
+				ctx.wizard.state.id,
+				StatusOrder.CancelPassenger,
 			);
-			const keyboard = await selectDriverKeyboard(
-				{
-					chatId: driverChatId,
-					status,
-				},
-				this.orderService,
-			);
-			await this.bot.telegram.sendMessage(ctx.wizard.state.driverId, cancelOrderForDriver, {
-				reply_markup: keyboard.reply_markup,
-			});
+			await this.taxiBotService.goHome(ctx, chatId);
+			if (this.timeout && isCancelTimeout) {
+				await ctx.replyWithHTML(cancelOrderTimeout);
+				clearTimeout(this.timeout);
+			}
+			if (ctx.wizard.state.driverId) {
+				await this.driverService.switchBusyByChatId(ctx.wizard.state.driverId, false);
+				const { status, chatId: driverChatId } = await this.driverService.findByChatId(
+					ctx.wizard.state.driverId,
+				);
+				const keyboard = await selectDriverKeyboard(
+					{
+						chatId: driverChatId,
+						status,
+					},
+					this.orderService,
+				);
+				await this.bot.telegram.sendMessage(ctx.wizard.state.driverId, cancelOrderForDriver, {
+					reply_markup: keyboard.reply_markup,
+				});
+			}
+		} catch (e) {
+			this.loggerService.error('cancelOrder: ' + e?.toString());
 		}
 	}
 
 	@Hears(commonButtons.back)
 	@Start()
 	async back(@Ctx() ctx: TaxiBotContext & CreateOrderContext, @ChatId() chatId: number) {
-		// await this.orderService.switchOrderStatusById(ctx.wizard.state.id, StatusOrder.CancelPassenger);
-		await this.taxiBotService.goHome(ctx, chatId);
+		try {
+			await this.taxiBotService.goHome(ctx, chatId);
+		} catch (e) {
+			this.loggerService.error('back: ' + e?.toString());
+		}
 	}
 
 	@Action(new RegExp(PassengerButtons.offer.cancel.callback))
 	async cancelOffer(@Ctx() ctx: TaxiBotContext & WizardContext & CreateOrderContext) {
-		await ctx?.deleteMessage();
+		try {
+			await ctx?.deleteMessage();
+		} catch (e) {
+			this.loggerService.error('cancelOffer: ' + e?.toString());
+		}
 	}
 
 	async CommentAction(
 		@Ctx() ctx: WizardContext & TaxiBotContext & CreateOrderContext,
 		@ChatId() chatId: number,
 	) {
-		const { city } = await this.passengerService.findByChatId(chatId);
-		const minPrice = await this.cityService.getMinPriceByName(city);
-		ctx.wizard.state.minPrice = minPrice;
-		await ctx.reply(
-			selectPrice,
-			selectPriceOrderKeyboard(ConstantsService.roundToNearest50(minPrice)),
-		);
-		await ctx.wizard.next();
-		return;
+		try {
+			const { city } = await this.passengerService.findByChatId(chatId);
+			const minPrice = await this.cityService.getMinPriceByName(city);
+			ctx.wizard.state.minPrice = minPrice;
+			await ctx.replyWithHTML(
+				selectPrice,
+				selectPriceOrderKeyboard(ConstantsService.roundToNearest50(minPrice)),
+			);
+			ctx.wizard.next();
+			return;
+		} catch (e) {
+			this.loggerService.error('CommentAction: ' + e?.toString());
+		}
 	}
 }

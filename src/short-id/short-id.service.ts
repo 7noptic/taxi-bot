@@ -11,6 +11,6 @@ export class ShortIdService {
 	}
 
 	generateUniqueId(type: TypeId): string {
-		return `${type}-${this.uid.rnd()}`;
+		return `${type} ${this.uid.rnd()}`;
 	}
 }

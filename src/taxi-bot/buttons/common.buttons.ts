@@ -1,4 +1,16 @@
 export const commonButtons = {
+	offer: {
+		label: 'Оферта',
+		url: 'clck.ru/3BNTWg',
+	},
+	terms: {
+		label: 'Политика конфиденциальности',
+		url: 'clck.ru/3BNKpm',
+	},
+	success: {
+		label: '✅ Ознакомился, согласен',
+		callback: 'success-term',
+	},
 	profile: {
 		help: 'ℹ️ Помощь',
 		profile: '👨‍⚕️ Профиль',

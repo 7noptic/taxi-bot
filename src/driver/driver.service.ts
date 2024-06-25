@@ -13,7 +13,11 @@ import { Queue } from 'bull';
 import { QueueTaskType, QueueType } from '../types/queue.type';
 import { InjectQueue } from '@nestjs/bull';
 import { AccessTypeOrder } from './Enum/access-type-order';
-import { NotDrivers } from '../taxi-bot/constatnts/message.constants';
+import {
+	NotDrivers,
+	successAcceptedDriver,
+	successUnlockedDriver,
+} from '../taxi-bot/constatnts/message.constants';
 import { BlockedType } from './Enum/blocked-type';
 import { QueryType, ResponseType } from '../types/query.type';
 import { getFullDriverInfoPipeline } from './pipelines/getFullDriverInfo.pipeline';
@@ -33,13 +37,41 @@ export class DriverService {
 	}
 
 	async unlockedUser(chatId: number) {
-		return this.driverModel.findOneAndUpdate(
-			{ chatId },
-			{
-				isBlocked: false,
-				blockedType: BlockedType.No,
-			},
-		);
+		try {
+			const driver = this.driverModel.findOneAndUpdate(
+				{ chatId },
+				{
+					isBlocked: false,
+					blockedType: BlockedType.No,
+				},
+				{ new: true },
+			);
+
+			await this.bot.telegram.sendMessage(chatId, successUnlockedDriver);
+
+			return driver;
+		} catch (e) {
+			console.log(e);
+		}
+	}
+
+	async activatedUser(chatId: number) {
+		try {
+			const driver = this.driverModel.findOneAndUpdate(
+				{ chatId },
+				{
+					isBlocked: false,
+					blockedType: BlockedType.No,
+				},
+				{ new: true },
+			);
+
+			await this.bot.telegram.sendMessage(chatId, successAcceptedDriver);
+
+			return driver;
+		} catch (e) {
+			console.log(e);
+		}
 	}
 
 	async lockedUser(chatId: number, blockedType: BlockedType = BlockedType.NotPaid) {
@@ -50,11 +82,12 @@ export class DriverService {
 				isBlocked: true,
 				blockedType,
 			},
+			{ new: true },
 		);
 	}
 
 	async switchBusyByChatId(chatId: number, isBusy: boolean) {
-		return this.driverModel.findOneAndUpdate({ chatId }, { isBusy });
+		return this.driverModel.findOneAndUpdate({ chatId }, { isBusy }, { new: true });
 	}
 
 	async downgradeRating(chatId: number) {
@@ -160,18 +193,36 @@ export class DriverService {
 			{
 				$set: {
 					car: new_car,
+					isBlocked: true,
+					blockedType: BlockedType.NotConfirmed,
+					status: StatusDriver.Offline,
 				},
 			},
 		);
 	}
 
-	async sendBulkOrder(order: Order, passengerRating: string) {
-		const drivers = await this.driverModel.find({
+	async checkActiveDrivers(order: Pick<Order, 'city' | 'type'>): Promise<boolean> {
+		const drivers = await this.driverModel.findOne({
 			status: StatusDriver.Online,
 			isBlocked: false,
 			city: order.city,
 			$or: [{ accessOrderType: AccessTypeOrder.ALL }, { accessOrderType: order.type }],
 		});
+
+		return !!drivers;
+	}
+
+	async sendBulkOrder(order: Order, passengerRating: number[]) {
+		const drivers = await this.driverModel
+			.find({
+				status: StatusDriver.Online,
+				isBlocked: false,
+				city: order.city,
+				isBusy: false,
+				$or: [{ accessOrderType: AccessTypeOrder.ALL }, { accessOrderType: order.type }],
+			})
+			.sort({ priority: -1 });
+
 		if (!drivers.length) {
 			await this.bot.telegram.sendMessage(order.passengerId, NotDrivers);
 			return;
@@ -209,6 +260,23 @@ export class DriverService {
 
 		const drivers: Driver[] = await this.driverModel
 			.find()
+			.sort({ createdAt: -1 })
+			.limit(perPageCount)
+			.skip(skip);
+		const total = await this.driverModel.countDocuments();
+
+		return { data: drivers, total, currentPage, perPageCount };
+	}
+
+	async getLimitBlocked(
+		currentPageInQuery?: QueryType['currentPage'],
+	): Promise<ResponseType<Driver[]>> {
+		const perPageCount = 10;
+		const currentPage = Number(currentPageInQuery) || 1;
+		const skip = perPageCount * (currentPage - 1);
+
+		const drivers: Driver[] = await this.driverModel
+			.find({ blockedType: BlockedType.NotConfirmed, isBlocked: true })
 			.sort({ createdAt: -1 })
 			.limit(perPageCount)
 			.skip(skip);

@@ -38,8 +38,8 @@ export class AccessOrderScene {
 	): Promise<string> {
 		ctx.wizard.state.orderId = ctx.session.acceptedOrder.orderId;
 		ctx.wizard.state.passengerId = ctx.session.acceptedOrder.passengerId;
-		await ctx.reply(timeDeliveryText, timeDriverKeyboard());
-		await ctx.wizard.next();
+		await ctx.replyWithHTML(timeDeliveryText, timeDriverKeyboard());
+		ctx.wizard.next();
 		return;
 	}
 
@@ -62,7 +62,7 @@ export class AccessOrderScene {
 					reply_markup: driverOfferKeyboard(ctx.wizard.state.orderId, driver.chatId, numberTime),
 				},
 			);
-			await ctx.reply(
+			await ctx.replyWithHTML(
 				successfulProposalSubmissionText,
 				await selectDriverKeyboard(
 					{
@@ -75,7 +75,7 @@ export class AccessOrderScene {
 			await ctx.scene.leave();
 			return;
 		}
-		await ctx.reply(errorValidation);
+		await ctx.replyWithHTML(errorValidation);
 		return;
 	}
 
