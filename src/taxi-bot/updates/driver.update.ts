@@ -159,8 +159,7 @@ export class TaxiBotDriverUpdate {
 				provider_token: this.configService.get('YOU_KASSA_TOKEN'),
 				need_phone_number: true,
 				send_phone_number_to_provider: true,
-				provider_data: {
-					amount: { value: Math.round(price / 100).toFixed(2), currency: 'RUB' },
+				provider_data: JSON.stringify({
 					receipt: {
 						items: [
 							{
@@ -171,10 +170,10 @@ export class TaxiBotDriverUpdate {
 							},
 						],
 						customer: {
-							phone,
+							phone: phone.replace(/[^0-9]/g, ''),
 						},
 					},
-				}.toString(),
+				}),
 
 				prices: [
 					{
@@ -185,6 +184,7 @@ export class TaxiBotDriverUpdate {
 			});
 		} catch (e) {
 			this.loggerService.error('payCommission: ' + e?.toString());
+			console.log(e);
 		}
 	}
 
