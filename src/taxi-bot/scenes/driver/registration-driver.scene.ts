@@ -32,6 +32,7 @@ import { selectCityKeyboard } from '../../keyboards/select-city.keyboard';
 import { ConstantsService } from '../../../constants/constants.service';
 import { UserType } from '../../../types/user.type';
 import { SuccessTermKeyboard } from '../../keyboards/success-term.keyboard';
+import { LoggerService } from '../../../logger/logger.service';
 
 @Wizard(ScenesType.RegistrationDriver)
 export class RegisterDriverScene {
@@ -41,18 +42,22 @@ export class RegisterDriverScene {
 		private readonly driverAdapter: DriverAdapter,
 		private readonly taxiBotService: TaxiBotCommonUpdate,
 		private readonly taxiBotValidation: TaxiBotValidation,
+		private readonly loggerService: LoggerService,
 	) {}
 
 	@WizardStep(0)
 	async onSceneEnter(@Ctx() ctx: WizardContext): Promise<string> {
-		await ctx.replyWithHTML(
-			ConstantsService.RegistrationMessage(UserType.Driver),
-			SuccessTermKeyboard(),
-		);
+		try {
+			await ctx
+				.replyWithHTML(ConstantsService.RegistrationMessage(UserType.Driver), SuccessTermKeyboard())
+				.catch((e) => this.loggerService.error('onSceneEnter: ' + ctx?.toString() + e?.toString()));
 
-		ctx.wizard.next();
+			ctx?.wizard?.next();
 
-		return;
+			return;
+		} catch (e) {
+			this.loggerService.error('onSceneEnter: ' + ctx?.toString() + e?.toString());
+		}
 	}
 
 	@On('callback_query')
@@ -61,9 +66,13 @@ export class RegisterDriverScene {
 		@Ctx() ctx: WizardContext,
 		@GetQueryData() checked: string,
 	): Promise<string> {
-		if (checked === commonButtons.success.callback) {
-			ctx.wizard.next();
-			return WhatNameRegistrationDriver;
+		try {
+			if (checked === commonButtons.success.callback) {
+				ctx?.wizard?.next();
+				return WhatNameRegistrationDriver;
+			}
+		} catch (e) {
+			this.loggerService.error('onCheckedTerms: ' + ctx?.toString() + e?.toString());
 		}
 	}
 
@@ -73,14 +82,20 @@ export class RegisterDriverScene {
 		@Ctx() ctx: WizardContext & RegistrationDriverContext,
 		@Message() msg: { text: string },
 	): Promise<string> {
-		const valid = this.taxiBotValidation.checkMaxMinLengthString(msg.text, 2, 30);
-		if (valid === true) {
-			ctx.wizard.state.name = msg.text;
-			ctx.wizard.next();
-			return WhatNumberRegistrationDriver;
+		try {
+			const valid = this.taxiBotValidation.checkMaxMinLengthString(msg.text, 2, 30);
+			if (valid === true) {
+				ctx.wizard.state.name = msg.text;
+				ctx?.wizard?.next();
+				return WhatNumberRegistrationDriver;
+			}
+			await ctx
+				.replyWithHTML(valid)
+				.catch((e) => this.loggerService.error('onName: ' + ctx?.toString() + e?.toString()));
+			return;
+		} catch (e) {
+			this.loggerService.error('onName: ' + ctx?.toString() + e?.toString());
 		}
-		await ctx.replyWithHTML(valid);
-		return;
 	}
 
 	@On('text')
@@ -89,17 +104,27 @@ export class RegisterDriverScene {
 		@Ctx() ctx: WizardContext & RegistrationDriverContext,
 		@Message() msg: { text: string },
 	): Promise<string> {
-		const valid = this.taxiBotValidation.isPhone(msg.text);
-		if (valid === true) {
-			ctx.wizard.state.phone = msg.text;
-			const cities = await this.cityService.getAll();
-			await ctx.replyWithHTML(WhatCity, selectCityKeyboard(cities));
+		try {
+			const valid = this.taxiBotValidation.isPhone(msg.text);
+			if (valid === true) {
+				ctx.wizard.state.phone = msg.text;
+				const cities = await this.cityService.getAll();
+				await ctx
+					.replyWithHTML(WhatCity, selectCityKeyboard(cities))
+					.catch((e) =>
+						this.loggerService.error('onNumberText: ' + ctx?.toString() + e?.toString()),
+					);
 
-			ctx.wizard.next();
+				ctx?.wizard?.next();
+				return;
+			}
+			await ctx
+				.replyWithHTML(valid)
+				.catch((e) => this.loggerService.error('onNumberText: ' + ctx?.toString() + e?.toString()));
 			return;
+		} catch (e) {
+			this.loggerService.error('onNumberText: ' + ctx?.toString() + e?.toString());
 		}
-		await ctx.replyWithHTML(valid);
-		return;
 	}
 
 	@On('contact')
@@ -108,15 +133,23 @@ export class RegisterDriverScene {
 		@Ctx() ctx: WizardContext & RegistrationDriverContext,
 		@Message() msg: { contact: { phone_number: string } },
 	): Promise<string> {
-		ctx.wizard.state.phone = msg.contact.phone_number;
-		const cities = await this.cityService.getAll();
-		await ctx.replyWithHTML(
-			WhatCity,
-			Markup.inlineKeyboard(cities.map((city) => Markup.button.callback(city.name, city.name))),
-		);
+		try {
+			ctx.wizard.state.phone = msg.contact.phone_number;
+			const cities = await this.cityService.getAll();
+			await ctx
+				.replyWithHTML(
+					WhatCity,
+					Markup.inlineKeyboard(cities.map((city) => Markup.button.callback(city.name, city.name))),
+				)
+				.catch((e) =>
+					this.loggerService.error('onNumberContact: ' + ctx?.toString() + e?.toString()),
+				);
 
-		ctx.wizard.next();
-		return;
+			ctx?.wizard?.next();
+			return;
+		} catch (e) {
+			this.loggerService.error('onNumberContact: ' + ctx?.toString() + e?.toString());
+		}
 	}
 
 	@On('callback_query')
@@ -125,16 +158,24 @@ export class RegisterDriverScene {
 		@Ctx() ctx: WizardContext & TaxiBotContext & RegistrationDriverContext,
 		@GetQueryData() city: string,
 	) {
-		const { name } = await this.cityService.getByName(city);
-		if (name) {
-			ctx.wizard.state.city = city;
-			await ctx.replyWithHTML(WhatCarBrand);
+		try {
+			const { name } = await this.cityService.getByName(city);
+			if (name) {
+				ctx.wizard.state.city = city;
+				await ctx
+					.replyWithHTML(WhatCarBrand)
+					.catch((e) => this.loggerService.error('onLocation: ' + ctx?.toString() + e?.toString()));
 
-			ctx.wizard.next();
+				ctx?.wizard?.next();
+				return;
+			}
+			await ctx
+				.replyWithHTML(errorValidation)
+				.catch((e) => this.loggerService.error('onLocation: ' + ctx?.toString() + e?.toString()));
 			return;
+		} catch (e) {
+			this.loggerService.error('onLocation: ' + ctx?.toString() + e?.toString());
 		}
-		await ctx.replyWithHTML(errorValidation);
-		return;
 	}
 
 	@On('text')
@@ -143,16 +184,24 @@ export class RegisterDriverScene {
 		@Ctx() ctx: WizardContext & TaxiBotContext & RegistrationDriverContext,
 		@Message() msg: { text: string },
 	) {
-		const valid = this.taxiBotValidation.checkMaxMinLengthString(msg.text, 3, 50);
-		if (valid === true) {
-			ctx.wizard.state.carBrand = msg.text;
-			await ctx.replyWithHTML(WhatCarColor);
+		try {
+			const valid = this.taxiBotValidation.checkMaxMinLengthString(msg.text, 3, 50);
+			if (valid === true) {
+				ctx.wizard.state.carBrand = msg.text;
+				await ctx
+					.replyWithHTML(WhatCarColor)
+					.catch((e) => this.loggerService.error('onCarModel: ' + ctx?.toString() + e?.toString()));
 
-			await ctx.wizard.next();
+				ctx?.wizard?.next();
+				return;
+			}
+			await ctx
+				.replyWithHTML(valid)
+				.catch((e) => this.loggerService.error('onCarModel: ' + ctx?.toString() + e?.toString()));
 			return;
+		} catch (e) {
+			this.loggerService.error('onCarModel: ' + ctx?.toString() + e?.toString());
 		}
-		await ctx.replyWithHTML(valid);
-		return;
 	}
 
 	@On('text')
@@ -161,16 +210,24 @@ export class RegisterDriverScene {
 		@Ctx() ctx: WizardContext & TaxiBotContext & RegistrationDriverContext,
 		@Message() msg: { text: string },
 	) {
-		const valid = this.taxiBotValidation.checkMaxMinLengthString(msg.text, 3, 30);
-		if (valid === true) {
-			ctx.wizard.state.carColor = msg.text;
-			await ctx.replyWithHTML(WhatCarNumber);
+		try {
+			const valid = this.taxiBotValidation.checkMaxMinLengthString(msg.text, 3, 30);
+			if (valid === true) {
+				ctx.wizard.state.carColor = msg.text;
+				await ctx
+					.replyWithHTML(WhatCarNumber)
+					.catch((e) => this.loggerService.error('onCarColor: ' + ctx?.toString() + e?.toString()));
 
-			await ctx.wizard.next();
+				ctx?.wizard?.next();
+				return;
+			}
+			await ctx
+				.replyWithHTML(valid)
+				.catch((e) => this.loggerService.error('onCarColor: ' + ctx?.toString() + e?.toString()));
 			return;
+		} catch (e) {
+			this.loggerService.error('onCarColor: ' + ctx?.toString() + e?.toString());
 		}
-		await ctx.replyWithHTML(valid);
-		return;
 	}
 
 	@On('text')
@@ -197,25 +254,34 @@ export class RegisterDriverScene {
 					carBrand: state.carBrand,
 					carColor: state.carColor,
 				});
-				await ctx.scene.leave();
+				await ctx?.scene?.leave();
 				await this.driverService.create(createDriverDto);
-				await ctx.replyWithHTML(
-					greetingDriver(state.name),
-					driverProfileKeyboard(StatusDriver.Offline),
-				);
+				await ctx
+					.replyWithHTML(greetingDriver(state.name), driverProfileKeyboard(StatusDriver.Offline))
+					.catch((e) =>
+						this.loggerService.error('onCarNumber: ' + ctx?.toString() + e?.toString()),
+					);
 				return;
 			}
-			await ctx.replyWithHTML(errorValidation);
+			await ctx
+				.replyWithHTML(errorValidation)
+				.catch((e) => this.loggerService.error('onCarNumber: ' + ctx?.toString() + e?.toString()));
 			return;
 		} catch (e) {
-			await ctx.scene.leave();
-			await ctx.replyWithHTML(errorRegistration, registrationKeyboard());
+			await ctx?.scene?.leave();
+			await ctx
+				.replyWithHTML(errorRegistration, registrationKeyboard())
+				.catch((e) => this.loggerService.error('onCarNumber: ' + ctx?.toString() + e?.toString()));
 			return '';
 		}
 	}
 
 	@Hears(commonButtons.back)
 	async goHome(@Ctx() ctx: TaxiBotContext, @ChatId() chatId: number) {
-		await this.taxiBotService.goHome(ctx, chatId);
+		try {
+			await this.taxiBotService.goHome(ctx, chatId);
+		} catch (e) {
+			this.loggerService.error('goHome: ' + ctx?.toString() + e?.toString());
+		}
 	}
 }

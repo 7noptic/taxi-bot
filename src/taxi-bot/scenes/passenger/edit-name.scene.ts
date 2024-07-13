@@ -10,6 +10,7 @@ import { TaxiBotCommonUpdate } from '../../updates/common.update';
 import { TaxiBotValidation } from '../../taxi-bot.validation';
 import { selectPassengerKeyboard } from '../../keyboards/passenger/select-passenger-keyboard';
 import { OrderService } from '../../../order/order.service';
+import { LoggerService } from '../../../logger/logger.service';
 
 @Wizard(ScenesType.EditName)
 export class EditNameScene {
@@ -18,12 +19,17 @@ export class EditNameScene {
 		private readonly taxiBotService: TaxiBotCommonUpdate,
 		private readonly taxiBotValidation: TaxiBotValidation,
 		private readonly orderService: OrderService,
+		private readonly loggerService: LoggerService,
 	) {}
 
 	@WizardStep(1)
 	async onSceneEnter(@Ctx() ctx: WizardContext): Promise<string> {
-		await ctx.wizard.next();
-		return WhatName;
+		try {
+			ctx?.wizard?.next();
+			return WhatName;
+		} catch (e) {
+			this.loggerService.error('onSceneEnter: ' + ctx?.toString() + e?.toString());
+		}
 	}
 
 	@On('text')
@@ -36,28 +42,32 @@ export class EditNameScene {
 		try {
 			const valid = this.taxiBotValidation.checkMaxMinLengthString(msg.text, 2, 30);
 			if (valid === true) {
-				await ctx.scene.leave();
+				await ctx?.scene?.leave();
 				await this.passengerService.editName(chatId, msg.text);
-				await ctx.replyWithHTML(
-					successEditName,
-					await selectPassengerKeyboard(chatId, this.orderService),
-				);
+				await ctx
+					.replyWithHTML(successEditName, await selectPassengerKeyboard(chatId, this.orderService))
+					.catch((e) => this.loggerService.error('onName: ' + ctx?.toString() + e?.toString()));
 				return;
 			}
-			await ctx.replyWithHTML(valid);
+			await ctx
+				.replyWithHTML(valid)
+				.catch((e) => this.loggerService.error('onName: ' + ctx?.toString() + e?.toString()));
 			return;
 		} catch (e) {
-			await ctx.scene.leave();
-			await ctx.replyWithHTML(
-				errorEditInfo,
-				await selectPassengerKeyboard(chatId, this.orderService),
-			);
+			await ctx?.scene?.leave();
+			await ctx
+				.replyWithHTML(errorEditInfo, await selectPassengerKeyboard(chatId, this.orderService))
+				.catch((e) => this.loggerService.error('onName: ' + ctx?.toString() + e?.toString()));
 			return '';
 		}
 	}
 
 	@Hears(commonButtons.back)
 	async goHome(@Ctx() ctx: TaxiBotContext, @ChatId() chatId: number) {
-		await this.taxiBotService.goHome(ctx, chatId);
+		try {
+			await this.taxiBotService.goHome(ctx, chatId);
+		} catch (e) {
+			this.loggerService.error('goHome: ' + ctx?.toString() + e?.toString());
+		}
 	}
 }

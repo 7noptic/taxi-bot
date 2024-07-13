@@ -20,7 +20,7 @@ export class OpenAppealScene {
 
 	@WizardStep(1)
 	async onSceneEnter(@Ctx() ctx: WizardContext): Promise<string> {
-		await ctx.wizard.next();
+		ctx?.wizard?.next();
 		await ctx.replyWithHTML(ConstantsService.HelpBotMessage.WhatNumberOrder);
 		return;
 	}
@@ -34,7 +34,7 @@ export class OpenAppealScene {
 		const valid = this.taxiBotValidation.checkMaxMinLengthString(msg.text, 1, 20);
 		if (valid === true) {
 			ctx.wizard.state.numberOrder = msg.text;
-			await ctx.wizard.next();
+			ctx?.wizard?.next();
 			return ConstantsService.HelpBotMessage.WhatMessage;
 		}
 		await ctx.replyWithHTML(valid);
@@ -63,7 +63,7 @@ export class OpenAppealScene {
 				],
 			};
 
-			await ctx.scene.leave();
+			await ctx?.scene?.leave();
 			await this.appealService.create(appeal);
 			await ctx.replyWithHTML(
 				ConstantsService.HelpBotMessage.SuccessOpenAppeal,
@@ -71,7 +71,7 @@ export class OpenAppealScene {
 			);
 			return '';
 		} catch (e) {
-			await ctx.scene.leave();
+			await ctx?.scene?.leave();
 			await ctx.replyWithHTML(
 				ConstantsService.HelpBotMessage.ErrorClosedAppeal,
 				OpenAppealKeyboard(),

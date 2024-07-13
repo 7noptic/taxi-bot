@@ -80,7 +80,9 @@ export class TaxiBotDriverUpdate {
 	@Hears(registrationButtons.driver.label)
 	async registrationDriver(@Ctx() ctx: TaxiBotContext) {
 		try {
-			await ctx.replyWithHTML(ConstantsService.GreetingDriverMessage, backKeyboard());
+			await ctx
+				.replyWithHTML(ConstantsService.GreetingDriverMessage, backKeyboard())
+				.catch((e) => this.loggerService.error('registrationDriver: ' + e?.toString()));
 			await ctx.scene.enter(ScenesType.RegistrationDriver);
 		} catch (e) {
 			this.loggerService.error('registrationDriver: ' + e?.toString());
@@ -115,26 +117,28 @@ export class TaxiBotDriverUpdate {
 					? driverCommissionServer
 					: 0;
 
-			await ctx.replyWithPhoto(
-				{
-					url: ConstantsService.images.commission,
-				},
-				{
-					caption: commissionText(
-						commission,
-						sumCommission,
-						count,
-						prevSumCommission,
-						prevCountOrder,
-						driverCommission,
-					),
-					parse_mode: 'HTML',
-					reply_markup:
-						prevSumCommission.length > 0
-							? callPaymentKeyboard(prevSumCommission).reply_markup
-							: undefined,
-				},
-			);
+			await ctx
+				.replyWithPhoto(
+					{
+						url: ConstantsService.images.commission,
+					},
+					{
+						caption: commissionText(
+							commission,
+							sumCommission,
+							count,
+							prevSumCommission,
+							prevCountOrder,
+							driverCommission,
+						),
+						parse_mode: 'HTML',
+						reply_markup:
+							prevSumCommission.length > 0
+								? callPaymentKeyboard(prevSumCommission).reply_markup
+								: undefined,
+					},
+				)
+				.catch((e) => this.loggerService.error('getCommission: ' + e?.toString()));
 		} catch (e) {
 			this.loggerService.error('getCommission: ' + e?.toString());
 		}
@@ -151,37 +155,39 @@ export class TaxiBotDriverUpdate {
 			const callbackData = data.split('-');
 			const price = Number(callbackData[2]);
 			const { phone } = await this.driverService.findByChatId(chatId);
-			await ctx.sendInvoice({
-				title: paymentTitle,
-				currency: 'RUB',
-				description: paymentTitle,
-				payload: 'payload',
-				provider_token: this.configService.get('YOU_KASSA_TOKEN'),
-				need_phone_number: true,
-				send_phone_number_to_provider: true,
-				provider_data: JSON.stringify({
-					receipt: {
-						items: [
-							{
-								description: paymentTitle,
-								quantity: 1,
-								amount: { value: Math.round(price / 100).toFixed(2), currency: 'RUB' },
-								vat_code: 1,
+			await ctx
+				.sendInvoice({
+					title: paymentTitle,
+					currency: 'RUB',
+					description: paymentTitle,
+					payload: 'payload',
+					provider_token: this.configService.get('YOU_KASSA_TOKEN'),
+					need_phone_number: true,
+					send_phone_number_to_provider: true,
+					provider_data: JSON.stringify({
+						receipt: {
+							items: [
+								{
+									description: paymentTitle,
+									quantity: 1,
+									amount: { value: Math.round(price / 100).toFixed(2), currency: 'RUB' },
+									vat_code: 1,
+								},
+							],
+							customer: {
+								phone: phone.replace(/[^0-9]/g, ''),
 							},
-						],
-						customer: {
-							phone: phone.replace(/[^0-9]/g, ''),
 						},
-					},
-				}),
+					}),
 
-				prices: [
-					{
-						label: paymentTitle,
-						amount: price,
-					},
-				],
-			});
+					prices: [
+						{
+							label: paymentTitle,
+							amount: price,
+						},
+					],
+				})
+				.catch((e) => this.loggerService.error('payCommission: ' + e?.toString()));
 		} catch (e) {
 			this.loggerService.error('payCommission: ' + e?.toString());
 			console.log(e);
@@ -200,22 +206,24 @@ export class TaxiBotDriverUpdate {
 				car: { carBrand, carColor, carNumber },
 				accessOrderType,
 			} = await this.driverService.findByChatId(chatId);
-			await ctx.replyWithPhoto(
-				{
-					url: ConstantsService.images.settings,
-				},
-				{
-					caption: settingsDriverText,
-					parse_mode: 'HTML',
-					reply_markup: setDriverSettingsKeyboard(
-						first_name,
-						phone,
-						city,
-						`${carColor} ${carBrand} | ${carNumber}`,
-						accessOrderType,
-					).reply_markup,
-				},
-			);
+			await ctx
+				.replyWithPhoto(
+					{
+						url: ConstantsService.images.settings,
+					},
+					{
+						caption: settingsDriverText,
+						parse_mode: 'HTML',
+						reply_markup: setDriverSettingsKeyboard(
+							first_name,
+							phone,
+							city,
+							`${carColor} ${carBrand} | ${carNumber}`,
+							accessOrderType,
+						).reply_markup,
+					},
+				)
+				.catch((e) => this.loggerService.error('getSettings: ' + e?.toString()));
 		} catch (e) {
 			this.loggerService.error('getSettings: ' + e?.toString());
 		}
@@ -225,8 +233,12 @@ export class TaxiBotDriverUpdate {
 	@Action(DriverButtons.settings.name.callback)
 	async editName(@Ctx() ctx: TaxiBotContext) {
 		try {
-			await ctx.replyWithHTML(startEditName, backKeyboard());
-			await ctx.scene.enter(ScenesType.EditNameDriver);
+			await ctx
+				.replyWithHTML(startEditName, backKeyboard())
+				.catch((e) => this.loggerService.error('editName: ' + e?.toString()));
+			await ctx.scene
+				.enter(ScenesType.EditNameDriver)
+				.catch((e) => this.loggerService.error('editName: ' + e?.toString()));
 		} catch (e) {
 			this.loggerService.error('editName: ' + e?.toString());
 		}
@@ -236,8 +248,12 @@ export class TaxiBotDriverUpdate {
 	@Action(DriverButtons.settings.phone.callback)
 	async editPhone(@Ctx() ctx: TaxiBotContext) {
 		try {
-			await ctx.replyWithHTML(startEditPhone, backKeyboard());
-			await ctx.scene.enter(ScenesType.EditPhoneDriver);
+			await ctx
+				.replyWithHTML(startEditPhone, backKeyboard())
+				.catch((e) => this.loggerService.error('editPhone: ' + ctx?.toString() + e?.toString()));
+			await ctx.scene
+				.enter(ScenesType.EditPhoneDriver)
+				.catch((e) => this.loggerService.error('editPhone: ' + ctx?.toString() + e?.toString()));
 		} catch (e) {
 			this.loggerService.error('editPhone: ' + e?.toString());
 		}
@@ -247,8 +263,12 @@ export class TaxiBotDriverUpdate {
 	@Action(DriverButtons.settings.city.callback)
 	async editCity(@Ctx() ctx: TaxiBotContext) {
 		try {
-			await ctx.replyWithHTML(startEditCity, backKeyboard());
-			await ctx.scene.enter(ScenesType.EditCityDriver);
+			await ctx
+				.replyWithHTML(startEditCity, backKeyboard())
+				.catch((e) => this.loggerService.error('editCity: ' + ctx?.toString() + e?.toString()));
+			await ctx.scene
+				.enter(ScenesType.EditCityDriver)
+				.catch((e) => this.loggerService.error('editCity: ' + ctx?.toString() + e?.toString()));
 		} catch (e) {
 			this.loggerService.error('editCity: ' + e?.toString());
 		}
@@ -258,8 +278,12 @@ export class TaxiBotDriverUpdate {
 	@Action(DriverButtons.settings.car.callback)
 	async editCar(@Ctx() ctx: TaxiBotContext) {
 		try {
-			await ctx.replyWithHTML(startEditCar, backKeyboard());
-			await ctx.scene.enter(ScenesType.EditCarDriver);
+			await ctx
+				.replyWithHTML(startEditCar, backKeyboard())
+				.catch((e) => this.loggerService.error('editCar: ' + ctx?.toString() + e?.toString()));
+			await ctx.scene
+				.enter(ScenesType.EditCarDriver)
+				.catch((e) => this.loggerService.error('editCar: ' + ctx?.toString() + e?.toString()));
 		} catch (e) {
 			this.loggerService.error('editCar: ' + e?.toString());
 		}
@@ -269,8 +293,16 @@ export class TaxiBotDriverUpdate {
 	@Action(DriverButtons.settings.accessTypeOrder.callback)
 	async editAccessOrderType(@Ctx() ctx: TaxiBotContext) {
 		try {
-			await ctx.replyWithHTML(startAccessOrderTypeCar, backKeyboard());
-			await ctx.scene.enter(ScenesType.EditAccessOrderTypeDriver);
+			await ctx
+				.replyWithHTML(startAccessOrderTypeCar, backKeyboard())
+				.catch((e) =>
+					this.loggerService.error('editAccessOrderType: ' + ctx?.toString() + e?.toString()),
+				);
+			await ctx.scene
+				.enter(ScenesType.EditAccessOrderTypeDriver)
+				.catch((e) =>
+					this.loggerService.error('editAccessOrderType: ' + ctx?.toString() + e?.toString()),
+				);
 		} catch (e) {
 			this.loggerService.error('editAccessOrderType: ' + e?.toString());
 		}
@@ -282,15 +314,19 @@ export class TaxiBotDriverUpdate {
 	async getStatistics(@Ctx() ctx: TaxiBotContext, @ChatId() chatId: number) {
 		try {
 			const statistic = await this.orderService.getDriverOrdersInfo(chatId);
-			await ctx.replyWithPhoto(
-				{
-					url: ConstantsService.images.statistic,
-				},
-				{
-					caption: statisticText(statistic),
-					parse_mode: 'HTML',
-				},
-			);
+			await ctx
+				.replyWithPhoto(
+					{
+						url: ConstantsService.images.statistic,
+					},
+					{
+						caption: statisticText(statistic),
+						parse_mode: 'HTML',
+					},
+				)
+				.catch((e) =>
+					this.loggerService.error('getStatistics: ' + ctx?.toString() + e?.toString()),
+				);
 		} catch (e) {
 			this.loggerService.error('getStatistics: ' + e?.toString());
 		}
@@ -305,8 +341,24 @@ export class TaxiBotDriverUpdate {
 			const { isBlocked, blockedType, status } = await this.driverService.findByChatId(chatId);
 			if (!isBlocked) {
 				const { status } = await this.driverService.toggleStatusByChatId(chatId);
-				await ctx.replyWithHTML(
-					toggleWorkShift[status],
+				await ctx
+					.replyWithHTML(
+						toggleWorkShift[status],
+						await selectDriverKeyboard(
+							{
+								chatId,
+								status,
+							},
+							this.orderService,
+						),
+					)
+					.catch((e) => this.loggerService.error('setStatus: ' + ctx?.toString() + e?.toString()));
+				return;
+			}
+
+			await ctx
+				.replyWithHTML(
+					driverBlockedText[blockedType],
 					await selectDriverKeyboard(
 						{
 							chatId,
@@ -314,20 +366,8 @@ export class TaxiBotDriverUpdate {
 						},
 						this.orderService,
 					),
-				);
-				return;
-			}
-
-			await ctx.replyWithHTML(
-				driverBlockedText[blockedType],
-				await selectDriverKeyboard(
-					{
-						chatId,
-						status,
-					},
-					this.orderService,
-				),
-			);
+				)
+				.catch((e) => this.loggerService.error('setStatus: ' + ctx?.toString() + e?.toString()));
 		} catch (e) {
 			this.loggerService.error('setStatus: ' + e?.toString());
 		}
@@ -357,22 +397,34 @@ export class TaxiBotDriverUpdate {
 				await ctx.replyWithHTML(comeOnShift);
 				return;
 			}
-			await ctx?.deleteMessage();
+			await ctx
+				?.deleteMessage()
+				.catch((e) => this.loggerService.error('bargainOrder: ' + ctx?.toString() + e?.toString()));
 			const { status } = await this.orderService.findById(orderId);
 			if (status === StatusOrder.Created) {
 				ctx.session.acceptedOrder = {
 					orderId,
 					passengerId,
 				};
-				await ctx.replyWithHTML(startSuccessOrder, backKeyboard());
-				await ctx.scene.enter(
-					callbackData[1] === 'bargain'
-						? ScenesType.BargainOrderByDriver
-						: ScenesType.AccessOrderByDriver,
-				);
+				await ctx
+					.replyWithHTML(startSuccessOrder, backKeyboard())
+					.catch((e) =>
+						this.loggerService.error('bargainOrder: ' + ctx?.toString() + e?.toString()),
+					);
+				await ctx.scene
+					.enter(
+						callbackData[1] === 'bargain'
+							? ScenesType.BargainOrderByDriver
+							: ScenesType.AccessOrderByDriver,
+					)
+					.catch((e) =>
+						this.loggerService.error('bargainOrder: ' + ctx?.toString() + e?.toString()),
+					);
 				return;
 			}
-			await ctx?.replyWithHTML(orderNotAvailable);
+			await ctx
+				?.replyWithHTML(orderNotAvailable)
+				.catch((e) => this.loggerService.error('bargainOrder: ' + ctx?.toString() + e?.toString()));
 		} catch (e) {
 			this.loggerService.error('bargainOrder' + e?.toString());
 		}
@@ -385,24 +437,30 @@ export class TaxiBotDriverUpdate {
 			const order = await this.orderService.findActiveOrderByDriverId(chatId);
 			const { status, car } = await this.driverService.findByChatId(chatId);
 			if (!order) {
-				await ctx.replyWithHTML(
-					errorValidation,
-					await selectDriverKeyboard(
-						{
-							chatId,
-							status,
-						},
-						this.orderService,
-					),
-				);
+				await ctx
+					.replyWithHTML(
+						errorValidation,
+						await selectDriverKeyboard(
+							{
+								chatId,
+								status,
+							},
+							this.orderService,
+						),
+					)
+					.catch((e) => this.loggerService.error('inPlace: ' + ctx?.toString() + e?.toString()));
 				return;
 			}
-			await this.bot.telegram.sendMessage(order.passengerId, driverInPlace(order.type, car), {
-				parse_mode: 'HTML',
-				reply_markup: AlreadyLeavingKeyboard(),
-			});
+			await this.bot.telegram
+				.sendMessage(order.passengerId, driverInPlace(order.type, car), {
+					parse_mode: 'HTML',
+					reply_markup: AlreadyLeavingKeyboard(),
+				})
+				.catch((e) => this.loggerService.error('inPlace: ' + ctx?.toString() + e?.toString()));
 
-			await ctx.replyWithHTML(successSendMessage, goDriveKeyboard());
+			await ctx
+				.replyWithHTML(successSendMessage, goDriveKeyboard())
+				.catch((e) => this.loggerService.error('inPlace: ' + ctx?.toString() + e?.toString()));
 		} catch (e) {
 			this.loggerService.error('inPlace' + e?.toString());
 		}
@@ -415,24 +473,30 @@ export class TaxiBotDriverUpdate {
 			const order = await this.orderService.findActiveOrderByDriverId(chatId);
 			if (!order) {
 				const { status } = await this.driverService.findByChatId(chatId);
-				await ctx.replyWithHTML(
-					errorValidation,
-					await selectDriverKeyboard(
-						{
-							chatId,
-							status,
-						},
-						this.orderService,
-					),
-				);
+				await ctx
+					.replyWithHTML(
+						errorValidation,
+						await selectDriverKeyboard(
+							{
+								chatId,
+								status,
+							},
+							this.orderService,
+						),
+					)
+					.catch((e) => this.loggerService.error('goOrder: ' + ctx?.toString() + e?.toString()));
 				return;
 			}
-			await this.bot.telegram.sendMessage(order.passengerId, driverGoOrder, {
-				reply_markup: { remove_keyboard: true },
-			});
+			await this.bot.telegram
+				.sendMessage(order.passengerId, driverGoOrder, {
+					reply_markup: { remove_keyboard: true },
+				})
+				.catch((e) => this.loggerService.error('goOrder: ' + ctx?.toString() + e?.toString()));
 			await this.orderService.switchOrderStatusById(order.id, StatusOrder.InProcess);
 			const { status } = await this.driverService.switchBusyByChatId(chatId, false);
-			await ctx.replyWithHTML(successGoOrder, finishKeyboard(status));
+			await ctx
+				.replyWithHTML(successGoOrder, finishKeyboard(status))
+				.catch((e) => this.loggerService.error('goOrder: ' + ctx?.toString() + e?.toString()));
 		} catch (e) {
 			this.loggerService.error('goOrder' + e?.toString());
 		}
@@ -445,36 +509,42 @@ export class TaxiBotDriverUpdate {
 			const order = await this.orderService.findActiveOrderByDriverId(chatId);
 			const { status } = await this.driverService.findByChatId(chatId);
 			if (!order) {
-				await ctx.replyWithHTML(
-					errorValidation,
-					await selectDriverKeyboard(
-						{
-							chatId,
-							status,
-						},
-						this.orderService,
-					),
-				);
+				await ctx
+					.replyWithHTML(
+						errorValidation,
+						await selectDriverKeyboard(
+							{
+								chatId,
+								status,
+							},
+							this.orderService,
+						),
+					)
+					.catch((e) =>
+						this.loggerService.error('finishOrder: ' + ctx?.toString() + e?.toString()),
+					);
 				return;
 			}
-			await this.bot.telegram.sendMessage(
-				order.passengerId,
-				successFinishOrderToPassenger(order.price),
-				{
+			await this.bot.telegram
+				.sendMessage(order.passengerId, successFinishOrderToPassenger(order.price), {
 					parse_mode: 'HTML',
 					reply_markup: selectRateKeyboard(chatId, UserType.Driver, order.numberOrder).reply_markup,
-				},
-			);
-			await this.bot.telegram.sendMessage(order.passengerId, notBusyPassenger, {
-				parse_mode: 'HTML',
-				reply_markup: backKeyboard().reply_markup,
-			});
+				})
+				.catch((e) => this.loggerService.error('finishOrder: ' + ctx?.toString() + e?.toString()));
+			await this.bot.telegram
+				.sendMessage(order.passengerId, notBusyPassenger, {
+					parse_mode: 'HTML',
+					reply_markup: backKeyboard().reply_markup,
+				})
+				.catch((e) => this.loggerService.error('finishOrder: ' + ctx?.toString() + e?.toString()));
 
 			await this.orderService.successOrderFromDriver(order.id, chatId);
-			await ctx.replyWithHTML(
-				successFinishOrderToDriver(order.price),
-				selectRateKeyboard(order.passengerId, UserType.Passenger, order.numberOrder),
-			);
+			await ctx
+				.replyWithHTML(
+					successFinishOrderToDriver(order.price),
+					selectRateKeyboard(order.passengerId, UserType.Passenger, order.numberOrder),
+				)
+				.catch((e) => this.loggerService.error('finishOrder: ' + ctx?.toString() + e?.toString()));
 
 			const secondActiveOrder = await this.orderService.findSecondActiveOrderByDriverId(chatId);
 			if (!!secondActiveOrder) {
@@ -487,16 +557,18 @@ export class TaxiBotDriverUpdate {
 					? notBusy
 					: workFinish;
 
-			await ctx.replyWithHTML(
-				text,
-				await selectDriverKeyboard(
-					{
-						chatId,
-						status,
-					},
-					this.orderService,
-				),
-			);
+			await ctx
+				.replyWithHTML(
+					text,
+					await selectDriverKeyboard(
+						{
+							chatId,
+							status,
+						},
+						this.orderService,
+					),
+				)
+				.catch((e) => this.loggerService.error('finishOrder: ' + ctx?.toString() + e?.toString()));
 
 			if (!!secondActiveOrder) {
 				const minute =
@@ -506,7 +578,11 @@ export class TaxiBotDriverUpdate {
 				await this.bot.telegram.sendMessage(secondActiveOrder.passengerId, driverInGo(minute), {
 					parse_mode: 'HTML',
 				});
-				await ctx.replyWithHTML(successSecondOfferForDriver(secondActiveOrder, minute));
+				await ctx
+					.replyWithHTML(successSecondOfferForDriver(secondActiveOrder, minute))
+					.catch((e) =>
+						this.loggerService.error('finishOrder: ' + ctx?.toString() + e?.toString()),
+					);
 			}
 		} catch (e) {
 			this.loggerService.error('finishOrder' + e?.toString());
@@ -520,8 +596,27 @@ export class TaxiBotDriverUpdate {
 			const order = await this.orderService.findActiveOrderByDriverId(chatId);
 			const { status } = await this.driverService.findByChatId(chatId);
 			if (!order) {
-				await ctx.replyWithHTML(
-					errorValidation,
+				await ctx
+					.replyWithHTML(
+						errorValidation,
+						await selectDriverKeyboard(
+							{
+								chatId,
+								status,
+							},
+							this.orderService,
+						),
+					)
+					.catch((e) =>
+						this.loggerService.error('cancelOrder: ' + ctx?.toString() + e?.toString()),
+					);
+				return;
+			}
+
+			await this.orderService.cancelOrderFromDriver(order.id);
+			await ctx
+				.replyWithHTML(
+					cancelOrderByDriver,
 					await selectDriverKeyboard(
 						{
 							chatId,
@@ -529,24 +624,13 @@ export class TaxiBotDriverUpdate {
 						},
 						this.orderService,
 					),
-				);
-				return;
-			}
-
-			await this.orderService.cancelOrderFromDriver(order.id);
-			await ctx.replyWithHTML(
-				cancelOrderByDriver,
-				await selectDriverKeyboard(
-					{
-						chatId,
-						status,
-					},
-					this.orderService,
-				),
-			);
-			await this.bot.telegram.sendMessage(order.passengerId, cancelOrderToPassenger, {
-				reply_markup: backKeyboard().reply_markup,
-			});
+				)
+				.catch((e) => this.loggerService.error('cancelOrder: ' + ctx?.toString() + e?.toString()));
+			await this.bot.telegram
+				.sendMessage(order.passengerId, cancelOrderToPassenger, {
+					reply_markup: backKeyboard().reply_markup,
+				})
+				.catch((e) => this.loggerService.error('cancelOrder: ' + ctx?.toString() + e?.toString()));
 		} catch (e) {
 			this.loggerService.error('cancelOrder' + e?.toString());
 		}
@@ -572,9 +656,13 @@ export class TaxiBotDriverUpdate {
 				// 				),);
 				return;
 			}
-			await this.bot.telegram.sendMessage(order.passengerId, messageFromDriver + message.text);
+			await this.bot.telegram
+				.sendMessage(order.passengerId, messageFromDriver + message.text)
+				.catch((e) => this.loggerService.error('cancelOrder: ' + ctx?.toString() + e?.toString()));
 
-			await ctx.replyWithHTML(successSendMessage);
+			await ctx
+				.replyWithHTML(successSendMessage)
+				.catch((e) => this.loggerService.error('cancelOrder: ' + ctx?.toString() + e?.toString()));
 		} catch (e) {
 			this.loggerService.error('cancelOrder' + e?.toString());
 		}

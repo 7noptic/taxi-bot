@@ -11,6 +11,7 @@ import { AddReviewContext } from '../contexts/add-review.context';
 import { ReviewService } from '../../review/review.service';
 import { wizardState } from '../../decorators/getWizardState';
 import { commonButtons } from '../buttons/common.buttons';
+import { LoggerService } from '../../logger/logger.service';
 
 @Wizard(ScenesType.AddReview)
 export class AddReviewScene {
@@ -18,16 +19,21 @@ export class AddReviewScene {
 		private readonly reviewService: ReviewService,
 		private readonly taxiBotService: TaxiBotCommonUpdate,
 		private readonly taxiBotValidation: TaxiBotValidation,
+		private readonly loggerService: LoggerService,
 	) {}
 
 	@WizardStep(1)
 	async onSceneEnter(
 		@Ctx() ctx: WizardContext & TaxiBotContext & AddReviewContext,
 	): Promise<string> {
-		ctx.wizard.state.to = ctx.session.addReview.to;
-		ctx.wizard.state.numberOrder = ctx.session.addReview.numberOrder;
-		await ctx.wizard.next();
-		return addReviewText;
+		try {
+			ctx.wizard.state.to = ctx.session.addReview.to;
+			ctx.wizard.state.numberOrder = ctx.session.addReview.numberOrder;
+			ctx?.wizard?.next();
+			return addReviewText;
+		} catch (e) {
+			this.loggerService.error('onSceneEnter: ' + ctx?.toString() + e?.toString());
+		}
 	}
 
 	@On('text')
@@ -41,7 +47,7 @@ export class AddReviewScene {
 		try {
 			const valid = this.taxiBotValidation.checkMaxMinLengthString(msg.text, 2, 3000);
 			if (valid === true) {
-				await ctx.scene.leave();
+				await ctx?.scene?.leave();
 				const dto: CreateReviewDto = {
 					from: chatId,
 					to: state.to,
@@ -49,20 +55,32 @@ export class AddReviewScene {
 					text: msg.text,
 				};
 				await this.reviewService.createReview(dto);
-				await ctx.replyWithHTML(successAddReview);
+				await ctx
+					.replyWithHTML(successAddReview)
+					.catch((e) => this.loggerService.error('onName: ' + ctx?.toString() + e?.toString()));
 				return;
 			}
-			await ctx.replyWithHTML(valid);
+			await ctx
+				.replyWithHTML(valid)
+				.catch((e) => this.loggerService.error('onName: ' + ctx?.toString() + e?.toString()));
 			return;
 		} catch (e) {
-			await ctx.scene.leave();
-			await ctx.replyWithHTML(errorEditInfo);
+			await ctx?.scene?.leave();
+			await ctx
+				.replyWithHTML(errorEditInfo)
+				.catch((e) => this.loggerService.error('onName: ' + ctx?.toString() + e?.toString()));
 			return '';
 		}
 	}
 
 	@Hears(commonButtons.back)
 	async goHome(@Ctx() ctx: TaxiBotContext, @ChatId() chatId: number) {
-		await this.taxiBotService.goHome(ctx, chatId);
+		try {
+			await this.taxiBotService
+				.goHome(ctx, chatId)
+				.catch((e) => this.loggerService.error('goHome: ' + ctx?.toString() + e?.toString()));
+		} catch (e) {
+			this.loggerService.error('goHome: ' + ctx?.toString() + e?.toString());
+		}
 	}
 }

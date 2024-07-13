@@ -27,10 +27,12 @@ import { ThrottlerModule } from '@nestjs/throttler';
 import { LoggerModule } from '../logger/logger.module';
 import { NewsletterModule } from '../newsletter/newsletter.module';
 import { SocketService } from '../socket/socket.service';
+import { GracefulShutdownModule } from 'nestjs-graceful-shutdown';
 
 @Module({
 	imports: [
 		ConfigModule.forRoot(),
+		GracefulShutdownModule.forRoot(),
 		MongooseModule.forRootAsync({
 			imports: [ConfigModule],
 			inject: [ConfigService],

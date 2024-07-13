@@ -19,6 +19,7 @@ import { TaxiBotContext } from '../../taxi-bot.context';
 import { TaxiBotCommonUpdate } from '../../updates/common.update';
 import { selectPassengerKeyboard } from '../../keyboards/passenger/select-passenger-keyboard';
 import { OrderService } from '../../../order/order.service';
+import { LoggerService } from '../../../logger/logger.service';
 
 @Wizard(ScenesType.AddAddress)
 export class AddAddressScene {
@@ -27,12 +28,17 @@ export class AddAddressScene {
 		private readonly taxiBotValidation: TaxiBotValidation,
 		private readonly taxiBotService: TaxiBotCommonUpdate,
 		private readonly orderService: OrderService,
+		private readonly loggerService: LoggerService,
 	) {}
 
 	@WizardStep(1)
 	async onSceneEnter(@Ctx() ctx: WizardContext): Promise<string> {
-		await ctx.wizard.next();
-		return WhatNameAddress;
+		try {
+			ctx?.wizard?.next();
+			return WhatNameAddress;
+		} catch (e) {
+			this.loggerService.error('onSceneEnter: ' + ctx?.toString() + e?.toString());
+		}
 	}
 
 	@On('text')
@@ -41,14 +47,20 @@ export class AddAddressScene {
 		@Ctx() ctx: WizardContext & AddAddressContext,
 		@Message() msg: { text: string },
 	): Promise<string> {
-		const valid = this.taxiBotValidation.checkMaxMinLengthString(msg.text, 2, 30);
-		if (valid === true) {
-			ctx.wizard.state.name = msg.text;
-			await ctx.wizard.next();
-			return WhatAddress;
+		try {
+			const valid = this.taxiBotValidation.checkMaxMinLengthString(msg.text, 2, 30);
+			if (valid === true) {
+				ctx.wizard.state.name = msg.text;
+				ctx?.wizard?.next();
+				return WhatAddress;
+			}
+			await ctx
+				.replyWithHTML(valid)
+				.catch((e) => this.loggerService.error('onName: ' + ctx?.toString() + e?.toString()));
+			return;
+		} catch (e) {
+			this.loggerService.error('onName: ' + ctx?.toString() + e?.toString());
 		}
-		await ctx.replyWithHTML(valid);
-		return;
 	}
 
 	@On('text')
@@ -68,28 +80,37 @@ export class AddAddressScene {
 					address: msg.text,
 				};
 
-				await ctx.scene.leave();
+				await ctx?.scene?.leave();
 				await this.passengerService.addAddress(chatId, address);
-				await ctx.replyWithHTML(
-					successAddAddress,
-					await selectPassengerKeyboard(chatId, this.orderService),
-				);
+				await ctx
+					.replyWithHTML(
+						successAddAddress,
+						await selectPassengerKeyboard(chatId, this.orderService),
+					)
+					.catch((e) => this.loggerService.error('onNumber: ' + ctx?.toString() + e?.toString()));
 				return '';
 			}
-			await ctx.replyWithHTML(valid);
+			await ctx
+				.replyWithHTML(valid)
+				.catch((e) => this.loggerService.error('onNumber: ' + ctx?.toString() + e?.toString()));
 			return;
 		} catch (e) {
-			await ctx.scene.leave();
-			await ctx.replyWithHTML(
-				errorAddAddress,
-				await selectPassengerKeyboard(chatId, this.orderService),
-			);
+			await ctx?.scene?.leave();
+			await ctx
+				.replyWithHTML(errorAddAddress, await selectPassengerKeyboard(chatId, this.orderService))
+				.catch((e) => this.loggerService.error('onNumber: ' + ctx?.toString() + e?.toString()));
 			return '';
 		}
 	}
 
 	@Hears(commonButtons.back)
 	async goHome(@Ctx() ctx: TaxiBotContext, @ChatId() chatId: number) {
-		await this.taxiBotService.goHome(ctx, chatId);
+		try {
+			await this.taxiBotService
+				.goHome(ctx, chatId)
+				.catch((e) => this.loggerService.error('goHome: ' + ctx?.toString() + e?.toString()));
+		} catch (e) {
+			this.loggerService.error('onSceneEnter: ' + ctx?.toString() + e?.toString());
+		}
 	}
 }

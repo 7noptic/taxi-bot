@@ -28,7 +28,6 @@ import { LoggerService } from '../../logger/logger.service';
 import { Throttle } from '@nestjs/throttler';
 import { throttles } from '../../app/app.throttles';
 import { cancelOrderKeyboard } from '../keyboards/passenger/cancel-order.keyboard';
-import { DriverService } from '../../driver/driver.service';
 
 @Update()
 export class TaxiBotPassengerUpdate {
@@ -36,7 +35,6 @@ export class TaxiBotPassengerUpdate {
 		@InjectBot(BotName.Taxi) private readonly bot: Telegraf<TaxiBotContext>,
 		private readonly passengerService: PassengerService,
 		private readonly loggerService: LoggerService,
-		private readonly driverService: DriverService,
 	) {}
 
 	/************************** Регистрация пассажира **************************/
@@ -44,8 +42,16 @@ export class TaxiBotPassengerUpdate {
 	@Hears(registrationButtons.passenger.label)
 	async registrationPassenger(@Ctx() ctx: TaxiBotContext) {
 		try {
-			await ctx.replyWithHTML(ConstantsService.GreetingPassengerMessage, backKeyboard());
-			await ctx.scene.enter(ScenesType.RegistrationPassenger);
+			await ctx
+				.replyWithHTML(ConstantsService.GreetingPassengerMessage, backKeyboard())
+				.catch((e) =>
+					this.loggerService.error('registrationPassenger: ' + ctx?.toString() + e?.toString()),
+				);
+			await ctx.scene
+				.enter(ScenesType.RegistrationPassenger)
+				.catch((e) =>
+					this.loggerService.error('registrationPassenger: ' + ctx?.toString() + e?.toString()),
+				);
 		} catch (e) {
 			this.loggerService.error('registrationPassenger: ' + e?.toString());
 		}
@@ -58,16 +64,18 @@ export class TaxiBotPassengerUpdate {
 		try {
 			const passenger = await this.passengerService.findByChatId(chatId);
 
-			await ctx.replyWithPhoto(
-				{
-					url: ConstantsService.images.addresses,
-				},
-				{
-					caption: passenger.address.length > 0 ? YourAddresses(passenger.address) : NoAddresses,
-					parse_mode: 'HTML',
-					reply_markup: passengerAddressesKeyboard().reply_markup,
-				},
-			);
+			await ctx
+				.replyWithPhoto(
+					{
+						url: ConstantsService.images.addresses,
+					},
+					{
+						caption: passenger.address.length > 0 ? YourAddresses(passenger.address) : NoAddresses,
+						parse_mode: 'HTML',
+						reply_markup: passengerAddressesKeyboard().reply_markup,
+					},
+				)
+				.catch((e) => this.loggerService.error('getAddresses: ' + ctx?.toString() + e?.toString()));
 		} catch (e) {
 			this.loggerService.error('getAddresses: ' + e?.toString());
 		}
@@ -79,11 +87,19 @@ export class TaxiBotPassengerUpdate {
 		try {
 			const { address } = await this.passengerService.findByChatId(chatId);
 			if (address.length >= ConstantsService.defaultMaxAddresses) {
-				await ctx.replyWithHTML(maxAddress);
+				await ctx
+					.replyWithHTML(maxAddress)
+					.catch((e) =>
+						this.loggerService.error('addAddresses: ' + ctx?.toString() + e?.toString()),
+					);
 				return;
 			}
-			await ctx.replyWithHTML(startAddAddress, backKeyboard());
-			await ctx.scene.enter(ScenesType.AddAddress);
+			await ctx
+				.replyWithHTML(startAddAddress, backKeyboard())
+				.catch((e) => this.loggerService.error('addAddresses: ' + ctx?.toString() + e?.toString()));
+			await ctx.scene
+				.enter(ScenesType.AddAddress)
+				.catch((e) => this.loggerService.error('addAddresses: ' + ctx?.toString() + e?.toString()));
 		} catch (e) {
 			this.loggerService.error('addAddresses: ' + e?.toString());
 		}
@@ -93,8 +109,16 @@ export class TaxiBotPassengerUpdate {
 	@Hears(PassengerButtons.address.delete)
 	async deleteAddresses(@Ctx() ctx: TaxiBotContext) {
 		try {
-			await ctx.replyWithHTML(startDeleteAddress, backKeyboard());
-			await ctx.scene.enter(ScenesType.DeleteAddress);
+			await ctx
+				.replyWithHTML(startDeleteAddress, backKeyboard())
+				.catch((e) =>
+					this.loggerService.error('deleteAddresses: ' + ctx?.toString() + e?.toString()),
+				);
+			await ctx.scene
+				.enter(ScenesType.DeleteAddress)
+				.catch((e) =>
+					this.loggerService.error('deleteAddresses: ' + ctx?.toString() + e?.toString()),
+				);
 		} catch (e) {
 			this.loggerService.error('deleteAddresses: ' + e?.toString());
 		}
@@ -107,16 +131,18 @@ export class TaxiBotPassengerUpdate {
 		try {
 			const { first_name, phone, city } = await this.passengerService.findByChatId(chatId);
 
-			await ctx.replyWithPhoto(
-				{
-					url: ConstantsService.images.settings,
-				},
-				{
-					caption: settingsText,
-					parse_mode: 'HTML',
-					reply_markup: passengerSettingsKeyboard(first_name, phone, city).reply_markup,
-				},
-			);
+			await ctx
+				.replyWithPhoto(
+					{
+						url: ConstantsService.images.settings,
+					},
+					{
+						caption: settingsText,
+						parse_mode: 'HTML',
+						reply_markup: passengerSettingsKeyboard(first_name, phone, city).reply_markup,
+					},
+				)
+				.catch((e) => this.loggerService.error('getSettings: ' + ctx?.toString() + e?.toString()));
 		} catch (e) {
 			this.loggerService.error('getSettings: ' + e?.toString());
 		}
@@ -126,8 +152,12 @@ export class TaxiBotPassengerUpdate {
 	@Action(PassengerButtons.settings.name.callback)
 	async editName(@Ctx() ctx: TaxiBotContext) {
 		try {
-			await ctx.replyWithHTML(startEditName, backKeyboard());
-			await ctx.scene.enter(ScenesType.EditName);
+			await ctx
+				.replyWithHTML(startEditName, backKeyboard())
+				.catch((e) => this.loggerService.error('editName: ' + ctx?.toString() + e?.toString()));
+			await ctx.scene
+				.enter(ScenesType.EditName)
+				.catch((e) => this.loggerService.error('editName: ' + ctx?.toString() + e?.toString()));
 		} catch (e) {
 			this.loggerService.error('editName: ' + e?.toString());
 		}
@@ -137,8 +167,12 @@ export class TaxiBotPassengerUpdate {
 	@Action(PassengerButtons.settings.phone.callback)
 	async editPhone(@Ctx() ctx: TaxiBotContext) {
 		try {
-			await ctx.replyWithHTML(startEditPhone, backKeyboard());
-			await ctx.scene.enter(ScenesType.EditPhone);
+			await ctx
+				.replyWithHTML(startEditPhone, backKeyboard())
+				.catch((e) => this.loggerService.error('editPhone: ' + ctx?.toString() + e?.toString()));
+			await ctx.scene
+				.enter(ScenesType.EditPhone)
+				.catch((e) => this.loggerService.error('editPhone: ' + ctx?.toString() + e?.toString()));
 		} catch (e) {
 			this.loggerService.error('editPhone: ' + e?.toString());
 		}
@@ -148,8 +182,12 @@ export class TaxiBotPassengerUpdate {
 	@Action(PassengerButtons.settings.city.callback)
 	async editCity(@Ctx() ctx: TaxiBotContext) {
 		try {
-			await ctx.replyWithHTML(startEditCity, backKeyboard());
-			await ctx.scene.enter(ScenesType.EditCity);
+			await ctx
+				.replyWithHTML(startEditCity, backKeyboard())
+				.catch((e) => this.loggerService.error('editCity: ' + ctx?.toString() + e?.toString()));
+			await ctx.scene
+				.enter(ScenesType.EditCity)
+				.catch((e) => this.loggerService.error('editCity: ' + ctx?.toString() + e?.toString()));
 		} catch (e) {
 			this.loggerService.error('editCity: ' + e?.toString());
 		}
@@ -162,11 +200,19 @@ export class TaxiBotPassengerUpdate {
 		try {
 			const { isBlocked } = await this.passengerService.findByChatId(chatId);
 			if (isBlocked) {
-				await ctx.replyWithHTML(isBlockedPassenger);
+				await ctx
+					.replyWithHTML(isBlockedPassenger)
+					.catch((e) =>
+						this.loggerService.error('createOrder: ' + ctx?.toString() + e?.toString()),
+					);
 				return;
 			}
-			await ctx.replyWithHTML(startCreateOrder, cancelOrderKeyboard());
-			await ctx.scene.enter(ScenesType.CreateOrder);
+			await ctx
+				.replyWithHTML(startCreateOrder, cancelOrderKeyboard())
+				.catch((e) => this.loggerService.error('createOrder: ' + ctx?.toString() + e?.toString()));
+			await ctx.scene
+				.enter(ScenesType.CreateOrder)
+				.catch((e) => this.loggerService.error('createOrder: ' + ctx?.toString() + e?.toString()));
 		} catch (e) {
 			this.loggerService.error('createOrder: ' + e?.toString());
 		}

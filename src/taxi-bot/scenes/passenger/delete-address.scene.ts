@@ -14,6 +14,7 @@ import { TaxiBotContext } from '../../taxi-bot.context';
 import { TaxiBotCommonUpdate } from '../../updates/common.update';
 import { selectPassengerKeyboard } from '../../keyboards/passenger/select-passenger-keyboard';
 import { OrderService } from '../../../order/order.service';
+import { LoggerService } from '../../../logger/logger.service';
 
 @Wizard(ScenesType.DeleteAddress)
 export class DeleteAddressScene {
@@ -21,12 +22,17 @@ export class DeleteAddressScene {
 		private readonly passengerService: PassengerService,
 		private readonly taxiBotService: TaxiBotCommonUpdate,
 		private readonly orderService: OrderService,
+		private readonly loggerService: LoggerService,
 	) {}
 
 	@WizardStep(1)
 	async onSceneEnter(@Ctx() ctx: WizardContext): Promise<string> {
-		await ctx.wizard.next();
-		return WhatNameAddress;
+		try {
+			ctx?.wizard?.next();
+			return WhatNameAddress;
+		} catch (e) {
+			this.loggerService.error('onSceneEnter: ' + ctx?.toString() + e?.toString());
+		}
 	}
 
 	@On('text')
@@ -37,25 +43,32 @@ export class DeleteAddressScene {
 		@Message() msg: { text: string },
 	): Promise<string> {
 		try {
-			await ctx.scene.leave();
+			await ctx?.scene?.leave();
 			const countDeletedAddress = await this.passengerService.deleteAddress(chatId, msg.text);
-			await ctx.replyWithHTML(
-				countDeletedAddress > 0 ? successDeleteAddress : errorDeleteAddress,
-				await selectPassengerKeyboard(chatId, this.orderService),
-			);
+			await ctx
+				.replyWithHTML(
+					countDeletedAddress > 0 ? successDeleteAddress : errorDeleteAddress,
+					await selectPassengerKeyboard(chatId, this.orderService),
+				)
+				.catch((e) => this.loggerService.error('onName: ' + ctx?.toString() + e?.toString()));
 			return '';
 		} catch (e) {
-			await ctx.scene.leave();
-			await ctx.replyWithHTML(
-				errorDeleteAddress,
-				await selectPassengerKeyboard(chatId, this.orderService),
-			);
+			await ctx?.scene?.leave();
+			await ctx
+				.replyWithHTML(errorDeleteAddress, await selectPassengerKeyboard(chatId, this.orderService))
+				.catch((e) => this.loggerService.error('onName: ' + ctx?.toString() + e?.toString()));
 			return '';
 		}
 	}
 
 	@Hears(commonButtons.back)
 	async goHome(@Ctx() ctx: TaxiBotContext, @ChatId() chatId: number) {
-		await this.taxiBotService.goHome(ctx, chatId);
+		try {
+			await this.taxiBotService
+				.goHome(ctx, chatId)
+				.catch((e) => this.loggerService.error('goHome: ' + ctx?.toString() + e?.toString()));
+		} catch (e) {
+			this.loggerService.error('goHome: ' + ctx?.toString() + e?.toString());
+		}
 	}
 }

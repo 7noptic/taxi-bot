@@ -28,6 +28,8 @@ import { selectCityKeyboard } from '../../keyboards/select-city.keyboard';
 import { ConstantsService } from '../../../constants/constants.service';
 import { UserType } from '../../../types/user.type';
 import { SuccessTermKeyboard } from '../../keyboards/success-term.keyboard';
+import { LoggerService } from '../../../logger/logger.service';
+import { Passenger } from '../../../passenger/passenger.model';
 
 @Wizard(ScenesType.RegistrationPassenger)
 export class RegisterPassengerScene {
@@ -37,18 +39,25 @@ export class RegisterPassengerScene {
 		private readonly passengerAdapter: PassengerAdapter,
 		private readonly taxiBotService: TaxiBotCommonUpdate,
 		private readonly taxiBotValidation: TaxiBotValidation,
+		private readonly loggerService: LoggerService,
 	) {}
 
 	@WizardStep(0)
 	async onSceneEnter(@Ctx() ctx: WizardContext): Promise<string> {
-		await ctx.replyWithHTML(
-			ConstantsService.RegistrationMessage(UserType.Passenger),
-			SuccessTermKeyboard(),
-		);
+		try {
+			await ctx
+				.replyWithHTML(
+					ConstantsService.RegistrationMessage(UserType.Passenger),
+					SuccessTermKeyboard(),
+				)
+				.catch((e) => this.loggerService.error('onPhone: ' + ctx?.toString() + e?.toString()));
 
-		ctx.wizard.next();
+			ctx?.wizard?.next();
 
-		return;
+			return;
+		} catch (e) {
+			this.loggerService.error('onSceneEnter: ' + ctx?.toString() + e?.toString());
+		}
 	}
 
 	@On('callback_query')
@@ -57,9 +66,13 @@ export class RegisterPassengerScene {
 		@Ctx() ctx: WizardContext,
 		@GetQueryData() checked: string,
 	): Promise<string> {
-		if (checked === commonButtons.success.callback) {
-			ctx.wizard.next();
-			return WhatNameRegistrationPassenger;
+		try {
+			if (checked === commonButtons.success.callback) {
+				ctx?.wizard?.next();
+				return WhatNameRegistrationPassenger;
+			}
+		} catch (e) {
+			this.loggerService.error('onCheckedTerms: ' + ctx?.toString() + e?.toString());
 		}
 	}
 
@@ -69,14 +82,20 @@ export class RegisterPassengerScene {
 		@Ctx() ctx: WizardContext & RegistrationPassengerContext,
 		@Message() msg: { text: string },
 	): Promise<string> {
-		const valid = this.taxiBotValidation.checkMaxMinLengthString(msg.text, 2, 30);
-		if (valid === true) {
-			ctx.wizard.state.name = msg.text;
-			await ctx.wizard.next();
-			return WhatNumberRegistrationPassenger;
+		try {
+			const valid = this.taxiBotValidation.checkMaxMinLengthString(msg.text, 2, 30);
+			if (valid === true) {
+				ctx.wizard.state.name = msg.text;
+				ctx?.wizard?.next();
+				return WhatNumberRegistrationPassenger;
+			}
+			await ctx
+				.replyWithHTML(valid)
+				.catch((e) => this.loggerService.error('onName: ' + ctx?.toString() + e?.toString()));
+			return;
+		} catch (e) {
+			this.loggerService.error('onName: ' + ctx?.toString() + e?.toString());
 		}
-		await ctx.replyWithHTML(valid);
-		return;
 	}
 
 	@On('text')
@@ -85,17 +104,27 @@ export class RegisterPassengerScene {
 		@Ctx() ctx: WizardContext & RegistrationPassengerContext,
 		@Message() msg: { text: string },
 	): Promise<string> {
-		const valid = this.taxiBotValidation.isPhone(msg.text);
-		if (valid === true) {
-			ctx.wizard.state.phone = msg.text;
-			const cities = await this.cityService.getAll();
-			await ctx.replyWithHTML(WhatCity, selectCityKeyboard(cities));
+		try {
+			const valid = this.taxiBotValidation.isPhone(msg.text);
+			if (valid === true) {
+				ctx.wizard.state.phone = msg.text;
+				const cities = await this.cityService.getAll();
+				await ctx
+					.replyWithHTML(WhatCity, selectCityKeyboard(cities))
+					.catch((e) =>
+						this.loggerService.error('onNumberText: ' + ctx?.toString() + e?.toString()),
+					);
 
-			await ctx.wizard.next();
+				ctx?.wizard?.next();
+				return;
+			}
+			await ctx
+				.replyWithHTML(valid)
+				.catch((e) => this.loggerService.error('onNumberText: ' + ctx?.toString() + e?.toString()));
 			return;
+		} catch (e) {
+			this.loggerService.error('onNumberText: ' + ctx?.toString() + e?.toString());
 		}
-		await ctx.replyWithHTML(valid);
-		return;
 	}
 
 	@On('contact')
@@ -104,15 +133,23 @@ export class RegisterPassengerScene {
 		@Ctx() ctx: WizardContext & RegistrationPassengerContext,
 		@Message() msg: { contact: { phone_number: string } },
 	): Promise<string> {
-		ctx.wizard.state.phone = msg.contact.phone_number;
-		const cities = await this.cityService.getAll();
-		await ctx.replyWithHTML(
-			WhatCity,
-			Markup.inlineKeyboard(cities.map((city) => Markup.button.callback(city.name, city.name))),
-		);
+		try {
+			ctx.wizard.state.phone = msg.contact.phone_number;
+			const cities = await this.cityService.getAll();
+			await ctx
+				.replyWithHTML(
+					WhatCity,
+					Markup.inlineKeyboard(cities.map((city) => Markup.button.callback(city.name, city.name))),
+				)
+				.catch((e) =>
+					this.loggerService.error('onNumberContact: ' + ctx?.toString() + e?.toString()),
+				);
 
-		await ctx.wizard.next();
-		return;
+			ctx?.wizard?.next();
+			return;
+		} catch (e) {
+			this.loggerService.error('onNumberContact: ' + ctx?.toString() + e?.toString());
+		}
 	}
 
 	@On('callback_query')
@@ -120,7 +157,7 @@ export class RegisterPassengerScene {
 	async onLocation(
 		@Ctx() ctx: WizardContext & TaxiBotContext & RegistrationPassengerContext,
 		@GetQueryData() city: string,
-		@userInfo() user,
+		@userInfo() user: Passenger,
 		@wizardState() state: RegistrationPassengerContext['wizard']['state'],
 	) {
 		try {
@@ -135,22 +172,32 @@ export class RegisterPassengerScene {
 					last_name: user.last_name || '',
 				});
 				await this.passengerService.create(createPassengerDto);
-				await ctx.replyWithHTML(greetingPassenger(state.name), passengerProfileKeyboard());
-				await ctx.scene.leave();
+				await ctx
+					.replyWithHTML(greetingPassenger(state.name), passengerProfileKeyboard())
+					.catch((e) => this.loggerService.error('onLocation: ' + ctx?.toString() + e?.toString()));
+				await ctx?.scene?.leave();
 				return;
 			}
 
-			await ctx.replyWithHTML(errorValidation);
+			await ctx
+				.replyWithHTML(errorValidation)
+				.catch((e) => this.loggerService.error('onLocation: ' + ctx?.toString() + e?.toString()));
 			return '';
 		} catch (e) {
-			await ctx.scene.leave();
-			await ctx.replyWithHTML(errorRegistration, registrationKeyboard());
+			await ctx?.scene?.leave();
+			await ctx
+				.replyWithHTML(errorRegistration, registrationKeyboard())
+				.catch((e) => this.loggerService.error('onLocation: ' + ctx?.toString() + e?.toString()));
 			return '';
 		}
 	}
 
 	@Hears(commonButtons.back)
 	async goHome(@Ctx() ctx: TaxiBotContext, @ChatId() chatId: number) {
-		await this.taxiBotService.goHome(ctx, chatId);
+		try {
+			await this.taxiBotService.goHome(ctx, chatId);
+		} catch (e) {
+			this.loggerService.error('goHome: ' + ctx?.toString() + e?.toString());
+		}
 	}
 }

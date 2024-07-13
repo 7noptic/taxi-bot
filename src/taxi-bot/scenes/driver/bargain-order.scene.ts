@@ -27,6 +27,7 @@ import { driverOfferKeyboard } from '../../keyboards/passenger/driver-offer.keyb
 import { selectDriverKeyboard } from '../../keyboards/driver/select-driver-keyboard';
 import { OrderService } from '../../../order/order.service';
 import { ConstantsService } from '../../../constants/constants.service';
+import { LoggerService } from '../../../logger/logger.service';
 
 @Wizard(ScenesType.BargainOrderByDriver)
 export class BargainOrderScene {
@@ -35,6 +36,7 @@ export class BargainOrderScene {
 		private readonly cityService: CityService,
 		private readonly taxiBotService: TaxiBotCommonUpdate,
 		private readonly orderService: OrderService,
+		private readonly loggerService: LoggerService,
 		@InjectBot(BotName.Taxi) private readonly bot: Telegraf<TaxiBotContext>,
 	) {}
 
@@ -42,11 +44,17 @@ export class BargainOrderScene {
 	async onSceneEnter(
 		@Ctx() ctx: WizardContext & TaxiBotContext & AcceptanceOrderByDriverContext,
 	): Promise<string> {
-		ctx.wizard.state.orderId = ctx.session.acceptedOrder.orderId;
-		ctx.wizard.state.passengerId = ctx.session.acceptedOrder.passengerId;
-		await ctx.replyWithHTML(timeDeliveryText, timeDriverKeyboard());
-		ctx.wizard.next();
-		return;
+		try {
+			ctx.wizard.state.orderId = ctx.session.acceptedOrder.orderId;
+			ctx.wizard.state.passengerId = ctx.session.acceptedOrder.passengerId;
+			await ctx
+				.replyWithHTML(timeDeliveryText, timeDriverKeyboard())
+				.catch((e) => this.loggerService.error('onSceneEnter: ' + ctx?.toString() + e?.toString()));
+			ctx?.wizard?.next();
+			return;
+		} catch (e) {
+			this.loggerService.error('onSceneEnter: ' + ctx?.toString() + e?.toString());
+		}
 	}
 
 	@On('callback_query')
@@ -56,22 +64,36 @@ export class BargainOrderScene {
 		@GetQueryData() time: string,
 		@ChatId() chatId: number,
 	): Promise<string> {
-		const numberTime = Number(time);
-		if (numberTime > 0 && numberTime < 30) {
-			await ctx?.deleteMessage();
-			ctx.wizard.state.time = numberTime;
-			const { city } = await this.driverService.findByChatId(chatId);
-			const minPrice = await this.cityService.getMinPriceByName(city);
-			ctx.wizard.state.minPrice = minPrice;
-			await ctx.replyWithHTML(
-				desiredPriceText,
-				selectPriceOrderKeyboard(ConstantsService.roundToNearest50(minPrice)),
-			);
-			await ctx.wizard.next();
+		try {
+			const numberTime = Number(time);
+			if (numberTime > 0 && numberTime < 30) {
+				await ctx
+					?.deleteMessage()
+					.catch((e) =>
+						this.loggerService.error('onSelectTime: ' + ctx?.toString() + e?.toString()),
+					);
+				ctx.wizard.state.time = numberTime;
+				const { city } = await this.driverService.findByChatId(chatId);
+				const minPrice = await this.cityService.getMinPriceByName(city);
+				ctx.wizard.state.minPrice = minPrice;
+				await ctx
+					.replyWithHTML(
+						desiredPriceText,
+						selectPriceOrderKeyboard(ConstantsService.roundToNearest50(minPrice)),
+					)
+					.catch((e) =>
+						this.loggerService.error('onSelectTime: ' + ctx?.toString() + e?.toString()),
+					);
+				ctx?.wizard?.next();
+				return;
+			}
+			await ctx
+				.replyWithHTML(errorValidation)
+				.catch((e) => this.loggerService.error('onSelectTime: ' + ctx?.toString() + e?.toString()));
 			return;
+		} catch (e) {
+			this.loggerService.error('onSelectTime: ' + ctx?.toString() + e?.toString());
 		}
-		await ctx.replyWithHTML(errorValidation);
-		return;
 	}
 
 	@On('callback_query')
@@ -85,13 +107,23 @@ export class BargainOrderScene {
 			const numberPrice = Number(price);
 			if (numberPrice > 0 && numberPrice < 100_000) {
 				ctx.wizard.state.price = numberPrice;
-				await ctx?.deleteMessage();
+				await ctx
+					?.deleteMessage()
+					.catch((e) =>
+						this.loggerService.error('onPriceCallback: ' + ctx?.toString() + e?.toString()),
+					);
 				await this.onPrice(ctx, chatId);
 				return;
 			}
-			await ctx.replyWithHTML(errorValidation);
+			await ctx
+				.replyWithHTML(errorValidation)
+				.catch((e) =>
+					this.loggerService.error('onPriceCallback: ' + ctx?.toString() + e?.toString()),
+				);
 			return;
-		} catch (e) {}
+		} catch (e) {
+			this.loggerService.error('onPriceCallback: ' + ctx?.toString() + e?.toString());
+		}
 	}
 
 	@On('text')
@@ -108,44 +140,60 @@ export class BargainOrderScene {
 				await this.onPrice(ctx, chatId);
 				return;
 			}
-			await ctx.replyWithHTML(errorPrice(state.minPrice));
+			await ctx
+				.replyWithHTML(errorPrice(state.minPrice))
+				.catch((e) => this.loggerService.error('onPriceText: ' + ctx?.toString() + e?.toString()));
 			return;
-		} catch (e) {}
+		} catch (e) {
+			this.loggerService.error('onPriceText: ' + ctx?.toString() + e?.toString());
+		}
 	}
 
 	async onPrice(
 		@Ctx() ctx: WizardContext & TaxiBotContext & AcceptanceOrderByDriverContext,
 		@ChatId() chatId: number,
 	) {
-		const driver = await this.driverService.findByChatId(chatId);
-		await this.bot.telegram.sendMessage(
-			ctx.wizard.state.passengerId,
-			driverOffer(driver, ctx.wizard.state.time, ctx.wizard.state.price),
-			{
-				parse_mode: 'HTML',
-				reply_markup: driverOfferKeyboard(
-					ctx.wizard.state.orderId,
-					driver.chatId,
-					ctx.wizard.state.time,
-					ctx.wizard.state.price,
-				),
-			},
-		);
-		await ctx.replyWithHTML(
-			successfulProposalSubmissionText,
-			await selectDriverKeyboard(
-				{
-					chatId,
-					status: driver.status,
-				},
-				this.orderService,
-			),
-		);
-		await ctx.scene.leave();
+		try {
+			const driver = await this.driverService.findByChatId(chatId);
+			await this.bot.telegram
+				.sendMessage(
+					ctx.wizard.state.passengerId,
+					driverOffer(driver, ctx.wizard.state.time, ctx.wizard.state.price),
+					{
+						parse_mode: 'HTML',
+						reply_markup: driverOfferKeyboard(
+							ctx.wizard.state.orderId,
+							driver.chatId,
+							ctx.wizard.state.time,
+							ctx.wizard.state.price,
+						),
+					},
+				)
+				.catch((e) => this.loggerService.error('onPrice: ' + ctx?.toString() + e?.toString()));
+			await ctx
+				.replyWithHTML(
+					successfulProposalSubmissionText,
+					await selectDriverKeyboard(
+						{
+							chatId,
+							status: driver.status,
+						},
+						this.orderService,
+					),
+				)
+				.catch((e) => this.loggerService.error('onPrice: ' + ctx?.toString() + e?.toString()));
+			await ctx?.scene?.leave();
+		} catch (e) {
+			this.loggerService.error('onPrice: ' + ctx?.toString() + e?.toString());
+		}
 	}
 
 	@Hears(commonButtons.back)
 	async goHome(@Ctx() ctx: TaxiBotContext, @ChatId() chatId: number) {
-		await this.taxiBotService.goHome(ctx, chatId);
+		try {
+			await this.taxiBotService.goHome(ctx, chatId);
+		} catch (e) {
+			this.loggerService.error('goHome: ' + ctx?.toString() + e?.toString());
+		}
 	}
 }

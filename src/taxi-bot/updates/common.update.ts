@@ -42,26 +42,32 @@ export class TaxiBotCommonUpdate {
 		try {
 			const passenger = await this.passengerService.findByChatId(chatId);
 			const driver = await this.driverService.findByChatId(chatId);
-			if (ctx?.scene) await ctx.scene.leave();
+			if (ctx?.scene) await ctx?.scene?.leave();
 
 			if (!passenger && !driver) {
-				await ctx.replyWithHTML(ConstantsService.WelcomeMessage, registrationKeyboard());
+				await ctx
+					.replyWithHTML(ConstantsService.WelcomeMessage, registrationKeyboard())
+					.catch((e) => this.loggerService.error('start: ' + e?.toString()));
 			} else if (passenger) {
-				await ctx.replyWithHTML(
-					ConstantsService.greetingMessage,
-					await selectPassengerKeyboard(chatId, this.orderService),
-				);
+				await ctx
+					.replyWithHTML(
+						ConstantsService.greetingMessage,
+						await selectPassengerKeyboard(chatId, this.orderService),
+					)
+					.catch((e) => this.loggerService.error('start: ' + e?.toString()));
 			} else if (driver) {
-				await ctx.replyWithHTML(
-					ConstantsService.greetingMessage,
-					await selectDriverKeyboard(
-						{
-							chatId: driver.chatId,
-							status: driver.status,
-						},
-						this.orderService,
-					),
-				);
+				await ctx
+					.replyWithHTML(
+						ConstantsService.greetingMessage,
+						await selectDriverKeyboard(
+							{
+								chatId: driver.chatId,
+								status: driver.status,
+							},
+							this.orderService,
+						),
+					)
+					.catch((e) => this.loggerService.error('start: ' + e?.toString()));
 			}
 		} catch (e) {
 			this.loggerService.error('start: ' + e?.toString());
@@ -73,22 +79,28 @@ export class TaxiBotCommonUpdate {
 	@Hears(commonButtons.back)
 	async goHome(@Ctx() ctx: TaxiBotContext, @ChatId() chatId: number) {
 		try {
-			if (ctx?.scene) await ctx.scene.leave();
+			if (ctx?.scene) await ctx?.scene?.leave();
 			const passenger = await this.passengerService.findByChatId(chatId);
 			if (passenger) {
-				await ctx.replyWithHTML(goBack, await selectPassengerKeyboard(chatId, this.orderService));
+				await ctx
+					.replyWithHTML(goBack, await selectPassengerKeyboard(chatId, this.orderService))
+					.catch((e) => this.loggerService.error('goHome: ' + e?.toString()));
 				return;
 			}
 			const driver = await this.driverService.findByChatId(chatId);
 
 			if (driver) {
-				await ctx.replyWithHTML(
-					goBack,
-					await selectDriverKeyboard({ chatId, status: driver.status }, this.orderService),
-				);
+				await ctx
+					.replyWithHTML(
+						goBack,
+						await selectDriverKeyboard({ chatId, status: driver.status }, this.orderService),
+					)
+					.catch((e) => this.loggerService.error('goHome: ' + e?.toString()));
 				return;
 			}
-			await ctx.replyWithHTML(goBack, registrationKeyboard());
+			await ctx
+				.replyWithHTML(goBack, registrationKeyboard())
+				.catch((e) => this.loggerService.error('goHome: ' + e?.toString()));
 		} catch (e) {
 			this.loggerService.error('goHome: ' + e?.toString());
 		}
@@ -99,16 +111,18 @@ export class TaxiBotCommonUpdate {
 	@Hears(commonButtons.profile.help)
 	async getHelp(@Ctx() ctx: TaxiBotContext) {
 		try {
-			await ctx.replyWithPhoto(
-				{
-					url: ConstantsService.images.help,
-				},
-				{
-					caption: commonButtons.profile.help,
-					parse_mode: 'HTML',
-					reply_markup: helpKeyboard().reply_markup,
-				},
-			);
+			await ctx
+				.replyWithPhoto(
+					{
+						url: ConstantsService.images.help,
+					},
+					{
+						caption: commonButtons.profile.help,
+						parse_mode: 'HTML',
+						reply_markup: helpKeyboard().reply_markup,
+					},
+				)
+				.catch((e) => this.loggerService.error('getHelp: ' + e?.toString()));
 		} catch (e) {
 			this.loggerService.error('getHelp: ' + e?.toString());
 		}
@@ -119,7 +133,9 @@ export class TaxiBotCommonUpdate {
 	async getFaq(@Ctx() ctx: TaxiBotContext) {
 		try {
 			const settings = await this.settingsService.getSettings();
-			await ctx.replyWithHTML(settings.faqText);
+			await ctx
+				.replyWithHTML(settings.faqText)
+				.catch((e) => this.loggerService.error('getFaq: ' + e?.toString()));
 		} catch (e) {
 			this.loggerService.error('getFaq: ' + e?.toString());
 		}
@@ -130,7 +146,9 @@ export class TaxiBotCommonUpdate {
 	async getPriceText(@Ctx() ctx: TaxiBotContext) {
 		try {
 			const settings = await this.settingsService.getSettings();
-			await ctx.replyWithHTML(settings.priceText);
+			await ctx
+				.replyWithHTML(settings.priceText)
+				.catch((e) => this.loggerService.error('getPriceText: ' + e?.toString()));
 		} catch (e) {
 			this.loggerService.error('getPriceText: ' + e?.toString());
 		}
@@ -141,7 +159,9 @@ export class TaxiBotCommonUpdate {
 	async getAboutText(@Ctx() ctx: TaxiBotContext) {
 		try {
 			const settings = await this.settingsService.getSettings();
-			await ctx.replyWithHTML(settings.aboutText);
+			await ctx
+				.replyWithHTML(settings.aboutText)
+				.catch((e) => this.loggerService.error('getAboutText: ' + e?.toString()));
 		} catch (e) {
 			this.loggerService.error('getAboutText: ' + e?.toString());
 		}
@@ -152,7 +172,9 @@ export class TaxiBotCommonUpdate {
 	async getSupportText(@Ctx() ctx: TaxiBotContext) {
 		try {
 			const settings = await this.settingsService.getSettings();
-			await ctx.replyWithHTML(settings.supportText);
+			await ctx
+				.replyWithHTML(settings.supportText)
+				.catch((e) => this.loggerService.error('getSupportText: ' + e?.toString()));
 		} catch (e) {
 			this.loggerService.error('getSupportText: ' + e?.toString());
 		}
@@ -166,29 +188,33 @@ export class TaxiBotCommonUpdate {
 			const passenger = await this.passengerService.findByChatId(chatId);
 			if (passenger) {
 				const ordersInfo = await this.orderService.getPassengerOrdersInfo(chatId);
-				await ctx.replyWithPhoto(
-					{
-						url: ConstantsService.images.profile,
-					},
-					{
-						caption: ConstantsService.getProfileInfoPassenger(passenger, ordersInfo),
-						parse_mode: 'HTML',
-					},
-				);
+				await ctx
+					.replyWithPhoto(
+						{
+							url: ConstantsService.images.profile,
+						},
+						{
+							caption: ConstantsService.getProfileInfoPassenger(passenger, ordersInfo),
+							parse_mode: 'HTML',
+						},
+					)
+					.catch((e) => this.loggerService.error('getProfile: ' + e?.toString()));
 				return;
 			}
 			const driver = await this.driverService.findByChatId(chatId);
 			if (driver) {
-				await ctx.replyWithPhoto(
-					{
-						url: ConstantsService.images.profile,
-					},
-					{
-						caption: ConstantsService.getProfileInfoDriver(driver),
-						parse_mode: 'HTML',
-						reply_markup: profileDriverSettingsKeyboard().reply_markup,
-					},
-				);
+				await ctx
+					.replyWithPhoto(
+						{
+							url: ConstantsService.images.profile,
+						},
+						{
+							caption: ConstantsService.getProfileInfoDriver(driver),
+							parse_mode: 'HTML',
+							reply_markup: profileDriverSettingsKeyboard().reply_markup,
+						},
+					)
+					.catch((e) => this.loggerService.error('getProfile: ' + e?.toString()));
 				return;
 			}
 		} catch (e) {
@@ -214,7 +240,9 @@ export class TaxiBotCommonUpdate {
 					await this.passengerService.addRating(userChatId, rate);
 					break;
 			}
-			await ctx.editMessageReplyMarkup(addReviewKeyboard(userChatId, orderNumber).reply_markup);
+			await ctx
+				.editMessageReplyMarkup(addReviewKeyboard(userChatId, orderNumber).reply_markup)
+				.catch((e) => this.loggerService.error('setRating: ' + e?.toString()));
 		} catch (e) {
 			this.loggerService.error('setRating: ' + e?.toString());
 		}
@@ -232,7 +260,9 @@ export class TaxiBotCommonUpdate {
 				to: userChatId,
 				numberOrder: orderNumber,
 			};
-			await ctx.scene.enter(ScenesType.AddReview);
+			await ctx.scene
+				.enter(ScenesType.AddReview)
+				.catch((e) => this.loggerService.error('addReview: ' + e?.toString()));
 		} catch (e) {
 			this.loggerService.error('addReview: ' + e?.toString());
 		}
@@ -259,7 +289,9 @@ export class TaxiBotCommonUpdate {
 		try {
 			const price = Math.round(Number(ctx.update.message.successful_payment.total_amount / 100));
 			await this.paymentService.closePayment(chatId, price);
-			await ctx.replyWithHTML(successfulPayment);
+			await ctx
+				.replyWithHTML(successfulPayment)
+				.catch((e) => this.loggerService.error('successfulPayment: ' + e?.toString()));
 		} catch (e) {
 			this.loggerService.error('successfulPayment: ' + e?.toString());
 		}
