@@ -3,8 +3,6 @@ FROM node:18-alpine As development
 WORKDIR /usr/src/app
 
 COPY --chown=node:node package*.json ./
-COPY --chown=node:node .env .env
-COPY --chown=node:node logs logs
 
 RUN yarn install
 
@@ -23,7 +21,6 @@ WORKDIR /usr/src/app
 COPY --chown=node:node package*.json ./
 
 COPY --chown=node:node --from=development /usr/src/app/node_modules ./node_modules
-COPY --chown=node:node .env .env
 COPY --chown=node:node . .
 
 RUN yarn run build
@@ -42,6 +39,5 @@ FROM node:18-alpine As production
 
 COPY --chown=node:node --from=build /usr/src/app/node_modules ./node_modules
 COPY --chown=node:node --from=build /usr/src/app/dist ./dist
-COPY --chown=node:node .env .env
 
 CMD [ "node", "dist/src/main.js" ]
