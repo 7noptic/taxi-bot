@@ -41,7 +41,7 @@ COPY --chown=node:node --from=build /usr/src/app/node_modules ./node_modules
 COPY --chown=node:node --from=build /usr/src/app/dist ./dist
 
 # Установка curl и wget
-HEALTHCHECK --interval=5s --timeout=3s --retries=3 CMD npm run healthcheck
+HEALTHCHECK CMD curl --fail http://localhost:8000/ || exit 1
 
 
 CMD [ "node", "dist/src/main.js" ]
