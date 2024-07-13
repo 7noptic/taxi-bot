@@ -3,7 +3,8 @@ FROM node:18-alpine As development
 WORKDIR /usr/src/app
 
 COPY --chown=node:node package*.json ./
-
+RUN apk --update --no-cache add curl
+RUN apt-get update && apt-get install -y wget
 RUN yarn install
 
 COPY --chown=node:node . .
