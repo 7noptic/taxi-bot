@@ -40,7 +40,4 @@ FROM node:18-alpine As production
 COPY --chown=node:node --from=build /usr/src/app/node_modules ./node_modules
 COPY --chown=node:node --from=build /usr/src/app/dist ./dist
 
-HEALTHCHECK  --interval=10s --timeout=3s \
-    CMD curl http://localhost:80 || exit 1
-
 CMD [ "node", "dist/src/main.js" ]
