@@ -3,8 +3,7 @@ FROM node:18-alpine As development
 WORKDIR /usr/src/app
 
 COPY --chown=node:node package*.json ./
-RUN apk --update --no-cache add curl
-RUN apt-get update && apt-get install -y wget
+
 RUN yarn install
 
 COPY --chown=node:node . .
@@ -40,5 +39,11 @@ FROM node:18-alpine As production
 
 COPY --chown=node:node --from=build /usr/src/app/node_modules ./node_modules
 COPY --chown=node:node --from=build /usr/src/app/dist ./dist
+
+# Установка curl и wget
+RUN apk --update --no-cache add curl wget
+
+RUN yarn install --only=production && npm cache clean --force
+
 
 CMD [ "node", "dist/src/main.js" ]
