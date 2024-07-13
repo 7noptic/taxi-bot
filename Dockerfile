@@ -41,8 +41,8 @@ COPY --chown=node:node --from=build /usr/src/app/node_modules ./node_modules
 COPY --chown=node:node --from=build /usr/src/app/dist ./dist
 
 # Установка curl и wget
-HEALTHCHECK  --interval=5m --timeout=3s \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:8000/ || exit 0
+HEALTHCHECK --interval=5s --timeout=5s --retries=3 \
+    CMD wget -nv -t1 --spider 'http://localhost:8000/' || exit 0
 
 
 CMD [ "node", "dist/src/main.js" ]
