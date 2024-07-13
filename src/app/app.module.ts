@@ -28,11 +28,13 @@ import { LoggerModule } from '../logger/logger.module';
 import { NewsletterModule } from '../newsletter/newsletter.module';
 import { SocketService } from '../socket/socket.service';
 import { GracefulShutdownModule } from 'nestjs-graceful-shutdown';
+import { HealthModule } from '../health/health.module';
 
 @Module({
 	imports: [
 		ConfigModule.forRoot(),
 		GracefulShutdownModule.forRoot(),
+
 		MongooseModule.forRootAsync({
 			imports: [ConfigModule],
 			inject: [ConfigService],
@@ -111,6 +113,7 @@ import { GracefulShutdownModule } from 'nestjs-graceful-shutdown';
 			inject: [ConfigService],
 		}),
 		TaxiBotModule,
+		HealthModule,
 	],
 	controllers: [AppController],
 	providers: [AppService, SettingsService, SocketService],

@@ -17,9 +17,12 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "healthcheck": "npm run start:dev & sleep 10 && curl http://localhost:3000/health"
   },
   "dependencies": {
+    "@betsys-nestjs/health-check": "^4.0.0",
+    "@nestjs/axios": "^3.0.2",
     "@nestjs/bull": "^10.1.1",
     "@nestjs/common": "^10.0.0",
     "@nestjs/config": "^3.2.1",
@@ -31,10 +34,12 @@
     "@nestjs/platform-socket.io": "^10.3.8",
     "@nestjs/schedule": "^4.0.2",
     "@nestjs/serve-static": "^4.0.2",
+    "@nestjs/swagger": "^7.4.0",
     "@nestjs/terminus": "^10.2.3",
     "@nestjs/throttler": "^5.1.2",
     "@nestjs/websockets": "^10.3.8",
     "@telegraf/session": "^2.0.0-beta.7",
+    "axios": "^1.7.2",
     "bcryptjs": "^2.4.3",
     "bull": "^4.12.2",
     "class-transformer": "^0.5.1",

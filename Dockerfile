@@ -41,9 +41,7 @@ COPY --chown=node:node --from=build /usr/src/app/node_modules ./node_modules
 COPY --chown=node:node --from=build /usr/src/app/dist ./dist
 
 # Установка curl и wget
-RUN apk --update --no-cache add curl wget
-
-RUN yarn install --only=production && npm cache clean --force
+HEALTHCHECK --interval=5s --timeout=3s --retries=3 CMD npm run healthcheck
 
 
 CMD [ "node", "dist/src/main.js" ]
