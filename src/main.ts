@@ -8,10 +8,6 @@ async function bootstrap() {
 	app.enableCors();
 	setupGracefulShutdown({ app });
 	await app.listen(3000);
-
-	setTimeout(() => {
-		process.kill(process.pid, 'SIGTERM');
-	}, 5000);
 }
 
 bootstrap();
