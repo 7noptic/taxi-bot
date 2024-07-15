@@ -5,7 +5,9 @@ import { setupGracefulShutdown } from 'nestjs-graceful-shutdown';
 async function bootstrap() {
 	const app = await NestFactory.create(AppModule);
 	app.setGlobalPrefix('api');
-	app.enableCors();
+	app.enableCors({
+		origin: 'http://taxi-bot-admin.ru',
+	});
 	setupGracefulShutdown({ app });
 	await app.listen(3000);
 }
