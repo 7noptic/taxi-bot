@@ -68,7 +68,7 @@ import { LoggerService } from '../../../logger/logger.service';
 
 @Wizard(ScenesType.CreateOrder)
 export class CreateOrderScene {
-	timeout: Timeout;
+	timeout: number;
 
 	constructor(
 		private readonly passengerService: PassengerService,
@@ -459,6 +459,7 @@ export class CreateOrderScene {
 						);
 					console.log('timer error999: ', !!this.timeout, chatId);
 					this.loggerService.error('timer error999: ' + chatId + ' - ' + !!this.timeout);
+					//@ts-ignore
 					this.timeout = setTimeout(
 						async () => {
 							await this.cancelOrder(ctx, chatId, true);
