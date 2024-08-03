@@ -104,14 +104,18 @@ export class OrderService {
 			)
 			.exec();
 
-		// await this.driverService.switchBusyByChatId(driverId, false);
+		await this.driverService.switchBusyByChatId(driverId, false);
 		await this.driverService.upgradeRating(driverId);
 	}
 
 	async findActiveOrderByDriverId(driverId: number): Promise<OrderDocument> {
 		return this.orderModel.findOne({
 			driverId,
-			$or: [{ status: StatusOrder.InProcess }, { status: StatusOrder.Wait }],
+			$or: [
+				{ status: StatusOrder.InProcess },
+				{ status: StatusOrder.Wait },
+				{ status: StatusOrder.InPlace },
+			],
 		});
 	}
 
@@ -129,6 +133,7 @@ export class OrderService {
 				{ status: StatusOrder.InProcess },
 				{ status: StatusOrder.Wait },
 				{ status: StatusOrder.DriverInBusy },
+				{ status: StatusOrder.InPlace },
 			],
 		});
 	}

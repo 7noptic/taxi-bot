@@ -1,6 +1,7 @@
 import {
 	Body,
 	Controller,
+	Delete,
 	Get,
 	NotFoundException,
 	Param,
@@ -38,6 +39,17 @@ export class PassengerController {
 
 	@UseGuards(JwtGuard)
 	@UsePipes(new ValidationPipe())
+	@Delete('delete/:chatId')
+	async delete(@Param('chatId') chatId: string) {
+		try {
+			return this.passengerService.delete(Number(chatId));
+		} catch (e) {
+			this.loggerService.error('delete Passenger: ' + e?.toString());
+		}
+	}
+
+	@UseGuards(JwtGuard)
+	@UsePipes(new ValidationPipe())
 	@Get('getRating/:chatId')
 	async getRatingById(@Param('chatId') chatId: number) {
 		try {
@@ -67,7 +79,7 @@ export class PassengerController {
 	@Get('byChatId/:chatId')
 	async getByChatId(@Param('chatId') chatId: string) {
 		try {
-			const passenger = await this.passengerService.findByChatId(Number(chatId));
+			const passenger = await this.passengerService.findByChatId(chatId);
 			if (!passenger) {
 				throw new NotFoundException(PASSENGER_NOT_FOUND);
 			}

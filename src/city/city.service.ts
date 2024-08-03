@@ -49,15 +49,14 @@ export class CityService {
 
 		const cities: City[] = await this.cityModel
 			.find()
-			.sort({ createdAt: -1 })
+			.sort({ name: 1 })
 			.limit(perPageCount)
 			.skip(skip);
 		const total = await this.cityModel.countDocuments();
-
 		return { data: cities, total, currentPage, perPageCount };
 	}
 
 	async getAll() {
-		return this.cityModel.find().sort({ createdAt: -1 });
+		return this.cityModel.find().sort({ name: 1 });
 	}
 }

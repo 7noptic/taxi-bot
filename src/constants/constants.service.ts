@@ -82,11 +82,11 @@ export class ConstantsService {
 	static readonly defaultMaxAddresses = 10;
 
 	static readonly WelcomeMessage =
-		'<b>Приветствуем!</b> На клавиатуре выберите в роли кого вы хотите использовать этого бота?.\n\n';
+		'<b>Приветствуем!</b> Пожалуйста, выберите в качестве кого Вы хотели бы зарегистрироваться в <b>Подвези Бот</b>\n\n';
 
 	static readonly RegistrationMessage = (typeUser: UserType) =>
-		`<b>Приветствуем!</b> Чтобы перейти к регистрации в качестве ${typeUser === UserType.Driver ? 'водителя' : 'пользователя'}, ` +
-		`необходимо ознакомиться и согласиться с условиями Политики Конфиденциальности и Оферты.`;
+		`<b>Приветствуем!</b> Чтобы перейти к регистрации в качестве <b>${typeUser === UserType.Driver ? 'водителя' : 'пользователя'}</b>, ` +
+		`необходимо ознакомиться и согласиться с условиями <b>Оферты</b> и <b>Политики Конфиденциальности</b>`;
 
 	static readonly getEndingWord = (number: number, words: string[]) => {
 		const cases = [2, 0, 1, 1, 1, 2];
@@ -115,11 +115,11 @@ export class ConstantsService {
 
 	static readonly getProfileInfoDefault = (user: Passenger | Driver) =>
 		`<b>👤 Профиль</b>\n\n` +
-		`Имя: ${user.first_name}\n` +
-		`Рейтинг: ⭐️${ConstantsService.getUserRating(user.rating)}` +
-		` (${ConstantsService.getCountRating(user.rating.length)} ${ConstantsService.getEndingWord(ConstantsService.getCountRating(user.rating.length), ['оценка', 'оценки', 'оценок'])})\n` +
-		`Телефон: ${user.phone}\n` +
-		`Населенный пункт: ${user.city}\n`;
+		`Имя: <b>${user.first_name}</b>\n` +
+		`Рейтинг: ⭐️<b>${ConstantsService.getUserRating(user.rating)}` +
+		` (${ConstantsService.getCountRating(user.rating.length)} ${ConstantsService.getEndingWord(ConstantsService.getCountRating(user.rating.length), ['оценка', 'оценки', 'оценок'])})</b>\n` +
+		`Телефон: <b>${user.phone}</b>\n` +
+		`Населенный пункт: <b>${user.city}</b>\n`;
 
 	static readonly getProfileInfoPassenger = (passenger: Passenger, orders: OrdersInfoDto) =>
 		ConstantsService.getProfileInfoDefault(passenger) +

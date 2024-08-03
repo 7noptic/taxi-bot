@@ -4,6 +4,7 @@ import { StatusOrder } from '../../../order/Enum/status-order';
 import { goDriveKeyboard } from './go-drive.keyboard';
 import { finishKeyboard } from './finish.keyboard';
 import { driverProfileKeyboard } from './profile.keyboard';
+import { inDriveKeyboard } from './in-drive.keyboard';
 
 export async function selectDriverKeyboard(
 	{ chatId, status }: Pick<Driver, 'chatId' | 'status'>,
@@ -18,6 +19,8 @@ export async function selectDriverKeyboard(
 	if (order) {
 		switch (order.status) {
 			case StatusOrder.Wait:
+				return inDriveKeyboard();
+			case StatusOrder.InPlace:
 				return goDriveKeyboard();
 			case StatusOrder.InProcess:
 				return finishKeyboard(status);

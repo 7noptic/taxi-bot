@@ -52,6 +52,12 @@ export const DriverButtons = {
 			cancel: {
 				label: 'Отменить заказ (-3⚡️)',
 			},
+			cancelSuccess: {
+				label: 'Я подтверждаю отмену заказа (-3⚡️)',
+			},
+			cancelFail: {
+				label: 'Не отменять заказ',
+			},
 		},
 		time: {
 			'3': {

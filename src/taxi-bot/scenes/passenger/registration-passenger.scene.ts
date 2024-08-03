@@ -171,12 +171,24 @@ export class RegisterPassengerScene {
 					phone: state.phone,
 					last_name: user.last_name || '',
 				});
-				await this.passengerService.create(createPassengerDto);
-				await ctx
-					.replyWithHTML(greetingPassenger(state.name), passengerProfileKeyboard())
-					.catch((e) => this.loggerService.error('onLocation: ' + ctx?.toString() + e?.toString()));
-				await ctx?.scene?.leave();
-				return;
+				const newUser = await this.passengerService.create(createPassengerDto);
+				if (!!newUser) {
+					await ctx
+						.replyWithHTML(greetingPassenger(state.name), passengerProfileKeyboard())
+						.catch((e) =>
+							this.loggerService.error('onLocation: ' + ctx?.toString() + e?.toString()),
+						);
+					await ctx?.scene?.leave();
+					return;
+				} else {
+					await ctx?.scene?.leave();
+					await ctx
+						.replyWithHTML(errorRegistration, registrationKeyboard())
+						.catch((e) =>
+							this.loggerService.error('onLocation: ' + ctx?.toString() + e?.toString()),
+						);
+					return '';
+				}
 			}
 
 			await ctx

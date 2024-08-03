@@ -1,6 +1,7 @@
 import {
 	Body,
 	Controller,
+	Delete,
 	Get,
 	NotFoundException,
 	Param,
@@ -34,6 +35,17 @@ export class DriverController {
 			return this.driverService.create(dto);
 		} catch (e) {
 			this.loggerService.error('create Driver: ' + e?.toString());
+		}
+	}
+
+	@UseGuards(JwtGuard)
+	@UsePipes(new ValidationPipe())
+	@Delete('delete/:chatId')
+	async delete(@Param('chatId') chatId: string) {
+		try {
+			return this.driverService.delete(Number(chatId));
+		} catch (e) {
+			this.loggerService.error('delete Driver: ' + e?.toString());
 		}
 	}
 
@@ -75,7 +87,7 @@ export class DriverController {
 	@Get('byChatId/:chatId')
 	async getByChatId(@Param('chatId') chatId: string) {
 		try {
-			const driver = await this.driverService.findByChatId(Number(chatId));
+			const driver = await this.driverService.findByChatId(chatId);
 			if (!driver) {
 				throw new NotFoundException(PASSENGER_NOT_FOUND);
 			}

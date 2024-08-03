@@ -199,7 +199,7 @@ export class TaxiBotPassengerUpdate {
 	async createOrder(@Ctx() ctx: TaxiBotContext, @ChatId() chatId: number) {
 		try {
 			const { isBlocked } = await this.passengerService.findByChatId(chatId);
-			if (isBlocked) {
+			if (!!isBlocked) {
 				await ctx
 					.replyWithHTML(isBlockedPassenger)
 					.catch((e) =>

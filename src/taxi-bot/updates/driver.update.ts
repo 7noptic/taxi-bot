@@ -15,6 +15,7 @@ import {
 	cancelOrderToPassenger,
 	comeOnShift,
 	commissionText,
+	confirmCancelOrder,
 	driverBlockedText,
 	driverGoOrder,
 	driverInGo,
@@ -23,6 +24,7 @@ import {
 	messageFromDriver,
 	notBusy,
 	notBusyPassenger,
+	notConfirmCancelOrder,
 	orderCloseNextOrder,
 	orderNotAvailable,
 	paymentTitle,
@@ -62,6 +64,7 @@ import { throttles } from '../../app/app.throttles';
 import { LoggerService } from '../../logger/logger.service';
 import { SettingsService } from '../../settings/settings.service';
 import { AlreadyLeavingKeyboard } from '../keyboards/passenger/already-leaving.keyboard';
+import { cancelOrderKeyboard } from '../keyboards/driver/cancel-order.keyboard';
 
 @Update()
 export class TaxiBotDriverUpdate {
@@ -457,7 +460,7 @@ export class TaxiBotDriverUpdate {
 					reply_markup: AlreadyLeavingKeyboard(),
 				})
 				.catch((e) => this.loggerService.error('inPlace: ' + ctx?.toString() + e?.toString()));
-
+			await this.orderService.switchOrderStatusById(order.id, StatusOrder.InPlace);
 			await ctx
 				.replyWithHTML(successSendMessage, goDriveKeyboard())
 				.catch((e) => this.loggerService.error('inPlace: ' + ctx?.toString() + e?.toString()));
@@ -591,6 +594,44 @@ export class TaxiBotDriverUpdate {
 
 	@Throttle(throttles.send_message)
 	@Hears(DriverButtons.order.inDrive.cancel.label)
+	async getCancelOrderKeyboard(@Ctx() ctx: TaxiBotContext) {
+		try {
+			await ctx
+				.replyWithHTML(confirmCancelOrder, cancelOrderKeyboard())
+				.catch((e) =>
+					this.loggerService.error('getCancelOrderKeyboard: ' + ctx?.toString() + e?.toString()),
+				);
+		} catch (e) {
+			this.loggerService.error('getCancelOrderKeyboard' + e?.toString());
+		}
+	}
+
+	@Throttle(throttles.send_message)
+	@Hears(DriverButtons.order.inDrive.cancelFail.label)
+	async notCancelOrderKeyboard(@Ctx() ctx: TaxiBotContext, @ChatId() chatId: number) {
+		try {
+			const { status } = await this.driverService.findByChatId(chatId);
+			await ctx
+				.replyWithHTML(
+					notConfirmCancelOrder,
+					await selectDriverKeyboard(
+						{
+							chatId,
+							status,
+						},
+						this.orderService,
+					),
+				)
+				.catch((e) =>
+					this.loggerService.error('getCancelOrderKeyboard: ' + ctx?.toString() + e?.toString()),
+				);
+		} catch (e) {
+			this.loggerService.error('getCancelOrderKeyboard' + e?.toString());
+		}
+	}
+
+	@Throttle(throttles.send_message)
+	@Hears(DriverButtons.order.inDrive.cancelSuccess.label)
 	async cancelOrder(@Ctx() ctx: TaxiBotContext, @ChatId() chatId: number) {
 		try {
 			const order = await this.orderService.findActiveOrderByDriverId(chatId);

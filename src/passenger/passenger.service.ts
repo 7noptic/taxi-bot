@@ -20,6 +20,10 @@ export class PassengerService {
 		}
 	}
 
+	async delete(chatId: number) {
+		return this.passengerModel.findOneAndDelete({ chatId });
+	}
+
 	async findAddressByName(
 		chatId: Passenger['chatId'],
 		addressName: Address['name'],
@@ -133,8 +137,12 @@ export class PassengerService {
 			.exec();
 	}
 
-	async findByChatId(chatId: number) {
-		return await this.passengerModel.findOne({ chatId }).exec();
+	async findByChatId(chatId: string | number) {
+		return await this.passengerModel
+			.findOne({
+				$or: [{ chatId: Number(chatId) }, { phone: chatId.toString() }],
+			})
+			.exec();
 	}
 
 	async getRatingById(chatId: number) {

@@ -68,7 +68,7 @@ import { LoggerService } from '../../../logger/logger.service';
 
 @Wizard(ScenesType.CreateOrder)
 export class CreateOrderScene {
-	timeout: number;
+	timeout: Timeout;
 
 	constructor(
 		private readonly passengerService: PassengerService,
@@ -115,7 +115,12 @@ export class CreateOrderScene {
 					savedAddress,
 					city,
 				} = await this.passengerService.findByChatId(chatId);
-				if (!(await this.driverService.checkActiveDrivers({ city, type: ctx.wizard.state.type }))) {
+				const isActivesDrivers = await this.driverService.checkActiveDrivers({
+					city,
+					type: ctx.wizard.state.type,
+				});
+
+				if (!isActivesDrivers) {
 					await ctx
 						.replyWithHTML(NotDrivers)
 						.catch((e) =>
@@ -430,25 +435,40 @@ export class CreateOrderScene {
 					passengerId: chatId,
 					city,
 				};
-
-				const order = await this.orderService.create(createOrderDto);
-				ctx.wizard.state.id = order._id.toString();
-				const rating = await this.passengerService.getRatingById(chatId);
-				await this.driverService.sendBulkOrder(order, rating);
-				await ctx
-					.replyWithHTML(successOrder(order.numberOrder))
-					.catch((e) =>
-						this.loggerService.error('onFinalCallback: ' + ctx?.toString() + e?.toString()),
+				const isActivesDrivers = await this.driverService.checkActiveDrivers({
+					city,
+					type: ctx.wizard.state.type,
+				});
+				if (!isActivesDrivers) {
+					await ctx
+						.replyWithHTML(NotDrivers)
+						.catch((e) =>
+							this.loggerService.error('onFinalCallback: ' + ctx?.toString() + e?.toString()),
+						);
+					await this.cancelOrder(ctx, chatId);
+					return;
+				} else {
+					const order = await this.orderService.create(createOrderDto);
+					ctx.wizard.state.id = order._id.toString();
+					const rating = await this.passengerService.getRatingById(chatId);
+					await this.driverService.sendBulkOrder(order, rating);
+					await ctx
+						.replyWithHTML(successOrder(order.numberOrder))
+						.catch((e) =>
+							this.loggerService.error('onFinalCallback: ' + ctx?.toString() + e?.toString()),
+						);
+					console.log('timer error999: ', !!this.timeout, chatId);
+					this.loggerService.error('timer error999: ' + chatId + ' - ' + !!this.timeout);
+					this.timeout = setTimeout(
+						async () => {
+							await this.cancelOrder(ctx, chatId, true);
+						},
+						15 * 60 * 1000, // 15 минут
 					);
-				// @ts-ignore
-				this.timeout = setTimeout(
-					async () => {
-						await this.cancelOrder(ctx, chatId, true);
-					},
-					15 * 60 * 1000, // 15 минут
-				);
-
-				ctx?.wizard?.next();
+					console.log('timer error999111: ', !!this.timeout, chatId);
+					this.loggerService.error('timer error999111: ' + chatId + ' - ' + !!this.timeout);
+					ctx?.wizard?.next();
+				}
 			} else if (data === PassengerButtons.order.final.edit.callback) {
 				await ctx
 					.deleteMessage()
@@ -527,8 +547,12 @@ export class CreateOrderScene {
 					},
 				)
 				.catch((e) => this.loggerService.error('successOffer: ' + ctx?.toString() + e?.toString()));
-			if (this.timeout) {
+			console.log('timer error10000: ', !!this.timeout, chatId);
+			this.loggerService.error('timer error10000: ' + chatId + ' - ' + !!this.timeout);
+			if (!!this.timeout) {
+				console.log('timer error11111: ', this.timeout);
 				clearTimeout(this.timeout);
+				console.log('timer error22222: ', this.timeout);
 			}
 			await this.bot.telegram
 				.sendMessage(driverId, successOfferForDriver(order, passenger, !!activeOrderFromDriver), {
@@ -620,7 +644,14 @@ export class CreateOrderScene {
 				StatusOrder.CancelPassenger,
 			);
 			await this.taxiBotService.goHome(ctx, chatId);
-			if (this.timeout && isCancelTimeout) {
+			console.log(!!this.timeout, !!isCancelTimeout, chatId);
+			this.loggerService.error(
+				'timer error1: ' + chatId + ' - ' + (!!this.timeout && !!isCancelTimeout),
+			);
+			if (!!this.timeout && !!isCancelTimeout) {
+				this.loggerService.error(
+					'timer error2: ' + chatId + ' - ' + (!!this.timeout && !!isCancelTimeout),
+				);
 				await ctx
 					.replyWithHTML(cancelOrderTimeout)
 					.catch((e) =>

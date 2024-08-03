@@ -36,6 +36,10 @@ export class DriverService {
 		return this.driverModel.create(dto);
 	}
 
+	async delete(chatId: number) {
+		return this.driverModel.findOneAndDelete({ chatId });
+	}
+
 	async unlockedUser(chatId: number) {
 		try {
 			const driver = this.driverModel.findOneAndUpdate(
@@ -114,8 +118,12 @@ export class DriverService {
 		return updatedDriver;
 	}
 
-	async findByChatId(chatId: number) {
-		return await this.driverModel.findOne({ chatId }).exec();
+	async findByChatId(chatId: number | string) {
+		return await this.driverModel
+			.findOne({
+				$or: [{ chatId: Number(chatId) }, { phone: chatId.toString() }],
+			})
+			.exec();
 	}
 
 	async toggleStatusByChatId(chatId: number) {
@@ -206,6 +214,7 @@ export class DriverService {
 			status: StatusDriver.Online,
 			isBlocked: false,
 			city: order.city,
+			isBusy: false,
 			$or: [{ accessOrderType: AccessTypeOrder.ALL }, { accessOrderType: order.type }],
 		});
 

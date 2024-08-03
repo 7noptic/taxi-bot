@@ -43,7 +43,6 @@ export class TaxiBotCommonUpdate {
 			const passenger = await this.passengerService.findByChatId(chatId);
 			const driver = await this.driverService.findByChatId(chatId);
 			if (ctx?.scene) await ctx?.scene?.leave();
-			console.log('sad');
 			if (!passenger && !driver) {
 				await ctx
 					.replyWithHTML(ConstantsService.WelcomeMessage, registrationKeyboard())
@@ -117,7 +116,7 @@ export class TaxiBotCommonUpdate {
 						url: ConstantsService.images.help,
 					},
 					{
-						caption: commonButtons.profile.help,
+						caption: `<b>${commonButtons.profile.help}</b>`,
 						parse_mode: 'HTML',
 						reply_markup: helpKeyboard().reply_markup,
 					},
