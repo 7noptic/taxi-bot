@@ -26,6 +26,14 @@ export function getFullPassengerInfoPipeline(chatId: number) {
 		},
 		{
 			$lookup: {
+				from: 'notes',
+				localField: 'chatId',
+				foreignField: 'chatId',
+				as: 'notes',
+			},
+		},
+		{
+			$lookup: {
 				from: 'orders',
 				localField: 'chatId',
 				foreignField: 'passengerId',
@@ -51,6 +59,16 @@ export function getFullPassengerInfoPipeline(chatId: number) {
 								return reviews;
 							}`,
 						args: ['$reviewTo'],
+						lang: 'js',
+					},
+				},
+				notes: {
+					$function: {
+						body: `function (notes = []) {
+								notes.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+								return notes;
+							}`,
+						args: ['$notes'],
 						lang: 'js',
 					},
 				},
