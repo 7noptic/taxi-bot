@@ -29,6 +29,7 @@ import { NewsletterModule } from '../newsletter/newsletter.module';
 import { SocketService } from '../socket/socket.service';
 import { GracefulShutdownModule } from 'nestjs-graceful-shutdown';
 import { HealthModule } from '../health/health.module';
+import { NoteModule } from '../note/note.module';
 
 @Module({
 	imports: [
@@ -77,7 +78,7 @@ import { HealthModule } from '../health/health.module';
 		ReviewModule,
 		SettingsModule,
 		NewsletterModule,
-
+		NoteModule,
 		MongooseModule.forFeature([{ name: Settings.name, schema: SettingsSchema }]),
 		TelegrafModule.forRootAsync({
 			imports: [ConfigModule],

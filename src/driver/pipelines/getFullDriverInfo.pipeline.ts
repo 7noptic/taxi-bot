@@ -26,6 +26,14 @@ export function getFullDriverInfoPipeline(chatId: number) {
 		},
 		{
 			$lookup: {
+				from: 'notes',
+				localField: 'chatId',
+				foreignField: 'chatId',
+				as: 'notes',
+			},
+		},
+		{
+			$lookup: {
 				from: 'orders',
 				localField: 'chatId',
 				foreignField: 'driverId',
@@ -41,6 +49,16 @@ export function getFullDriverInfoPipeline(chatId: number) {
 								return reviews;
 							}`,
 						args: ['$reviewFrom'],
+						lang: 'js',
+					},
+				},
+				notes: {
+					$function: {
+						body: `function (notes = []) {
+								notes.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+								return notes;
+							}`,
+						args: ['$notes'],
 						lang: 'js',
 					},
 				},
