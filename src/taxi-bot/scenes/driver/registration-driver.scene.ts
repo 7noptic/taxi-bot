@@ -6,6 +6,7 @@ import {
 	errorRegistration,
 	errorValidation,
 	greetingDriver,
+	welcomeMessage,
 	WhatCarBrand,
 	WhatCarColor,
 	WhatCarNumber,
@@ -258,6 +259,12 @@ export class RegisterDriverScene {
 				await this.driverService.create(createDriverDto);
 				await ctx
 					.replyWithHTML(greetingDriver(state.name), driverProfileKeyboard(StatusDriver.Offline))
+					.catch((e) =>
+						this.loggerService.error('onCarNumber: ' + ctx?.toString() + e?.toString()),
+					);
+
+				await ctx
+					.replyWithHTML(welcomeMessage(state.name))
 					.catch((e) =>
 						this.loggerService.error('onCarNumber: ' + ctx?.toString() + e?.toString()),
 					);

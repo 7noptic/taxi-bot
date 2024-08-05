@@ -289,7 +289,10 @@ export class DriverService {
 			.sort({ createdAt: -1 })
 			.limit(perPageCount)
 			.skip(skip);
-		const total = await this.driverModel.countDocuments();
+		const total = await this.driverModel.countDocuments({
+			blockedType: BlockedType.NotConfirmed,
+			isBlocked: true,
+		});
 
 		return { data: drivers, total, currentPage, perPageCount };
 	}

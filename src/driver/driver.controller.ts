@@ -67,7 +67,7 @@ export class DriverController {
 		try {
 			return this.driverService.getLimitBlocked(currentPage);
 		} catch (e) {
-			this.loggerService.error('getLimitOrder Driver: ' + e?.toString());
+			this.loggerService.error('getLimitDriverBLocked Driver: ' + e?.toString());
 		}
 	}
 
@@ -78,7 +78,7 @@ export class DriverController {
 		try {
 			return this.driverService.getAll();
 		} catch (e) {
-			this.loggerService.error('getAllOrder Driver: ' + e?.toString());
+			this.loggerService.error('getAllDriver Driver: ' + e?.toString());
 		}
 	}
 
