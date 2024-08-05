@@ -56,8 +56,9 @@ import { HealthModule } from '../health/health.module';
 			useFactory: async (configService: ConfigService) => {
 				return {
 					redis: {
+						password: configService.get('REDIS_PASSWORD'),
 						host: configService.get('REDIS_HOST'),
-						port: 6379,
+						port: configService.get('REDIS_PORT'),
 					},
 				};
 			},

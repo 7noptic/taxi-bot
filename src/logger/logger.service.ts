@@ -24,7 +24,7 @@ export class LoggerService implements ILoggerService {
 		const filePath = `logs/${loggerType}.txt`;
 
 		fs.access('logs', (err) => {
-			if (err && err.code === 'ENOENT') {
+			if (err && err.code === 'ENOENT' && !fs.existsSync('logs')) {
 				fs.mkdirSync('logs');
 			}
 
