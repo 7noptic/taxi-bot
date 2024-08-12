@@ -120,9 +120,12 @@ export class PaymentService {
 						reply_markup: callPaymentKeyboard(sumCommission).reply_markup,
 					},
 				);
-				await this.bot.telegram.sendMessage(chatId, ReviewsMessage(reviews), {
-					parse_mode: 'HTML',
-				});
+				if (!!reviews && !!reviews?.length) {
+					await this.bot.telegram.sendMessage(chatId, ReviewsMessage(reviews), {
+						parse_mode: 'HTML',
+					});
+				}
+
 				return;
 			} catch (e) {
 				this.loggerService.error('sendBulkPayment: ' + e?.toString());

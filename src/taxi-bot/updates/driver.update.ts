@@ -243,13 +243,13 @@ export class TaxiBotDriverUpdate {
 								Math.round(price / 100),
 							);
 							console.log(myPayment);
-							await ctx
-								.replyWithHTML(successfulPayment)
-								.catch((e) =>
-									this.loggerService.error('checkPayment success no error: ' + e?.toString()),
-								);
+							await ctx.replyWithHTML(successfulPayment).catch((e) => {
+								console.log('checkPayment success no error: ' + e?.toString());
+								this.loggerService.error('checkPayment success no error: ' + e?.toString());
+							});
 						}
 					} catch (e) {
+						console.log('checkPayment: ' + e?.toString());
 						this.loggerService.error('checkPayment: ' + e?.toString());
 					}
 				} else {
@@ -259,6 +259,7 @@ export class TaxiBotDriverUpdate {
 				await ctx.replyWithHTML(notPayment);
 			}
 		} catch (e: any) {
+			console.log('checkPayment: ' + e?.toString());
 			this.loggerService.error('checkPayment: ' + e?.toString());
 		}
 	}
