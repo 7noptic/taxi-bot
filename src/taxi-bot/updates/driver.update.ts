@@ -181,7 +181,6 @@ export class TaxiBotDriverUpdate {
 			const payment = await checkout
 				.createPayment(payload, idempotenceKey)
 				.catch((e) => this.loggerService.error('payCommission: ' + e?.toString()));
-			console.log(idempotenceKey);
 
 			if (!!payment) {
 				const link = payment?.confirmation?.confirmation_url;
