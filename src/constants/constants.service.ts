@@ -86,9 +86,10 @@ export class ConstantsService {
 
 	static readonly WelcomeMessage =
 		'<b>Приветствуем!</b> Пожалуйста, выберите в качестве кого Вы хотели бы зарегистрироваться в <b>Подвези Бот</b>\n\n';
+	static readonly botLink = 'https://t.me/podvezy43_bot';
 
 	static readonly RegistrationMessage = (typeUser: UserType) =>
-		`<b>Приветствуем!</b> Чтобы перейти к регистрации в качестве <b>${typeUser === UserType.Driver ? 'водителя' : 'пользователя'}</b>, ` +
+		`Чтобы перейти к регистрации в качестве <b>${typeUser === UserType.Driver ? 'водителя' : 'пользователя'}</b>, ` +
 		`необходимо ознакомиться и согласиться с условиями <b>Оферты</b> и <b>Политики Конфиденциальности</b>`;
 
 	static readonly getEndingWord = (number: number, words: string[]) => {

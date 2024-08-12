@@ -11,6 +11,7 @@ import { PaymentProcessor } from './processor/payment.processor';
 import { OrderModule } from '../order/order.module';
 import { BlockedProcessor } from './processor/blocked.processor';
 import { LoggerService } from '../logger/logger.service';
+import { SettingsModule } from '../settings/settings.module';
 
 @Module({
 	imports: [
@@ -26,6 +27,7 @@ import { LoggerService } from '../logger/logger.service';
 		ShortIdModule,
 		DriverModule,
 		OrderModule,
+		SettingsModule,
 	],
 	providers: [PaymentService, PaymentProcessor, BlockedProcessor, LoggerService],
 	controllers: [PaymentController],

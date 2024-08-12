@@ -105,6 +105,7 @@ export class OrderService {
 			.exec();
 
 		await this.driverService.switchBusyByChatId(driverId, false);
+		// await this.driverService.toggleStatusByChatId(driverId, StatusDriver.Online);
 		await this.driverService.upgradeRating(driverId);
 	}
 
@@ -167,10 +168,12 @@ export class OrderService {
 		const result = await this.orderModel.aggregate(
 			getCommissionForWeekPipeline(chatId, start, end),
 		);
-
+		// console.log(result[0]);
 		return {
 			sumCommission: result.length > 0 ? result[0].sumCommission : 0,
 			count: result.length > 0 ? result[0].count : 0,
+			price: result.length > 0 ? result[0].price : 0,
+			reviews: result.length > 0 ? result[0]?.reviews : [],
 		};
 	}
 

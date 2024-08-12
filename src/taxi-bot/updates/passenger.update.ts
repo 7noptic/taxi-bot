@@ -42,11 +42,11 @@ export class TaxiBotPassengerUpdate {
 	@Hears(registrationButtons.passenger.label)
 	async registrationPassenger(@Ctx() ctx: TaxiBotContext) {
 		try {
-			await ctx
-				.replyWithHTML(ConstantsService.GreetingPassengerMessage, backKeyboard())
-				.catch((e) =>
-					this.loggerService.error('registrationPassenger: ' + ctx?.toString() + e?.toString()),
-				);
+			// await ctx
+			// 	.replyWithHTML(ConstantsService.GreetingPassengerMessage, backKeyboard())
+			// 	.catch((e) =>
+			// 		this.loggerService.error('registrationPassenger: ' + ctx?.toString() + e?.toString()),
+			// 	);
 			await ctx.scene
 				.enter(ScenesType.RegistrationPassenger)
 				.catch((e) =>

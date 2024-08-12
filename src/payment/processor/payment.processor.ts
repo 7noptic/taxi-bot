@@ -6,13 +6,7 @@ import { BotName } from '../../types/bot-name.type';
 import { Telegraf } from 'telegraf';
 import { TaxiBotContext } from '../../taxi-bot/taxi-bot.context';
 import { OrderService } from '../../order/order.service';
-import { CreatePaymentDto } from '../dto/create-payment.dto';
 import { PaymentService } from '../payment.service';
-import {
-	newPaymentMessage,
-	notEnoughAmountToPay,
-} from '../../taxi-bot/constatnts/message.constants';
-import { callPaymentKeyboard } from '../../taxi-bot/keyboards/driver/call-payment.keyboard';
 import { LoggerService } from '../../logger/logger.service';
 
 @Processor(QueueType.Payment)
@@ -27,37 +21,44 @@ export class PaymentProcessor {
 	@Process(QueueTaskType.SendPaymentToDrivers)
 	async sendPayment(job: Job) {
 		try {
+			// console.log('work');
 			const chatId: number = Number(job.data.chatId);
 			const startOfPreviousWeek: Date = new Date(job.data.startOfPreviousWeek);
 			const endOfPreviousWeek: Date = new Date(job.data.endOfPreviousWeek);
 
-			const { sumCommission, count } = await this.orderService.getCommissionForWeek(
+			const { sumCommission, count, price } = await this.orderService.getCommissionForWeek(
 				startOfPreviousWeek,
 				endOfPreviousWeek,
 				chatId,
 			);
+			//
 			if (sumCommission == 0) {
 				return;
 			}
 
-			if (sumCommission < 100) {
-				await this.bot.telegram.sendMessage(chatId, notEnoughAmountToPay, {
-					parse_mode: 'HTML',
-				});
-				return;
-			}
+			// if (sumCommission < 100) {
+			// 	await this.bot.telegram.sendMessage(chatId, notEnoughAmountToPay, {
+			// 		parse_mode: 'HTML',
+			// 	});
+			// 	return;
+			// }
 
-			const dto: CreatePaymentDto = {
-				chatId,
-				price: sumCommission,
-				countOrder: count,
-			};
-
-			await this.paymentService.createPayment(dto);
-			await this.bot.telegram.sendMessage(chatId, newPaymentMessage(sumCommission, count), {
-				parse_mode: 'HTML',
-				reply_markup: callPaymentKeyboard(sumCommission).reply_markup,
-			});
+			// const dto: CreatePaymentDto = {
+			// 	chatId,
+			// 	price: sumCommission,
+			// 	countOrder: count,
+			// };
+			//
+			// await this.paymentService.createPayment(dto);
+			// await this.bot.telegram.sendMessage(chatId, newPaymentMessage(sumCommission, count), {
+			// 	parse_mode: 'HTML',
+			// 	reply_markup: callPaymentKeyboard(sumCommission).reply_markup,
+			// });
+			// await this.bot.telegram.sendMessage(chatId, weeklyResultMessage(sumCommission, count), {
+			// 	parse_mode: 'HTML',
+			// 	reply_markup: callPaymentKeyboard(sumCommission).reply_markup,
+			// });
+			return;
 		} catch (error) {
 			this.loggerService.error(QueueTaskType.SendPaymentToDrivers + error?.toString());
 		}

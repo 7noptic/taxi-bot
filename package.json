@@ -21,6 +21,7 @@
     "healthcheck": "npm run start:dev & sleep 10 && curl http://localhost:3000/health"
   },
   "dependencies": {
+    "@a2seven/yoo-checkout": "^1.1.4",
     "@betsys-nestjs/health-check": "^4.0.0",
     "@nestjs/axios": "^3.0.2",
     "@nestjs/bull": "^10.1.1",

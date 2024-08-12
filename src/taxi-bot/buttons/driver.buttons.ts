@@ -91,5 +91,9 @@ export const DriverButtons = {
 			label: '💵 Оплатить',
 			callback: 'call-payment-',
 		},
+		iPaid: {
+			label: '✅ Оплатил',
+			callback: 'i_paid_',
+		},
 	},
 };

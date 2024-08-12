@@ -21,13 +21,14 @@ import {
 	driverInGo,
 	driverInPlace,
 	errorValidation,
+	linkForPayment,
 	messageFromDriver,
 	notBusy,
 	notBusyPassenger,
 	notConfirmCancelOrder,
+	notPayment,
 	orderCloseNextOrder,
 	orderNotAvailable,
-	paymentTitle,
 	settingsDriverText,
 	startAccessOrderTypeCar,
 	startEditCar,
@@ -38,6 +39,7 @@ import {
 	statisticText,
 	successFinishOrderToDriver,
 	successFinishOrderToPassenger,
+	successfulPayment,
 	successGoOrder,
 	successSecondOfferForDriver,
 	successSendMessage,
@@ -65,6 +67,8 @@ import { LoggerService } from '../../logger/logger.service';
 import { SettingsService } from '../../settings/settings.service';
 import { AlreadyLeavingKeyboard } from '../keyboards/passenger/already-leaving.keyboard';
 import { cancelOrderKeyboard } from '../keyboards/driver/cancel-order.keyboard';
+import { ICapturePayment, YooCheckout } from '@a2seven/yoo-checkout';
+import { IPaidKeyboard } from '../keyboards/driver/i-paid.keyboard';
 
 @Update()
 export class TaxiBotDriverUpdate {
@@ -83,10 +87,14 @@ export class TaxiBotDriverUpdate {
 	@Hears(registrationButtons.driver.label)
 	async registrationDriver(@Ctx() ctx: TaxiBotContext) {
 		try {
-			await ctx
-				.replyWithHTML(ConstantsService.GreetingDriverMessage, backKeyboard())
-				.catch((e) => this.loggerService.error('registrationDriver: ' + e?.toString()));
-			await ctx.scene.enter(ScenesType.RegistrationDriver);
+			// await ctx
+			// 	.replyWithHTML(ConstantsService.GreetingDriverMessage, backKeyboard())
+			// 	.catch((e) => this.loggerService.error('registrationDriver: ' + e?.toString()));
+			await ctx.scene
+				.enter(ScenesType.RegistrationDriver)
+				.catch((e) =>
+					this.loggerService.error('registrationDriver: ' + ctx?.toString() + e?.toString()),
+				);
 		} catch (e) {
 			this.loggerService.error('registrationDriver: ' + e?.toString());
 		}
@@ -157,43 +165,101 @@ export class TaxiBotDriverUpdate {
 		try {
 			const callbackData = data.split('-');
 			const price = Number(callbackData[2]);
-			const { phone } = await this.driverService.findByChatId(chatId);
-			await ctx
-				.sendInvoice({
-					title: paymentTitle,
-					currency: 'RUB',
-					description: paymentTitle,
-					payload: 'payload',
-					provider_token: this.configService.get('YOU_KASSA_TOKEN'),
-					need_phone_number: true,
-					send_phone_number_to_provider: true,
-					provider_data: JSON.stringify({
-						receipt: {
-							items: [
-								{
-									description: paymentTitle,
-									quantity: 1,
-									amount: { value: Math.round(price / 100).toFixed(2), currency: 'RUB' },
-									vat_code: 1,
-								},
-							],
-							customer: {
-								phone: phone.replace(/[^0-9]/g, ''),
-							},
-						},
-					}),
 
-					prices: [
-						{
-							label: paymentTitle,
-							amount: price,
-						},
-					],
-				})
+			const { phone } = await this.driverService.findByChatId(chatId);
+			const { numberPayment } = await this.paymentService.findByPriceNotPaidPayment(
+				chatId,
+				Math.round(price / 100),
+			);
+			const checkout = new YooCheckout({
+				shopId: this.configService.get('YOU_KASSA_SHOP_ID'),
+				secretKey: this.configService.get('YOU_KASSA_SECRET_KEY'),
+			});
+			const idempotenceKey = numberPayment.split(' ')[1];
+			const payload = this.paymentService.createTGPayload(price, phone);
+			// console.log(JSON.stringify(payload));
+			const payment = await checkout
+				.createPayment(payload, idempotenceKey)
 				.catch((e) => this.loggerService.error('payCommission: ' + e?.toString()));
+			console.log(idempotenceKey);
+
+			if (!!payment) {
+				const link = payment?.confirmation?.confirmation_url;
+				if (!link) {
+					await ctx.replyWithHTML(errorValidation);
+					return;
+				}
+
+				await ctx.replyWithHTML(
+					linkForPayment(link),
+					IPaidKeyboard(payment.id, price, idempotenceKey),
+				);
+				return;
+			}
+			await ctx.replyWithHTML(errorValidation);
 		} catch (e) {
 			this.loggerService.error('payCommission: ' + e?.toString());
 			console.log(e);
+		}
+	}
+
+	@Throttle(throttles.send_message)
+	@Action(new RegExp(DriverButtons.payment.iPaid.callback))
+	async checkPayment(
+		@Ctx() ctx: TaxiBotContext,
+		@GetQueryData() data: any,
+		@ChatId() chatId: number,
+	) {
+		const callbackData = data.split('_');
+		const checkout = new YooCheckout({
+			shopId: this.configService.get('YOU_KASSA_SHOP_ID'),
+			secretKey: this.configService.get('YOU_KASSA_SECRET_KEY'),
+		});
+
+		const paymentId = callbackData[2];
+		const price = Number(callbackData[3]);
+		const idempotenceKey = callbackData[4];
+		const convertedPrice: string = Math.round(price / 100).toFixed(2);
+		try {
+			const payment = await checkout.getPayment(paymentId);
+			if (payment) {
+				if (payment.status === 'waiting_for_capture') {
+					try {
+						const capturePayload: ICapturePayment = {
+							amount: {
+								value: convertedPrice,
+								currency: 'RUB',
+							},
+						};
+						const payment = await checkout.capturePayment(
+							paymentId,
+							capturePayload,
+							idempotenceKey,
+						);
+						// console.log(payment);
+						if (!!payment) {
+							const myPayment = await this.paymentService.closePayment(
+								chatId,
+								Math.round(price / 100),
+							);
+							console.log(myPayment);
+							await ctx
+								.replyWithHTML(successfulPayment)
+								.catch((e) =>
+									this.loggerService.error('checkPayment success no error: ' + e?.toString()),
+								);
+						}
+					} catch (e) {
+						this.loggerService.error('checkPayment: ' + e?.toString());
+					}
+				} else {
+					await ctx.replyWithHTML(notPayment);
+				}
+			} else {
+				await ctx.replyWithHTML(notPayment);
+			}
+		} catch (e: any) {
+			this.loggerService.error('checkPayment: ' + e?.toString());
 		}
 	}
 

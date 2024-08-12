@@ -42,6 +42,10 @@ export class DriverService {
 
 	async unlockedUser(chatId: number) {
 		try {
+			const blockedDriver = this.driverModel.findOne({ chatId, isBlocked: true });
+			if (!blockedDriver) {
+				return;
+			}
 			const driver = this.driverModel.findOneAndUpdate(
 				{ chatId },
 				{
@@ -202,7 +206,7 @@ export class DriverService {
 				$set: {
 					car: new_car,
 					isBlocked: true,
-					blockedType: BlockedType.NotConfirmed,
+					blockedType: BlockedType.ToggleCar,
 					status: StatusDriver.Offline,
 				},
 			},
@@ -257,7 +261,7 @@ export class DriverService {
 	}
 
 	async getAllDriversId() {
-		return this.driverModel.find({}, 'chatId').exec();
+		return this.driverModel.find({}, ['chatId', 'rating']).exec();
 	}
 
 	async getLimitAll(
