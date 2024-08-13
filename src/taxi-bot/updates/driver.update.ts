@@ -177,7 +177,6 @@ export class TaxiBotDriverUpdate {
 			});
 			const idempotenceKey = numberPayment.split(' ')[1];
 			const payload = this.paymentService.createTGPayload(price, phone);
-			// console.log(JSON.stringify(payload));
 			const payment = await checkout
 				.createPayment(payload, idempotenceKey)
 				.catch((e) => this.loggerService.error('payCommission: ' + e?.toString()));
@@ -195,6 +194,7 @@ export class TaxiBotDriverUpdate {
 				);
 				return;
 			}
+
 			await ctx.replyWithHTML(errorValidation);
 		} catch (e) {
 			this.loggerService.error('payCommission: ' + e?.toString());

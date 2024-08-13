@@ -183,6 +183,8 @@ export class PaymentService {
 						quantity: '1',
 						amount: { value: convertedPrice, currency: 'RUB' },
 						vat_code: 1,
+						payment_mode: 'full_payment',
+						payment_subject: 'service',
 					},
 				],
 				phone,
