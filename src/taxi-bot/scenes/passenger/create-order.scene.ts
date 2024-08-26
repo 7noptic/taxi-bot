@@ -551,9 +551,7 @@ export class CreateOrderScene {
 			console.log('timer error10000: ', !!this.timeout, chatId);
 			this.loggerService.error('timer error10000: ' + chatId + ' - ' + !!this.timeout);
 			if (!!this.timeout) {
-				console.log('timer error11111: ', this.timeout);
 				clearTimeout(this.timeout);
-				console.log('timer error22222: ', this.timeout);
 			}
 			await this.bot.telegram
 				.sendMessage(driverId, successOfferForDriver(order, passenger, !!activeOrderFromDriver), {

@@ -8,12 +8,13 @@ import { InjectBot } from 'nestjs-telegraf';
 import { BotName } from '../types/bot-name.type';
 import { Telegraf } from 'telegraf';
 import { TaxiBotContext } from '../taxi-bot/taxi-bot.context';
-import { Order } from '../order/order.model';
+import { Order, OrderDocument } from '../order/order.model';
 import { Queue } from 'bull';
-import { QueueTaskType, QueueType } from '../types/queue.type';
+import { QueueType } from '../types/queue.type';
 import { InjectQueue } from '@nestjs/bull';
 import { AccessTypeOrder } from './Enum/access-type-order';
 import {
+	newOrderMessage,
 	NotDrivers,
 	successAcceptedDriver,
 	successUnlockedDriver,
@@ -23,6 +24,9 @@ import { QueryType, ResponseType } from '../types/query.type';
 import { getFullDriverInfoPipeline } from './pipelines/getFullDriverInfo.pipeline';
 import { AddCommissionDto } from '../order/dto/add-commission.dto';
 import { addDays } from 'date-fns';
+import { orderKeyboard } from '../taxi-bot/keyboards/driver/order.keyboard';
+import { ConstantsService } from '../constants/constants.service';
+import { LoggerService } from '../logger/logger.service';
 
 @Injectable()
 export class DriverService {
@@ -30,6 +34,7 @@ export class DriverService {
 		@InjectModel(Driver.name) private driverModel: Model<DriverDocument>,
 		@InjectBot(BotName.Taxi) private readonly bot: Telegraf<TaxiBotContext>,
 		@InjectQueue(QueueType.Order) private readonly orderQueue: Queue,
+		private readonly loggerService: LoggerService,
 	) {}
 
 	async create(dto: CreateDriverDto) {
@@ -199,12 +204,12 @@ export class DriverService {
 		);
 	}
 
-	async editCar(chatId: Driver['chatId'], new_car: Driver['car']) {
+	async editCar(chatId: Driver['chatId'], updatedCar: Driver['car']) {
 		return this.driverModel.findOneAndUpdate(
 			{ chatId },
 			{
 				$set: {
-					car: new_car,
+					car: updatedCar,
 					isBlocked: true,
 					blockedType: BlockedType.ToggleCar,
 					status: StatusDriver.Offline,
@@ -225,7 +230,7 @@ export class DriverService {
 		return !!drivers;
 	}
 
-	async sendBulkOrder(order: Order, passengerRating: number[]) {
+	async sendBulkOrder(order: OrderDocument, passengerRating: number[]) {
 		const drivers = await this.driverModel
 			.find({
 				status: StatusDriver.Online,
@@ -241,15 +246,39 @@ export class DriverService {
 			return;
 		}
 
-		await Promise.all(
-			drivers.map(async (driver) => {
-				await this.orderQueue.add(
-					QueueTaskType.SendOrderToDrivers,
-					{ driver, order, passengerRating },
-					// { delay: 100 },
+		const promises = drivers.map(async (driver) => {
+			try {
+				setTimeout(
+					async () => {
+						await this.bot.telegram.sendMessage(
+							driver.chatId,
+							newOrderMessage(order, passengerRating),
+							{
+								parse_mode: 'HTML',
+								reply_markup: orderKeyboard(order),
+							},
+						);
+					},
+					1000 * 10 * (ConstantsService.defaultPriority - driver.priority),
 				);
-			}),
+			} catch (error) {
+				console.error(`Error sending message to driver ${driver.chatId}: ${error.message}`);
+			}
+		});
+
+		await Promise.all(promises).catch((e) =>
+			this.loggerService.error('sendBulkBlocked: ' + e?.toString()),
 		);
+
+		// await Promise.all(
+		// 	drivers.map(async (driver) => {
+		// 		await this.orderQueue.add(
+		// 			QueueTaskType.SendOrderToDrivers,
+		// 			{ driver, order, passengerRating },
+		// 			// { delay: 100 },
+		// 		);
+		// 	}),
+		// );
 	}
 
 	async addRating(chatId: number, rating: number) {
