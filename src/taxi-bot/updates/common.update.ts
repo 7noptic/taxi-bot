@@ -50,14 +50,14 @@ export class TaxiBotCommonUpdate {
 			} else if (passenger) {
 				await ctx
 					.replyWithHTML(
-						ConstantsService.greetingMessageDriver,
+						ConstantsService.greetingMessagePassenger,
 						await selectPassengerKeyboard(chatId, this.orderService),
 					)
 					.catch((e) => this.loggerService.error('start: ' + e?.toString()));
 			} else if (driver) {
 				await ctx
 					.replyWithHTML(
-						ConstantsService.greetingMessagePassenger,
+						ConstantsService.greetingMessageDriver,
 						await selectDriverKeyboard(
 							{
 								chatId: driver.chatId,
