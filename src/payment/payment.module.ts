@@ -5,31 +5,27 @@ import { Payment, PaymentSchema } from './payment.model';
 import { PaymentController } from './payment.controller';
 import { ShortIdModule } from '../short-id/short-id.module';
 import { DriverModule } from '../driver/driver.module';
-import { BullModule } from '@nestjs/bull';
-import { QueueType } from '../types/queue.type';
-import { PaymentProcessor } from './processor/payment.processor';
 import { OrderModule } from '../order/order.module';
-import { BlockedProcessor } from './processor/blocked.processor';
 import { LoggerService } from '../logger/logger.service';
 import { SettingsModule } from '../settings/settings.module';
 
 @Module({
 	imports: [
 		MongooseModule.forFeature([{ name: Payment.name, schema: PaymentSchema }]),
-		BullModule.registerQueue(
-			{
-				name: QueueType.Payment,
-			},
-			{
-				name: QueueType.Blocked,
-			},
-		),
+		// BullModule.registerQueue(
+		// 	{
+		// 		name: QueueType.Payment,
+		// 	},
+		// 	{
+		// 		name: QueueType.Blocked,
+		// 	},
+		// ),
 		ShortIdModule,
 		DriverModule,
 		OrderModule,
 		SettingsModule,
 	],
-	providers: [PaymentService, PaymentProcessor, BlockedProcessor, LoggerService],
+	providers: [PaymentService, LoggerService],
 	controllers: [PaymentController],
 	exports: [PaymentService],
 })

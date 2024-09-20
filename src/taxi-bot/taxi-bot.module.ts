@@ -28,6 +28,7 @@ import { AddReviewScene } from './scenes/add-review.scene';
 import { ConfigModule } from '@nestjs/config';
 import { PaymentModule } from '../payment/payment.module';
 import { LoggerModule } from '../logger/logger.module';
+import { EditEmailSceneDriver } from './scenes/driver/edit-email.scene';
 
 @Module({
 	imports: [
@@ -56,6 +57,7 @@ import { LoggerModule } from '../logger/logger.module';
 		EditCarSceneDriver,
 		EditAccessOrderTypeSceneDriver,
 		EditPhoneSceneDriver,
+		EditEmailSceneDriver,
 		EditCitySceneDriver,
 		CreateOrderScene,
 		TaxiBotCommonUpdate,

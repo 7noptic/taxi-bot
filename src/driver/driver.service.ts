@@ -9,9 +9,6 @@ import { BotName } from '../types/bot-name.type';
 import { Telegraf } from 'telegraf';
 import { TaxiBotContext } from '../taxi-bot/taxi-bot.context';
 import { Order, OrderDocument } from '../order/order.model';
-import { Queue } from 'bull';
-import { QueueType } from '../types/queue.type';
-import { InjectQueue } from '@nestjs/bull';
 import { AccessTypeOrder } from './Enum/access-type-order';
 import {
 	newOrderMessage,
@@ -33,7 +30,7 @@ export class DriverService {
 	constructor(
 		@InjectModel(Driver.name) private driverModel: Model<DriverDocument>,
 		@InjectBot(BotName.Taxi) private readonly bot: Telegraf<TaxiBotContext>,
-		@InjectQueue(QueueType.Order) private readonly orderQueue: Queue,
+		// @InjectQueue(QueueType.Order) private readonly orderQueue: Queue,
 		private readonly loggerService: LoggerService,
 	) {}
 
@@ -177,6 +174,17 @@ export class DriverService {
 			{
 				$set: {
 					phone: new_phone,
+				},
+			},
+		);
+	}
+
+	async editEmail(chatId: Driver['chatId'], newEmail: Driver['email']) {
+		return this.driverModel.findOneAndUpdate(
+			{ chatId },
+			{
+				$set: {
+					email: newEmail,
 				},
 			},
 		);

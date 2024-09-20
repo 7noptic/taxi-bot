@@ -9,6 +9,7 @@ export enum ScenesType {
 	CreateOrder = 'createOrder',
 	EditNameDriver = 'editNameDriver',
 	EditPhoneDriver = 'editPhoneDriver',
+	EditEmailDriver = 'editEmailDriver',
 	EditCityDriver = 'editCityDriver',
 	EditCarDriver = 'editCarDriver',
 	EditAccessOrderTypeDriver = 'editAccessOrderTypeDriver',

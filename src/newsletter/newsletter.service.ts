@@ -4,9 +4,6 @@ import { Passenger } from '../passenger/passenger.model';
 import { Driver } from '../driver/driver.model';
 import { PassengerService } from '../passenger/passenger.service';
 import { DriverService } from '../driver/driver.service';
-import { QueueType } from '../types/queue.type';
-import { Queue } from 'bull';
-import { InjectQueue } from '@nestjs/bull';
 import { InjectBot } from 'nestjs-telegraf';
 import { BotName } from '../types/bot-name.type';
 import { Telegraf } from 'telegraf';
@@ -19,7 +16,7 @@ export class NewsletterService {
 		private readonly driverService: DriverService,
 		private readonly passengerService: PassengerService,
 		private readonly loggerService: LoggerService,
-		@InjectQueue(QueueType.Newsletter) private readonly orderQueue: Queue,
+		// @InjectQueue(QueueType.Newsletter) private readonly orderQueue: Queue,
 		@InjectBot(BotName.Taxi) private readonly bot: Telegraf<TaxiBotContext>,
 	) {}
 

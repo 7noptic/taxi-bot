@@ -8,10 +8,17 @@ export function setDriverSettingsKeyboard(
 	city: string,
 	car: string,
 	accessTypeOrder: string,
+	email: string,
 ) {
 	return Markup.inlineKeyboard([
 		[Markup.button.callback(name, DriverButtons.settings.name.callback)],
 		[Markup.button.callback(phone, DriverButtons.settings.phone.callback)],
+		[
+			Markup.button.callback(
+				!!email ? email : 'Добавить Email',
+				DriverButtons.settings.email.callback,
+			),
+		],
 		[Markup.button.callback(city, DriverButtons.settings.city.callback)],
 		[Markup.button.callback(car, DriverButtons.settings.car.callback)],
 		[

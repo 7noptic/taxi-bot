@@ -20,6 +20,9 @@ export const DriverButtons = {
 		phone: {
 			callback: 'edit-driver-phone',
 		},
+		email: {
+			callback: 'edit-driver-email',
+		},
 		city: {
 			callback: 'edit-driver-city',
 		},

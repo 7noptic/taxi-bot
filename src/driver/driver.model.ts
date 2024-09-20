@@ -27,6 +27,9 @@ export class Driver {
 	@Prop({ type: String })
 	phone: string;
 
+	@Prop({ type: String })
+	email: string;
+
 	@Prop({ type: Number, unique: true })
 	chatId: number;
 

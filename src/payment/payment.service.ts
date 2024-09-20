@@ -5,9 +5,6 @@ import { Payment, PaymentDocument } from './payment.model';
 import { Model } from 'mongoose';
 import { TypeId } from '../short-id/Enums/type-id.enum';
 import { ShortIdService } from '../short-id/short-id.service';
-import { QueueType } from '../types/queue.type';
-import { InjectQueue } from '@nestjs/bull';
-import { Queue } from 'bull';
 import { DriverService } from '../driver/driver.service';
 import { PaymentStatus } from './enum/payment-status';
 import { Cron } from '@nestjs/schedule';
@@ -34,8 +31,8 @@ export class PaymentService {
 	constructor(
 		@InjectBot(BotName.Taxi) private readonly bot: Telegraf<TaxiBotContext>,
 		@InjectModel(Payment.name) private paymentModel: Model<PaymentDocument>,
-		@InjectQueue(QueueType.Payment) private readonly paymentQueue: Queue,
-		@InjectQueue(QueueType.Blocked) private readonly blockedQueue: Queue,
+		// @InjectQueue(QueueType.Payment) private readonly paymentQueue: Queue,
+		// @InjectQueue(QueueType.Blocked) private readonly blockedQueue: Queue,
 		private readonly shortIdService: ShortIdService,
 		private readonly driverService: DriverService,
 		private readonly orderService: OrderService,
@@ -157,9 +154,10 @@ export class PaymentService {
 		);
 	}
 
-	createTGPayload(price: number, phoneString: string): ICreatePayment {
+	createTGPayload(price: number, driverEmail: string): ICreatePayment {
 		const convertedPrice: string = Math.round(price / 100).toFixed(2);
-		const phone = `+${phoneString.replace(/[^0-9]/g, '')}`;
+		// const phone = `+${phoneString.replace(/[^0-9]/g, '')}`;
+		const email = !!driverEmail ? driverEmail : 'test@gmail.com';
 		return {
 			amount: {
 				value: convertedPrice,
@@ -175,7 +173,7 @@ export class PaymentService {
 			},
 			receipt: {
 				customer: {
-					phone,
+					email,
 				},
 				items: [
 					{
@@ -187,7 +185,7 @@ export class PaymentService {
 						payment_subject: 'service',
 					},
 				],
-				phone,
+				email,
 			},
 		};
 	}

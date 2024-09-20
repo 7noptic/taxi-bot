@@ -140,6 +140,7 @@ export class ConstantsService {
 
 	static readonly getProfileInfoDriver = (driver: Driver) =>
 		ConstantsService.getProfileInfoDefault(driver) +
+		`Email: <b>${!!driver.email ? driver.email : 'Не указан'}\n</b>` +
 		`Приоритет: <b>${driver.priority}/${ConstantsService.defaultPriority}⚡️</b>` +
 		`\n\n` +
 		`ℹ️ Чем выше приоритет, тем быстрее Вы получаете новые заказы` +

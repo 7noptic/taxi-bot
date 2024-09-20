@@ -20,7 +20,7 @@ import { session } from 'telegraf';
 import { TaxiBotModule } from '../taxi-bot/taxi-bot.module';
 import { BotName } from '../types/bot-name.type';
 import { HelpBotModule } from '../help-bot/help-bot.module';
-import { BullModule } from '@nestjs/bull';
+// import { BullModule } from '@nestjs/bull';
 import { PaymentModule } from '../payment/payment.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { ThrottlerModule } from '@nestjs/throttler';
@@ -51,19 +51,19 @@ import { NoteModule } from '../note/note.module';
 				limit: 10,
 			},
 		]),
-		BullModule.forRootAsync({
-			imports: [ConfigModule],
-			inject: [ConfigService],
-			useFactory: async (configService: ConfigService) => {
-				return {
-					redis: {
-						password: configService.get('REDIS_PASSWORD'),
-						host: configService.get('REDIS_HOST'),
-						port: configService.get('REDIS_PORT'),
-					},
-				};
-			},
-		}),
+		// BullModule.forRootAsync({
+		// 	imports: [ConfigModule],
+		// 	inject: [ConfigService],
+		// 	useFactory: async (configService: ConfigService) => {
+		// 		return {
+		// 			redis: {
+		// 				password: configService.get('REDIS_PASSWORD'),
+		// 				host: configService.get('REDIS_HOST'),
+		// 				port: configService.get('REDIS_PORT'),
+		// 			},
+		// 		};
+		// 	},
+		// }),
 		ScheduleModule.forRoot(),
 		PaymentModule,
 		OrderModule,

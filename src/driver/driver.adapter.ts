@@ -14,6 +14,7 @@ export class DriverAdapter {
 				carBrand: info.carBrand,
 				carColor: info.carColor,
 			},
+			email: info.email,
 		};
 	}
 }

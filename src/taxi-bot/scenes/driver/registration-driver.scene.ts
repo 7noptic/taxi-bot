@@ -11,6 +11,7 @@ import {
 	WhatCarColor,
 	WhatCarNumber,
 	WhatCity,
+	WhatEmail,
 	WhatNameRegistrationDriver,
 	WhatNumberRegistrationDriver,
 } from '../../constatnts/message.constants';
@@ -20,7 +21,6 @@ import { TaxiBotCommonUpdate } from '../../updates/common.update';
 import { TaxiBotValidation } from '../../taxi-bot.validation';
 import { DriverAdapter } from '../../../driver/driver.adapter';
 import { RegistrationDriverContext } from '../../contexts/registration-driver.context';
-import { Markup } from 'telegraf';
 import { GetQueryData } from '../../../decorators/getCityFromInlineQuery.decorator';
 import { registrationKeyboard } from '../../keyboards/registration.keyboard';
 import { userInfo } from '../../../decorators/getUserInfo.decorator';
@@ -109,9 +109,8 @@ export class RegisterDriverScene {
 			const valid = this.taxiBotValidation.isPhone(msg.text);
 			if (valid === true) {
 				ctx.wizard.state.phone = msg.text;
-				const cities = await this.cityService.getAll();
 				await ctx
-					.replyWithHTML(WhatCity, selectCityKeyboard(cities))
+					.replyWithHTML(WhatEmail)
 					.catch((e) =>
 						this.loggerService.error('onNumberText: ' + ctx?.toString() + e?.toString()),
 					);
@@ -136,12 +135,8 @@ export class RegisterDriverScene {
 	): Promise<string> {
 		try {
 			ctx.wizard.state.phone = msg.contact.phone_number;
-			const cities = await this.cityService.getAll();
 			await ctx
-				.replyWithHTML(
-					WhatCity,
-					Markup.inlineKeyboard(cities.map((city) => Markup.button.callback(city.name, city.name))),
-				)
+				.replyWithHTML(WhatEmail)
 				.catch((e) =>
 					this.loggerService.error('onNumberContact: ' + ctx?.toString() + e?.toString()),
 				);
@@ -153,8 +148,35 @@ export class RegisterDriverScene {
 		}
 	}
 
-	@On('callback_query')
+	@On('text')
 	@WizardStep(4)
+	async onEmail(
+		@Ctx() ctx: WizardContext & RegistrationDriverContext,
+		@Message() msg: { text: string },
+	): Promise<string> {
+		try {
+			const valid = this.taxiBotValidation.isEmail(msg.text);
+			if (valid === true) {
+				ctx.wizard.state.email = msg.text;
+				const cities = await this.cityService.getAll();
+				await ctx
+					.replyWithHTML(WhatCity, selectCityKeyboard(cities))
+					.catch((e) => this.loggerService.error('onEmail: ' + ctx?.toString() + e?.toString()));
+
+				ctx?.wizard?.next();
+				return;
+			}
+			await ctx
+				.replyWithHTML(valid)
+				.catch((e) => this.loggerService.error('onEmail: ' + ctx?.toString() + e?.toString()));
+			return;
+		} catch (e) {
+			this.loggerService.error('onEmail: ' + ctx?.toString() + e?.toString());
+		}
+	}
+
+	@On('callback_query')
+	@WizardStep(5)
 	async onLocation(
 		@Ctx() ctx: WizardContext & TaxiBotContext & RegistrationDriverContext,
 		@GetQueryData() city: string,
@@ -180,7 +202,7 @@ export class RegisterDriverScene {
 	}
 
 	@On('text')
-	@WizardStep(5)
+	@WizardStep(6)
 	async onCarModel(
 		@Ctx() ctx: WizardContext & TaxiBotContext & RegistrationDriverContext,
 		@Message() msg: { text: string },
@@ -206,7 +228,7 @@ export class RegisterDriverScene {
 	}
 
 	@On('text')
-	@WizardStep(6)
+	@WizardStep(7)
 	async onCarColor(
 		@Ctx() ctx: WizardContext & TaxiBotContext & RegistrationDriverContext,
 		@Message() msg: { text: string },
@@ -232,7 +254,7 @@ export class RegisterDriverScene {
 	}
 
 	@On('text')
-	@WizardStep(7)
+	@WizardStep(8)
 	async onCarNumber(
 		@Ctx() ctx: WizardContext & TaxiBotContext & RegistrationDriverContext,
 		@userInfo() user,
@@ -254,6 +276,7 @@ export class RegisterDriverScene {
 					carNumber: state.carNumber,
 					carBrand: state.carBrand,
 					carColor: state.carColor,
+					email: state.email,
 				});
 				await ctx?.scene?.leave();
 				await this.driverService.create(createDriverDto);

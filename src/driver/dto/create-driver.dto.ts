@@ -20,6 +20,9 @@ export class CreateDriverDto {
 	phone: string;
 
 	@IsString()
+	email: string;
+
+	@IsString()
 	chatId: number;
 
 	@IsString()

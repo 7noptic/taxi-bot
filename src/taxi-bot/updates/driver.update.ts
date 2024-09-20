@@ -33,6 +33,7 @@ import {
 	startAccessOrderTypeCar,
 	startEditCar,
 	startEditCity,
+	startEditEmail,
 	startEditName,
 	startEditPhone,
 	startSuccessOrder,
@@ -166,7 +167,7 @@ export class TaxiBotDriverUpdate {
 			const callbackData = data.split('-');
 			const price = Number(callbackData[2]);
 
-			const { phone } = await this.driverService.findByChatId(chatId);
+			const { email } = await this.driverService.findByChatId(chatId);
 			const { numberPayment } = await this.paymentService.findByPriceNotPaidPayment(
 				chatId,
 				Math.round(price / 100),
@@ -176,7 +177,7 @@ export class TaxiBotDriverUpdate {
 				secretKey: this.configService.get('YOU_KASSA_SECRET_KEY'),
 			});
 			const idempotenceKey = numberPayment.split(' ')[1];
-			const payload = this.paymentService.createTGPayload(price, phone);
+			const payload = this.paymentService.createTGPayload(price, email);
 			const payment = await checkout
 				.createPayment(payload, idempotenceKey)
 				.catch((e) => this.loggerService.error('payCommission: ' + e?.toString()));
@@ -189,7 +190,7 @@ export class TaxiBotDriverUpdate {
 				}
 
 				await ctx.replyWithHTML(
-					linkForPayment(link),
+					linkForPayment(link, email),
 					IPaidKeyboard(payment.id, price, idempotenceKey),
 				);
 				return;
@@ -272,6 +273,7 @@ export class TaxiBotDriverUpdate {
 				first_name,
 				phone,
 				city,
+				email,
 				car: { carBrand, carColor, carNumber },
 				accessOrderType,
 			} = await this.driverService.findByChatId(chatId);
@@ -289,6 +291,7 @@ export class TaxiBotDriverUpdate {
 							city,
 							`${carColor} ${carBrand} | ${carNumber}`,
 							accessOrderType,
+							email,
 						).reply_markup,
 					},
 				)
@@ -325,6 +328,21 @@ export class TaxiBotDriverUpdate {
 				.catch((e) => this.loggerService.error('editPhone: ' + ctx?.toString() + e?.toString()));
 		} catch (e) {
 			this.loggerService.error('editPhone: ' + e?.toString());
+		}
+	}
+
+	@Throttle(throttles.send_message)
+	@Action(DriverButtons.settings.email.callback)
+	async editEmail(@Ctx() ctx: TaxiBotContext) {
+		try {
+			await ctx
+				.replyWithHTML(startEditEmail, backKeyboard())
+				.catch((e) => this.loggerService.error('editEmail: ' + ctx?.toString() + e?.toString()));
+			await ctx.scene
+				.enter(ScenesType.EditEmailDriver)
+				.catch((e) => this.loggerService.error('editEmail: ' + ctx?.toString() + e?.toString()));
+		} catch (e) {
+			this.loggerService.error('editEmail: ' + e?.toString());
 		}
 	}
 

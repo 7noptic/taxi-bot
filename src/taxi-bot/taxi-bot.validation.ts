@@ -1,5 +1,5 @@
 import { ConstantsService } from '../constants/constants.service';
-import { errorNumber } from './constatnts/message.constants';
+import { errorEmail, errorNumber } from './constatnts/message.constants';
 
 export class TaxiBotValidation {
 	checkMaxMinLengthString(value: string, min: number, max: number): true | string {
@@ -19,5 +19,13 @@ export class TaxiBotValidation {
 			return true;
 		}
 		return errorNumber + ConstantsService.repeatInputText;
+	}
+
+	isEmail(email: string): true | string {
+		const emailRegex = /^[A-Z0-9._%+-]+@[A-Z0-9-]+.+.[A-Z]{2,4}$/i;
+		if (emailRegex.test(email)) {
+			return true;
+		}
+		return errorEmail + ConstantsService.repeatInputText;
 	}
 }

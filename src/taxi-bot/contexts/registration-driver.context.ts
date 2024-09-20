@@ -7,6 +7,7 @@ export interface RegistrationDriverContext {
 			carBrand: string;
 			carColor: string;
 			carNumber: string;
+			email: string;
 		};
 	};
 }
