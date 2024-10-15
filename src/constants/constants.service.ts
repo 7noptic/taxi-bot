@@ -5,13 +5,14 @@ import { Driver } from '../driver/driver.model';
 import { OrdersInfoDto } from '../order/dto/orders-info.dto';
 import { AccessTypeOrder } from '../driver/Enum/access-type-order';
 import { UserType } from '../types/user.type';
-import { path } from 'app-root-path';
+import { ImageType } from '../files/types/image.type';
 
 @Injectable()
 export class ConstantsService {
 	static readonly taxiBotName = '@podvezy43_bot';
 	static readonly helpBotName = '@podvezy_help43_bot';
 	static readonly KirillName = '@podvezybothelp';
+	static readonly domain = 'http://taxi-bot-backend.ru:3000';
 	static readonly defaultRating = [5, 5, 5, 5, 5, 5, 5, 5, 5, 5];
 	static readonly defaultPriority = 10;
 	static readonly defaultCityPrice = 100;
@@ -39,15 +40,12 @@ export class ConstantsService {
 		'акцептируете Пользовательское ' +
 		'соглашение.';
 	static readonly supportTextDefault = `Для обращения в поддержку напишите этому боту ${ConstantsService.helpBotName}`;
-	static readonly images = {
-		profile: `http://taxi-bot-backend.ru:3000/static/images/profile.jpg`,
-		help: 'https://i.postimg.cc/FHQpH8dC/Picsart-24-06-04-00-11-05-807-1.jpg',
-		settings: 'https://i.postimg.cc/MGgNtt3C/Picsart-24-06-04-00-12-08-222-2.jpg',
-		addresses: 'https://i.postimg.cc/1zTh2yXY/Picsart-24-06-04-00-12-38-999-1.jpg',
-		commission: 'https://i.postimg.cc/050XJ8xR/Picsart-24-06-04-00-13-36-577-1.jpg',
-		statistic: 'https://i.postimg.cc/SKxWXhyd/Picsart-24-06-04-00-10-40-662-1.jpg',
-		inDrive: 'https://i.postimg.cc/bvp2nRLT/IMG-20240603-121843-1.jpg',
-	};
+	static readonly images: Record<ImageType, string> = Object.fromEntries(
+		Object.values(ImageType).map((imageName) => [
+			imageName,
+			`${ConstantsService.domain}/static/images/${imageName}.jpg`,
+		]),
+	) as Record<ImageType, string>;
 	static readonly GreetingDriverMessage =
 		'Супер, давай познакомимся немного поближе что-бы ты смог пользоваться нашим удобным сервисом.';
 	static readonly GreetingPassengerMessage =
