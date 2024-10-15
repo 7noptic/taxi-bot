@@ -40,7 +40,7 @@ export class ConstantsService {
 		'соглашение.';
 	static readonly supportTextDefault = `Для обращения в поддержку напишите этому боту ${ConstantsService.helpBotName}`;
 	static readonly images = {
-		profile: `taxi-bot-backend.ru/static/images/profile.jpg`,
+		profile: `http://taxi-bot-backend.ru:3000/static/images/profile.jpg`,
 		help: 'https://i.postimg.cc/FHQpH8dC/Picsart-24-06-04-00-11-05-807-1.jpg',
 		settings: 'https://i.postimg.cc/MGgNtt3C/Picsart-24-06-04-00-12-08-222-2.jpg',
 		addresses: 'https://i.postimg.cc/1zTh2yXY/Picsart-24-06-04-00-12-38-999-1.jpg',
