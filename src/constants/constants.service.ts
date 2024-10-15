@@ -5,6 +5,7 @@ import { Driver } from '../driver/driver.model';
 import { OrdersInfoDto } from '../order/dto/orders-info.dto';
 import { AccessTypeOrder } from '../driver/Enum/access-type-order';
 import { UserType } from '../types/user.type';
+import { path } from 'app-root-path';
 
 @Injectable()
 export class ConstantsService {
@@ -39,7 +40,7 @@ export class ConstantsService {
 		'соглашение.';
 	static readonly supportTextDefault = `Для обращения в поддержку напишите этому боту ${ConstantsService.helpBotName}`;
 	static readonly images = {
-		profile: 'https://i.postimg.cc/hjbsx0kb/Picsart-24-06-04-00-13-00-690-1.jpg',
+		profile: `taxi-bot-backend.ru/static/images/profile.jpg`,
 		help: 'https://i.postimg.cc/FHQpH8dC/Picsart-24-06-04-00-11-05-807-1.jpg',
 		settings: 'https://i.postimg.cc/MGgNtt3C/Picsart-24-06-04-00-12-08-222-2.jpg',
 		addresses: 'https://i.postimg.cc/1zTh2yXY/Picsart-24-06-04-00-12-38-999-1.jpg',

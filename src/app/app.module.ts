@@ -30,6 +30,7 @@ import { SocketService } from '../socket/socket.service';
 import { GracefulShutdownModule } from 'nestjs-graceful-shutdown';
 import { HealthModule } from '../health/health.module';
 import { NoteModule } from '../note/note.module';
+import { FilesModule } from '../files/files.module';
 
 @Module({
 	imports: [
@@ -51,6 +52,7 @@ import { NoteModule } from '../note/note.module';
 				limit: 10,
 			},
 		]),
+		FilesModule,
 		// BullModule.forRootAsync({
 		// 	imports: [ConfigModule],
 		// 	inject: [ConfigService],
