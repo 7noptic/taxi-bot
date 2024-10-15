@@ -20,4 +20,15 @@ export class PaymentController {
 			this.loggerService.error('createPayment Payment: ' + e?.toString());
 		}
 	}
+
+	@UseGuards(JwtGuard)
+	@UsePipes(new ValidationPipe())
+	@Post('blocked')
+	async blockedNotPaid() {
+		try {
+			return this.paymentService.sendBulkBlocked();
+		} catch (e) {
+			this.loggerService.error('blockedNotPaid: ' + e?.toString());
+		}
+	}
 }

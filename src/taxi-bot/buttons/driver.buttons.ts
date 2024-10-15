@@ -92,7 +92,7 @@ export const DriverButtons = {
 	payment: {
 		pay: {
 			label: '💵 Оплатить',
-			callback: 'call-payment-',
+			callback: 'c-p-',
 		},
 		iPaid: {
 			label: '✅ Оплатил',

@@ -43,7 +43,7 @@ export class ConstantsService {
 	static readonly images: Record<ImageType, string> = Object.fromEntries(
 		Object.values(ImageType).map((imageName) => [
 			imageName,
-			`${ConstantsService.domain}/static/images/${imageName}.jpg`,
+			`${ConstantsService.domain}/static/images/${imageName}.webp`,
 		]),
 	) as Record<ImageType, string>;
 	static readonly GreetingDriverMessage =

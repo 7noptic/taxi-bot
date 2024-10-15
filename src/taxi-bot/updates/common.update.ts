@@ -1,11 +1,11 @@
-import { Action, Ctx, Hears, InjectBot, On, Start, Update } from 'nestjs-telegraf';
+import { Action, Ctx, Hears, InjectBot, Start, Update } from 'nestjs-telegraf';
 import { Telegraf } from 'telegraf';
 import { PassengerService } from '../../passenger/passenger.service';
 import { DriverService } from '../../driver/driver.service';
 import { registrationKeyboard } from '../keyboards/registration.keyboard';
 import { TaxiBotContext } from '../taxi-bot.context';
 import { ChatId } from '../../decorators/getChatId.decorator';
-import { goBack, successfulPayment } from '../constatnts/message.constants';
+import { goBack } from '../constatnts/message.constants';
 import { commonButtons } from '../buttons/common.buttons';
 import { BotName } from '../../types/bot-name.type';
 import { ConstantsService } from '../../constants/constants.service';
@@ -268,31 +268,31 @@ export class TaxiBotCommonUpdate {
 	}
 
 	/************************** Оплата **************************/
-	@Throttle(throttles.send_message)
-	@On('pre_checkout_query')
-	async answerPreCheckoutQuery(@Ctx() ctx: TaxiBotContext) {
-		try {
-			await ctx.answerPreCheckoutQuery(true);
-		} catch (e) {
-			this.loggerService.error('answerPreCheckoutQuery: ' + e?.toString());
-		}
-	}
-
-	@Throttle(throttles.send_message)
-	@On('successful_payment')
-	async successfulPayment(
-		@Ctx()
-		ctx: TaxiBotContext & { update: { message: { successful_payment: { total_amount: number } } } },
-		@ChatId() chatId: number,
-	) {
-		try {
-			const price = Math.round(Number(ctx.update.message.successful_payment.total_amount / 100));
-			await this.paymentService.closePayment(chatId, price);
-			await ctx
-				.replyWithHTML(successfulPayment)
-				.catch((e) => this.loggerService.error('successfulPayment: ' + e?.toString()));
-		} catch (e) {
-			this.loggerService.error('successfulPayment: ' + e?.toString());
-		}
-	}
+	// @Throttle(throttles.send_message)
+	// @On('pre_checkout_query')
+	// async answerPreCheckoutQuery(@Ctx() ctx: TaxiBotContext) {
+	// 	try {
+	// 		await ctx.answerPreCheckoutQuery(true);
+	// 	} catch (e) {
+	// 		this.loggerService.error('answerPreCheckoutQuery: ' + e?.toString());
+	// 	}
+	// }
+	//
+	// @Throttle(throttles.send_message)
+	// @On('successful_payment')
+	// async successfulPayment(
+	// 	@Ctx()
+	// 	ctx: TaxiBotContext & { update: { message: { successful_payment: { total_amount: number } } } },
+	// 	@ChatId() chatId: number,
+	// ) {
+	// 	try {
+	// 		const price = Math.round(Number(ctx.update.message.successful_payment.total_amount / 100));
+	// 		await this.paymentService.closePayment(chatId, price);
+	// 		await ctx
+	// 			.replyWithHTML(successfulPayment)
+	// 			.catch((e) => this.loggerService.error('successfulPayment: ' + e?.toString()));
+	// 	} catch (e) {
+	// 		this.loggerService.error('successfulPayment: ' + e?.toString());
+	// 	}
+	// }
 }

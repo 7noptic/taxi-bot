@@ -49,26 +49,32 @@ export class PaymentService {
 		return this.paymentModel.find({ chatId, status: PaymentStatus.NotPaid }).exec();
 	}
 
-	async findByPriceNotPaidPayment(chatId: number, price: number): Promise<Payment> {
+	async findByPriceNotPaidPayment(
+		chatId: number,
+		price: number,
+		numberPayment: string,
+	): Promise<Payment> {
 		// console.log(chatId, price);
-		return this.paymentModel.findOne({ chatId, status: PaymentStatus.NotPaid, price }).exec();
+		return this.paymentModel
+			.findOne({ chatId, status: PaymentStatus.NotPaid, price, numberPayment })
+			.exec();
 	}
 
-	async closePayment(chatId: number, price: number) {
+	async closePayment(chatId: number, numberPayment: string) {
 		const payments = await this.findNotPaidPayment(chatId);
 		if (payments.length === 1) {
 			await this.driverService.unlockedUser(chatId);
 		}
 
-		const payment = this.paymentModel
+		const payment = await this.paymentModel
 			.findOneAndUpdate(
-				{ chatId, price },
+				{ chatId, numberPayment },
 				{
 					status: PaymentStatus.Paid,
 				},
 			)
 			.exec();
-
+		console.log(payment);
 		return payment;
 	}
 
@@ -101,8 +107,8 @@ export class PaymentService {
 					countOrder: count,
 				};
 
-				await this.createPayment(dto);
-
+				const newPayment = await this.createPayment(dto);
+				const paymentId = newPayment.numberPayment.split(' ')[1];
 				await this.bot.telegram.sendMessage(
 					chatId,
 					weeklyResultMessage(
@@ -114,7 +120,7 @@ export class PaymentService {
 					),
 					{
 						parse_mode: 'HTML',
-						reply_markup: callPaymentKeyboard(sumCommission).reply_markup,
+						reply_markup: callPaymentKeyboard(sumCommission, paymentId).reply_markup,
 					},
 				);
 				if (!!reviews && !!reviews?.length) {

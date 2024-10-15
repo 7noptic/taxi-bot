@@ -70,6 +70,7 @@ import { AlreadyLeavingKeyboard } from '../keyboards/passenger/already-leaving.k
 import { cancelOrderKeyboard } from '../keyboards/driver/cancel-order.keyboard';
 import { ICapturePayment, YooCheckout } from '@a2seven/yoo-checkout';
 import { IPaidKeyboard } from '../keyboards/driver/i-paid.keyboard';
+import { TypeId } from '../../short-id/Enums/type-id.enum';
 
 @Update()
 export class TaxiBotDriverUpdate {
@@ -118,6 +119,10 @@ export class TaxiBotDriverUpdate {
 			const payments: Payment[] = await this.paymentService.findNotPaidPayment(chatId);
 			const prevSumCommission =
 				payments.length > 0 ? payments.map((payment: Payment) => payment.price) : [];
+			const prevSumIDs =
+				payments.length > 0
+					? payments.map((payment: Payment) => payment.numberPayment.split(' ')[1])
+					: [];
 			const prevCountOrder =
 				payments.length > 0 ? payments.map((payment: Payment) => payment.countOrder) : [];
 
@@ -128,7 +133,6 @@ export class TaxiBotDriverUpdate {
 				driverCommissionServer > 0 && commissionExpiryDate > new Date()
 					? driverCommissionServer
 					: 0;
-
 			await ctx
 				.replyWithPhoto(
 					{
@@ -146,7 +150,7 @@ export class TaxiBotDriverUpdate {
 						parse_mode: 'HTML',
 						reply_markup:
 							prevSumCommission.length > 0
-								? callPaymentKeyboard(prevSumCommission).reply_markup
+								? callPaymentKeyboard(prevSumCommission, prevSumIDs).reply_markup
 								: undefined,
 					},
 				)
@@ -166,17 +170,20 @@ export class TaxiBotDriverUpdate {
 		try {
 			const callbackData = data.split('-');
 			const price = Number(callbackData[2]);
-
+			const numberPayment = callbackData[3];
+			// const numberPayment = `${TypeId.Payment} ${callbackData[3]}`;
+			// console.log(callbackData, price, numberPayment);
 			const { email } = await this.driverService.findByChatId(chatId);
-			const { numberPayment } = await this.paymentService.findByPriceNotPaidPayment(
-				chatId,
-				Math.round(price / 100),
-			);
+			// const { numberPayment } = await this.paymentService.findByPriceNotPaidPayment(
+			// 	chatId,
+			// 	Math.round(price / 100),
+			// 	numberPayment,
+			// );
 			const checkout = new YooCheckout({
 				shopId: this.configService.get('YOU_KASSA_SHOP_ID'),
 				secretKey: this.configService.get('YOU_KASSA_SECRET_KEY'),
 			});
-			const idempotenceKey = numberPayment.split(' ')[1];
+			const idempotenceKey = numberPayment;
 			const payload = this.paymentService.createTGPayload(price, email);
 			const payment = await checkout
 				.createPayment(payload, idempotenceKey)
@@ -191,7 +198,7 @@ export class TaxiBotDriverUpdate {
 
 				await ctx.replyWithHTML(
 					linkForPayment(link, email),
-					IPaidKeyboard(payment.id, price, idempotenceKey),
+					IPaidKeyboard(payment.id, price, idempotenceKey, numberPayment),
 				);
 				return;
 			}
@@ -199,7 +206,7 @@ export class TaxiBotDriverUpdate {
 			await ctx.replyWithHTML(errorValidation);
 		} catch (e) {
 			this.loggerService.error('payCommission: ' + e?.toString());
-			console.log(e);
+			// console.log(e);
 		}
 	}
 
@@ -219,9 +226,12 @@ export class TaxiBotDriverUpdate {
 		const paymentId = callbackData[2];
 		const price = Number(callbackData[3]);
 		const idempotenceKey = callbackData[4];
+		const numberPayment = `${TypeId.Payment} ${callbackData[5]}`;
+		// console.log(numberPayment, idempotenceKey);
 		const convertedPrice: string = Math.round(price / 100).toFixed(2);
 		try {
 			const payment = await checkout.getPayment(paymentId);
+			// console.log(payment);
 			if (payment) {
 				if (payment.status === 'waiting_for_capture') {
 					try {
@@ -238,20 +248,19 @@ export class TaxiBotDriverUpdate {
 						);
 						// console.log(payment);
 						if (!!payment) {
-							const myPayment = await this.paymentService.closePayment(
-								chatId,
-								Math.round(price / 100),
-							);
-							console.log(myPayment);
+							await this.paymentService.closePayment(chatId, numberPayment);
+							// console.log(myPayment);
 							await ctx.replyWithHTML(successfulPayment).catch((e) => {
-								console.log('checkPayment success no error: ' + e?.toString());
+								// console.log('checkPayment success no error: ' + e?.toString());
 								this.loggerService.error('checkPayment success no error: ' + e?.toString());
 							});
 						}
 					} catch (e) {
-						console.log('checkPayment: ' + e?.toString());
+						// console.log('checkPayment: ' + e?.toString());
 						this.loggerService.error('checkPayment: ' + e?.toString());
 					}
+				} else if (payment.status === 'succeeded') {
+					await ctx.replyWithHTML(successfulPayment);
 				} else {
 					await ctx.replyWithHTML(notPayment);
 				}
@@ -259,7 +268,7 @@ export class TaxiBotDriverUpdate {
 				await ctx.replyWithHTML(notPayment);
 			}
 		} catch (e: any) {
-			console.log('checkPayment: ' + e?.toString());
+			// console.log('checkPayment: ' + e?.toString());
 			this.loggerService.error('checkPayment: ' + e?.toString());
 		}
 	}
